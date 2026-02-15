@@ -8,11 +8,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(BWorld)
 
-add_executable(${PROJECT_NAME} entry_point.cpp)
+add_executable(${PROJECT_NAME} src/entry_point.cpp)
 
-add_subdirectory(BEngine)
-add_subdirectory(VkCore)
+
+
+add_subdirectory(include/GLFW)
+add_subdirectory(src/BEngine)
+add_subdirectory(src/VkCore)
+
 
 # target_include_directories(${PROJECT_NAME} PUBLIC BEngine VkCore)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE BEngine VkCore)
+target_link_libraries(${PROJECT_NAME} PRIVATE BEngine VkCore glfw)
