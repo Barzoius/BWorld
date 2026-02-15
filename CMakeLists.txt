@@ -29,13 +29,36 @@ endif()
 #----------------------------CHECK_ALL_SUBMODULES-----------------------------#  
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/include/glfw/CMakeLists.txt")
     message(FATAL_ERROR "GLFW submodules were not downloaded. GIT_SUBMODULE was turned off or failed")
-endif()           
+endif()         
+
+# Find Vulkan ( windows -- C:\VulkanSDK\1.4.321.1 )
+if(DEFINED ENV{VULKAN_SDK_PATH})
+    set(VULKAN_SDK_PATH $ENV{VULKAN_SDK_PATH})
+    set(Vulkan_INCLUDE_DIRS "${VULKAN_SDK_PATH}/Include")
+    set(Vulkan_LIBRARIES "${VULKAN_SDK_PATH}/Lib/vulkan-1.lib")  # Windows
+    set(Vulkan_FOUND TRUE)
+    message(STATUS "Using Vulkan SDK from VULKAN_SDK_PATH: ${VULKAN_SDK_PATH}")
+else()
+    find_package(Vulkan REQUIRED)
+    message(STATUS "Found Vulkan: include=${Vulkan_INCLUDE_DIRS}, lib=${Vulkan_LIBRARY}")
+endif()
+
+if(NOT Vulkan_FOUND)
+    message(FATAL_ERROR "Could not find Vulkan library!")
+endif()
+
 
 add_subdirectory(include/GLFW)
 add_subdirectory(src/BEngine)
 add_subdirectory(src/VkCore)
 
 
-# target_include_directories(${PROJECT_NAME} PUBLIC BEngine VkCore)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE BEngine VkCore glfw)
+target_include_directories(${PROJECT_NAME} PRIVATE ${Vulkan_INCLUDE_DIRS})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    glfw
+    BEngine
+    VkCore
+    ${Vulkan_LIBRARIES}
+)
