@@ -1,6 +1,9 @@
 add_library(VkCore STATIC
             VkRenderer.cpp
-            VkRenderer.hpp     
+            VkRenderer.hpp
+            
+            VkDevice.cpp
+            VkDevice.hpp
             )
 
 target_link_libraries(VkCore PRIVATE BEngine)

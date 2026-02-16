@@ -1,4 +1,19 @@
 add_library(BEngine STATIC
-            Renderer.cpp)
+            Engine.cpp
+            Engine.hpp
+            
+            Renderer.cpp
+            Renderer.hpp
+
+            Window.cpp
+            Window.hpp
+            
+            Scene.cpp
+            Scene.hpp
+            )
+            
+target_link_libraries(BEngine
+    PRIVATE glfw
+)
 
 target_include_directories(BEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
