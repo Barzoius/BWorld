@@ -24,6 +24,11 @@ if(NOT Vulkan_FOUND)
     message(FATAL_ERROR "Could not find Vulkan library!")
 endif()
 
+target_link_libraries(VkCore
+    PRIVATE glfw
+)
+
 # ------------------- Include & Link Vulkan only for VkCore ------------------- #
 target_include_directories(VkCore PRIVATE ${Vulkan_INCLUDE_DIRS})
 target_link_libraries(VkCore PRIVATE ${Vulkan_LIBRARIES})
+

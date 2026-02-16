@@ -13,7 +13,7 @@ Window::Window(WND_SPECS specs) : specs(specs)
                                           "world_1", 
                                           nullptr, 
                                           nullptr);
-    //if (!window->glfwWindow) throw std::runtime_error("Failed to create window");
+    //if (!window->glfwHandle) throw std::runtime_error("Failed to create window");
 }
 
 
