@@ -7,6 +7,8 @@
 #include "Engine.hpp"
 #include "Scene.hpp"
 
+#include "VkRenderer.hpp"
+
 
 int main()
 {
@@ -16,6 +18,11 @@ int main()
     specs.wnd_name = "WORLD_1";
     
     (void)Engine::Init(specs);
+
+    static VkRenderer vkR;
+    Engine::GetRenderer() = &vkR;
+    Engine::GetRenderer()->Initialize(Engine::GetRequiredVulkanExtensions());
+
 
     Scene* scene = new Scene();
 

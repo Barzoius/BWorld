@@ -28,7 +28,9 @@ target_link_libraries(VkCore
     PRIVATE glfw
 )
 
-# ------------------- Include & Link Vulkan only for VkCore ------------------- #
-target_include_directories(VkCore PRIVATE ${Vulkan_INCLUDE_DIRS})
-target_link_libraries(VkCore PRIVATE ${Vulkan_LIBRARIES})
+
+target_include_directories(VkCore PUBLIC ${Vulkan_INCLUDE_DIRS})
+target_link_libraries(VkCore PUBLIC ${Vulkan_LIBRARIES})
+
+target_include_directories(VkCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
