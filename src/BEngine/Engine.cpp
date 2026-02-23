@@ -22,11 +22,15 @@ std::vector<const char*> Engine::GetRequiredVulkanExtensions()
 {
     uint32_t count = 0;
     const char** glfwExt = glfwGetRequiredInstanceExtensions(&count);
-
     return std::vector<const char*>(glfwExt, glfwExt + count);
 }
 
 Window* Engine::GetWindow()
 {
     return window;
+}
+
+void Engine::Exit()
+{
+    renderer->Shutdown();
 }

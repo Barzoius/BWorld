@@ -29,7 +29,9 @@ int main()
 
     scene -> Run();
     scene -> Update();
-    //scene -> Exit();
+    scene -> Exit();
+
+    Engine::Exit();
 
     return 0;
 }
