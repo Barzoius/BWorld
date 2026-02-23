@@ -1,14 +1,16 @@
+#pragma once
+
 #include "vulkan/vulkan.h"
+//#include "PhysicalDevice.hpp"
 
 class VulkanDevice
 {
 public:
     void Initialize();
     void Cleanup();
+
 private:
-    void createInstance();
-private:
-    VkDevice device;
-    VkInstance instance;
-    VkQueue graphicsQueue;
+    //const PhysicalDevice& physicalDevice;
+    VkDevice handle{};
+
 };

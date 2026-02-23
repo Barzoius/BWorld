@@ -4,6 +4,14 @@ add_library(VkCore STATIC
             
             VkDevice.cpp
             VkDevice.hpp
+
+            Instance.hpp
+            Instance.cpp
+
+            PhysicalDevice.hpp
+            PhysicalDevice.cpp
+
+
             )
 
 target_link_libraries(VkCore PRIVATE BEngine)
