@@ -1,10 +1,15 @@
 #include "VkRenderer.hpp"
-#include <unordered_set>
-#include <algorithm>
+
+VkRenderer::VkRenderer() : instance(), physicalDevice(instance), logicalDevice(physicalDevice)
+{
+
+}
 
 void VkRenderer::Initialize(std::vector<const char*> exts) {
     std::cout << "VkRenderer initialized\n";
     instance.Initialize(exts);
+    physicalDevice.Initialize();
+    logicalDevice.Initialize();
 }
 
 void VkRenderer::RenderFrame() {
@@ -14,12 +19,6 @@ void VkRenderer::RenderFrame() {
 
 void VkRenderer::Shutdown() {
     std::cout << "VkRenderer shutdown\n";
-
-    // if (enableValidationLayers) 
-    //     DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-    
-    // vkDestroyInstance(instance, nullptr);
-
 }
 
 

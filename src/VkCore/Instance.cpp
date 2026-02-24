@@ -3,18 +3,6 @@
 #include <string>
 
 Instance::Instance() = default;
-
-Instance::Instance(std::vector<const char*> exts) : requiered_extensions(exts)
-{
-    std::cout << "Instance created\n";
-
-    if (enableValidationLayers)
-        requiered_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  
-
-    createInstance();
-    setupDebugMessenger();
-}
-
 Instance::~Instance()
 {
     std::cout << "Instance destructor\n";
@@ -27,7 +15,7 @@ Instance::~Instance()
 
 void Instance::Initialize(std::vector<const char*> exts)
 {
-    std::cout << "Instance created\n";
+    std::cout << "Instance Initialized\n";
 
     requiered_extensions = exts;
 

@@ -2,8 +2,8 @@ add_library(VkCore STATIC
             VkRenderer.cpp
             VkRenderer.hpp
             
-            VkDevice.cpp
-            VkDevice.hpp
+            LogicalDevice.hpp
+            LogicalDevice.cpp
 
             Instance.hpp
             Instance.cpp

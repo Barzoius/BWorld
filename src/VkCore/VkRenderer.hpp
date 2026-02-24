@@ -7,6 +7,8 @@
 #include <iostream>
 
 #include "Instance.hpp"
+#include "PhysicalDevice.hpp"
+#include "LogicalDevice.hpp"
 
 class VkRenderer : public Renderer
 {
@@ -15,7 +17,10 @@ public:
     void RenderFrame() override;
     void Shutdown() override;
 
+    VkRenderer();
+
 private:
-    Instance instance;    
-   
+    Instance instance;
+    PhysicalDevice physicalDevice;  
+    LogicalDevice logicalDevice;
 };

@@ -17,7 +17,7 @@ class Instance
 {
 public:
     Instance();
-    Instance(std::vector<const char*>);
+
     ~Instance();
 
     void Initialize(std::vector<const char*>);
