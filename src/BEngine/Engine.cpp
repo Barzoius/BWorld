@@ -1,11 +1,24 @@
 #include "Engine.hpp"
 #include <iostream>
-#include "GLFW/glfw3.h"
+
+#ifdef _WIN32
+    #define GLFW_EXPOSE_NATIVE_WIN32
+    #include <GLFW/glfw3native.h> // Win32-specific functions
+#elif defined(__linux__)
+    #ifdef USE_X11
+        #define GLFW_EXPOSE_NATIVE_X11
+        #include <GLFW/glfw3native.h> // X11-specific functions
+    #else // Wayland
+        #define GLFW_EXPOSE_NATIVE_WAYLAND
+        #include <GLFW/glfw3native.h> // Wayland-specific functions
+    #endif
+#endif
 
 
 
 Window* Engine::window = nullptr;
 Renderer* Engine::renderer = nullptr;
+
 
 
 void Engine::Init(const WND_SPECS &specs)
@@ -33,4 +46,21 @@ Window* Engine::GetWindow()
 void Engine::Exit()
 {
     renderer->Shutdown();
+}
+
+void Engine::setVulkanSurfaceInfo()
+{
+    VulkanSurfaceInfo surfaceInfo;
+
+    #ifdef _WIN32
+        surfaceInfo.hwnd = glfwGetWin32Window(window->GetHandle());
+    #elif defined(__linux__)
+    #ifdef USE_X11
+        surfaceInfo.display = glfwGetX11Display();
+        surfaceInfo.window  = reinterpret_cast<void*>(glfwGetX11Window(window));
+    #else // Wayland
+        surfaceInfo.display = glfwGetWaylandDisplay();
+        surfaceInfo.window  = glfwGetWaylandWindow(window);
+    #endif
+    #endif
 }

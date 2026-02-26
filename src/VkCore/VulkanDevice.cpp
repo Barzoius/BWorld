@@ -7,6 +7,9 @@ VulkanDevice::VulkanDevice(const Instance& i) : instance(i)
 
 VulkanDevice::~VulkanDevice()
 {
+    graphicsQueue.reset();
+    computeQueue.reset();
+
     if(handle != VK_NULL_HANDLE) 
     {
         vkDeviceWaitIdle(handle);
@@ -77,7 +80,7 @@ void VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
 
         if (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
             indices.computeFamily = i;
-
+         
         if (indices.isComplete())
             break; 
 
@@ -98,7 +101,7 @@ void VulkanDevice::createLogicalDevice()
     float queuePriority = 1.0f;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
-    VkPhysicalDeviceFeatures deviceFeatures{}; // should move this into physical device and make it requestable
+    VkPhysicalDeviceFeatures deviceFeatures{};
     
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -120,4 +123,10 @@ void VulkanDevice::createLogicalDevice()
 
     std::cout << "LogicalDevice created\n";
     
+}
+
+
+void VulkanDevice::createSurface()
+{
+
 }

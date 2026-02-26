@@ -3,7 +3,7 @@
 #include "vulkan/vulkan.h"
 
 #include "Instance.hpp"
-#include "Queue.hpp"
+#include "VulkanQueue.hpp"
 
 #include <optional>
 
@@ -23,24 +23,30 @@ private:
 
     void pickDevice();
     void createLogicalDevice();
+    void createQueue();
+    void createSurface();
+    
     void findQueueFamilies();
-
     bool isDeviceSuitable(VkPhysicalDevice);
     void findQueueFamilies(VkPhysicalDevice);
+    
 
 private:
     const Instance& instance;
     
     VkPhysicalDevice phyD{};
     VkDevice handle{};
+    VkSurfaceKHR surface{};
 
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphicsFamily;
+        std::optional<uint32_t> presentFamily;
         std::optional<uint32_t> computeFamily;
-        //std::optional<uint32_t> transferFamily;
+        
 
-        bool isComplete() {
+        bool isComplete() const {
             return graphicsFamily.has_value() &&
+                //    presentFamily.has_value() &&
                    computeFamily.has_value();
         }
     } indices;

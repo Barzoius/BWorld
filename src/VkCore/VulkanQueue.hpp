@@ -14,7 +14,7 @@ public:
     VkQueue getHandle() const;
 
 private:
-    //VkDevice device;
+    VkDevice device;
     uint32_t familyIndex;
     VkQueue handle;
 

@@ -2,9 +2,9 @@ add_library(VkCore STATIC
             VkRenderer.cpp
             VkRenderer.hpp
             
-            Queue.hpp
-            Queue.cpp
-            
+            VulkanQueue.hpp
+            VulkanQueue.cpp
+
             VulkanDevice.hpp
             VulkanDevice.cpp
             
