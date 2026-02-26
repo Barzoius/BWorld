@@ -1,5 +1,3 @@
-#include "Renderer.hpp"
-#include "GLFW/glfw3.h"
 #include <iostream>
 #include "glm/common.hpp"
 #include "glm/vec3.hpp"

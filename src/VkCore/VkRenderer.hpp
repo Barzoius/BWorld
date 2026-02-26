@@ -7,8 +7,7 @@
 #include <iostream>
 
 #include "Instance.hpp"
-#include "PhysicalDevice.hpp"
-#include "LogicalDevice.hpp"
+#include "VulkanDevice.hpp"
 
 class VkRenderer : public Renderer
 {
@@ -21,6 +20,5 @@ public:
 
 private:
     Instance instance;
-    PhysicalDevice physicalDevice;  
-    LogicalDevice logicalDevice;
+    VulkanDevice device;
 };

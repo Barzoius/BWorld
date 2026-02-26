@@ -1,15 +1,16 @@
 #include "VkRenderer.hpp"
 
-VkRenderer::VkRenderer() : instance(), physicalDevice(instance), logicalDevice(physicalDevice)
+VkRenderer::VkRenderer() : instance(), device(instance)
 {
 
 }
 
 void VkRenderer::Initialize(std::vector<const char*> exts) {
     std::cout << "VkRenderer initialized\n";
+    
     instance.Initialize(exts);
-    physicalDevice.Initialize();
-    logicalDevice.Initialize();
+    device.Initialize();
+
 }
 
 void VkRenderer::RenderFrame() {

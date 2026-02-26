@@ -2,14 +2,15 @@ add_library(VkCore STATIC
             VkRenderer.cpp
             VkRenderer.hpp
             
-            LogicalDevice.hpp
-            LogicalDevice.cpp
+            Queue.hpp
+            Queue.cpp
+            
+            VulkanDevice.hpp
+            VulkanDevice.cpp
+            
 
             Instance.hpp
             Instance.cpp
-
-            PhysicalDevice.hpp
-            PhysicalDevice.cpp
 
 
             )
