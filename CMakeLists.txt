@@ -41,8 +41,11 @@ endif()
 add_subdirectory(include/GLFW)
 add_subdirectory(include/GLM)
 
+add_subdirectory(src/RHI)
 add_subdirectory(src/BEngine)
 add_subdirectory(src/VkCore)
+
+
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

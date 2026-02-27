@@ -48,9 +48,10 @@ void Engine::Exit()
     renderer->Shutdown();
 }
 
-void Engine::setVulkanSurfaceInfo()
+
+SurfaceInfo Engine::GetSurfaceInfo()
 {
-    VulkanSurfaceInfo surfaceInfo;
+    SurfaceInfo surfaceInfo;
 
     #ifdef _WIN32
         surfaceInfo.hwnd = glfwGetWin32Window(window->GetHandle());
@@ -63,4 +64,6 @@ void Engine::setVulkanSurfaceInfo()
         surfaceInfo.window  = glfwGetWaylandWindow(window);
     #endif
     #endif
+
+    return surfaceInfo;
 }

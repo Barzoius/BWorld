@@ -12,7 +12,7 @@
 class VkRenderer : public Renderer
 {
 public:
-    void Initialize(std::vector<const char*>) override;
+    void Initialize(const std::vector<const char*>&, const SurfaceInfo&) override;
     void RenderFrame() override;
     void Shutdown() override;
 

@@ -3,14 +3,6 @@
 #include <vector>
 #include "Renderer.hpp"
 
-struct VulkanSurfaceInfo {
-#ifdef _WIN32
-    void* hwnd = nullptr;
-#elif defined(__linux__)
-    void* display = nullptr; // X11: Display*, Wayland: wl_display*
-    void* window  = nullptr; // X11: Window, Wayland: wl_surface*
-#endif
-};
 
 
 class Engine
@@ -28,13 +20,11 @@ class Engine
 
     static void Exit();
 
-    static void setVulkanSurfaceInfo();
+    static SurfaceInfo GetSurfaceInfo();
 
 private:
     static Window* window;
 public:
     static Renderer* renderer;
-
-    static VulkanSurfaceInfo vulkanSurfaceInfo;
-    
+ 
 };
