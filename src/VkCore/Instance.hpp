@@ -1,7 +1,20 @@
 #pragma once
+
+#ifdef _WIN32
+    #define VK_USE_PLATFORM_WIN32_KHR
+#elif defined(__linux__)
+    #ifdef USE_X11
+        #define VK_USE_PLATFORM_XLIB_KHR
+    #else // Wayland
+        #define VK_USE_PLATFORM_WAYLAND_KHR
+    #endif
+#endif
+
 #include "vulkan/vulkan.h"
 #include <vector>
 #include <iostream>
+
+#include "SurfaceInfo.hpp"
 
 const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
@@ -20,7 +33,7 @@ public:
 
     ~Instance();
 
-    void Initialize(std::vector<const char*>);
+    void Initialize(const std::vector<const char*>&, const SurfaceInfo&);
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -34,6 +47,7 @@ public:
 
 private:
     void createInstance();
+    void createSurface();
     void setupDebugMessenger();
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
@@ -44,6 +58,8 @@ public:
     VkDebugUtilsMessengerEXT debugMessenger{};
 
     std::vector<const char*> requiered_extensions;
+    SurfaceInfo surfaceInfo;
+    VkSurfaceKHR surface;
 };
 
 

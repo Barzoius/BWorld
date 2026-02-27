@@ -10,20 +10,23 @@ Instance::~Instance()
     if (enableValidationLayers) 
         DestroyDebugUtilsMessengerEXT(handle, debugMessenger, nullptr);
     
+    vkDestroySurfaceKHR(handle, surface, nullptr);
     vkDestroyInstance(handle, nullptr);
 }
 
-void Instance::Initialize(std::vector<const char*> exts)
+void Instance::Initialize(const std::vector<const char*>& exts, const SurfaceInfo& si)
 {
     std::cout << "Instance Initialized\n";
 
     requiered_extensions = exts;
+    surfaceInfo = si;
 
     if (enableValidationLayers)
         requiered_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  
 
     createInstance();
     setupDebugMessenger();
+    createSurface();
 }
 
 void Instance::createInstance()
@@ -69,6 +72,45 @@ void Instance::createInstance()
 
 }
 
+void Instance::createSurface()
+{
+#ifdef _WIN32
+    VkWin32SurfaceCreateInfoKHR createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    createInfo.hwnd = surfaceInfo.hwnd;
+    createInfo.hinstance = GetModuleHandle(nullptr);
+
+    if (vkCreateWin32SurfaceKHR(handle, &createInfo, nullptr, &surface) != VK_SUCCESS)
+        throw std::runtime_error("Failed to create Win32 surface!");
+    
+    std::cout << "Win32 surface created\n";
+
+#elif defined(__linux__)
+#ifdef USE_X11
+    VkXlibSurfaceCreateInfoKHR createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+    createInfo.dpy = static_cast<Display*>(info.display);
+    createInfo.window = static_cast<Window>(reinterpret_cast<uintptr_t>(info.window));
+
+    if (vkCreateXlibSurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS)
+        throw std::runtime_error("Failed to create X11 surface!");
+    
+    std::cout << "X11 surface created\n";
+    
+#else // Wayland
+    VkWaylandSurfaceCreateInfoKHR createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+    createInfo.display = static_cast<wl_display*>(info.display);
+    createInfo.surface = static_cast<wl_surface*>(info.window);
+
+    if (vkCreateWaylandSurfaceKHR(instance, &createInfo, nullptr, &surface) != VK_SUCCESS)
+        throw std::runtime_error("Failed to create Wayland surface!");
+    
+    std::cout << "WAYLAND surface created\n";
+    
+#endif
+#endif
+}
 
 bool Instance::checkExtensions()
 {

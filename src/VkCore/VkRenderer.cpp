@@ -8,7 +8,7 @@ VkRenderer::VkRenderer() : instance(), device(instance)
 void VkRenderer::Initialize(const std::vector<const char*>& exts, const SurfaceInfo& surface) {
     std::cout << "VkRenderer initialized\n";
     
-    instance.Initialize(exts);
+    instance.Initialize(exts, surface);
     device.Initialize();
 
 }
