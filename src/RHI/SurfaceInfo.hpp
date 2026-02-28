@@ -14,3 +14,9 @@ struct SurfaceInfo {
     void* window  = nullptr;
 #endif
 };
+
+struct Resolution
+{
+    int width;
+    int height;
+};

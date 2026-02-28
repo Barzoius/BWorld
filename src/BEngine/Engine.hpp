@@ -22,6 +22,8 @@ class Engine
 
     static SurfaceInfo GetSurfaceInfo();
 
+    static Resolution GetResolution();
+
 private:
     static Window* window;
 public:

@@ -12,10 +12,13 @@ public:
     void Wait();
 
     VkQueue getHandle() const;
+    void createQueue();
 
 private:
     VkDevice device;
     uint32_t familyIndex;
     VkQueue handle;
+
+    VkDeviceQueueCreateInfo queueCreateInfo{};
 
 };

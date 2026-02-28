@@ -19,7 +19,9 @@ int main()
 
     static VkRenderer vkR;
     Engine::GetRenderer() = &vkR;
-    Engine::GetRenderer()->Initialize(Engine::GetRequiredVulkanExtensions(), Engine::GetSurfaceInfo());
+    Engine::GetRenderer()->Initialize(Engine::GetRequiredVulkanExtensions(), 
+                                      Engine::GetSurfaceInfo(),
+                                      Engine::GetResolution());
 
 
     Scene* scene = new Scene();

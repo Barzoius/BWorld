@@ -12,6 +12,8 @@ add_library(VkCore STATIC
             Instance.hpp
             Instance.cpp
 
+            VulkanSwapchain.hpp
+            VulkanSwapchain.cpp
 
             )
 

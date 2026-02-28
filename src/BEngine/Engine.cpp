@@ -67,3 +67,11 @@ SurfaceInfo Engine::GetSurfaceInfo()
 
     return surfaceInfo;
 }
+
+Resolution Engine::GetResolution()
+{
+    Resolution res;;
+    glfwGetFramebufferSize(window->GetHandle(), &res.width, &res.height);
+    std::cout<<"RESOLUTION: "<< res.width <<" : "<<res.height<<"\n";
+    return res;
+}

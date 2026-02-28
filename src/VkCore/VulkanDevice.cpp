@@ -1,5 +1,7 @@
 #include "VulkanDevice.hpp"
 
+#include <set>
+
 VulkanDevice::VulkanDevice(const Instance& i) : instance(i)
 {
     std::cout << "VulkanDevice constructor\n";
@@ -22,6 +24,7 @@ void VulkanDevice::Initialize()
 {
     pickDevice();
     createLogicalDevice();
+    swapchain = std::make_unique<VulkanSwapchain>(phyD, instance.getSurfaceHandle());
 }
 
 void VulkanDevice::pickDevice()
@@ -54,13 +57,25 @@ void VulkanDevice::pickDevice()
     }
         
 
-    // std::cout << "PhysicalDevice picked\n";
+    std::cout << "PhysicalDevice picked\n";
 }
 
 bool VulkanDevice::isDeviceSuitable(VkPhysicalDevice device)
 {
     findQueueFamilies(device);
-    return indices.isComplete();
+
+    bool swapChainAdequate = false;
+    bool extensionsSupported = checkDeviceExtensionSupport(device);
+
+    if(extensionsSupported)
+    {
+        swapChainAdequate = !swapchain->querySwapChainSupport(device, instance.getSurfaceHandle()).formats.empty() &&
+                            !swapchain->querySwapChainSupport(device, instance.getSurfaceHandle()).presentModes.empty();
+
+    }
+
+    return indices.isComplete() && extensionsSupported;
+
 }
 
 void VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
@@ -81,6 +96,12 @@ void VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
         if (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
             indices.computeFamily = i;
          
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, instance.getSurfaceHandle(), &presentSupport);
+        if (presentSupport) 
+            indices.presentFamily = i;
+            
+
         if (indices.isComplete())
             break; 
 
@@ -90,7 +111,22 @@ void VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
     
 }
 
+bool VulkanDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
+{
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+    std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+    for (const auto& extension : availableExtensions) {
+        requiredExtensions.erase(extension.extensionName);
+    }
+
+    return requiredExtensions.empty();
+}
 
 void VulkanDevice::createLogicalDevice()
 {
@@ -109,7 +145,8 @@ void VulkanDevice::createLogicalDevice()
     createInfo.queueCreateInfoCount = 1; 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    createInfo.enabledExtensionCount = 0;
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
     if (enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -125,8 +162,3 @@ void VulkanDevice::createLogicalDevice()
     
 }
 
-
-void VulkanDevice::createSurface()
-{
-
-}

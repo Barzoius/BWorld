@@ -14,12 +14,15 @@ Instance::~Instance()
     vkDestroyInstance(handle, nullptr);
 }
 
-void Instance::Initialize(const std::vector<const char*>& exts, const SurfaceInfo& si)
+void Instance::Initialize(const std::vector<const char*>& exts, 
+                          const SurfaceInfo& si, 
+                          const Resolution& res)
 {
     std::cout << "Instance Initialized\n";
 
     requiered_extensions = exts;
     surfaceInfo = si;
+    resolution = res;
 
     if (enableValidationLayers)
         requiered_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  
@@ -111,6 +114,17 @@ void Instance::createSurface()
 #endif
 #endif
 }
+
+VkSurfaceKHR Instance::getSurfaceHandle() const
+{
+    return surface;
+}
+
+Resolution Instance::getResolution() const
+{
+    return resolution;
+}
+
 
 bool Instance::checkExtensions()
 {

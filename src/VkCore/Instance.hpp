@@ -33,7 +33,7 @@ public:
 
     ~Instance();
 
-    void Initialize(const std::vector<const char*>&, const SurfaceInfo&);
+    void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&);
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -44,6 +44,10 @@ public:
         return VK_FALSE;
     }
 
+
+    VkSurfaceKHR getSurfaceHandle() const;
+
+    Resolution getResolution() const;
 
 private:
     void createInstance();
@@ -59,6 +63,7 @@ public:
 
     std::vector<const char*> requiered_extensions;
     SurfaceInfo surfaceInfo;
+    Resolution resolution;
     VkSurfaceKHR surface;
 };
 
