@@ -12,6 +12,8 @@ VulkanDevice::~VulkanDevice()
     graphicsQueue.reset();
     computeQueue.reset();
 
+    vkDestroySwapchainKHR(handle, swapchain->getHandle(), nullptr);
+
     if(handle != VK_NULL_HANDLE) 
     {
         vkDeviceWaitIdle(handle);
@@ -24,7 +26,10 @@ void VulkanDevice::Initialize()
 {
     pickDevice();
     createLogicalDevice();
-    swapchain = std::make_unique<VulkanSwapchain>(phyD, instance.getSurfaceHandle());
+    swapchain = std::make_unique<VulkanSwapchain>(handle, phyD, instance.getSurfaceHandle(), 
+                                                        instance.getResolution().width, 
+                                                        instance.getResolution().height);
+    swapchain -> createSwapChain();
 }
 
 void VulkanDevice::pickDevice()

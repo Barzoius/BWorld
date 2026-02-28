@@ -8,19 +8,39 @@ struct SwapChainSupportDetails {
     std::vector<VkPresentModeKHR> presentModes;
 };
 
+enum class SwapchainColorMode {
+    SRGB,        
+    UNORM,      
+    HDR10,          
+    DontCare
+};
+
 class VulkanSwapchain
 {
-
 public:
-    VulkanSwapchain(const VkPhysicalDevice&, const VkSurfaceKHR&);
+    VulkanSwapchain(const VkDevice&, const VkPhysicalDevice&, const VkSurfaceKHR&, int, int);
+    ~VulkanSwapchain();
     static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice, VkSurfaceKHR);
 
-private:
+    void createSwapChain(); 
+    void recreateSwapchain();
+
+    VkSwapchainKHR getHandle() const;
 
 private:
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>&, SwapchainColorMode);
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>&);
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR&) ;
+private:
+    const VkDevice& device;
     const VkPhysicalDevice& phyD;
     const VkSurfaceKHR& surface;
-    VkSwapchainKHR swapChain{};
+    VkSwapchainKHR handle{};  
 
-    
+    int width;
+    int height;
+
+    std::vector<VkImage> swapChainImages;
+    VkFormat swapChainImageFormat;
+    VkExtent2D swapChainExtent;
 };
