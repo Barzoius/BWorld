@@ -19,11 +19,24 @@ add_library(VkCore STATIC
             VulkanImage.cpp
 
             Pipeline/VulkanPipeline.hpp
+            Pipeline/VulkanPipeline.cpp
+
             Pipeline/GraphicsPipeline.hpp
             Pipeline/ComputePipeline.hpp
 
             Pipeline/Shader.hpp
             Pipeline/Shader.cpp
+
+            Pipeline/ShaderType.hpp
+
+            Bindables/Bindable.hpp
+
+            Bindables/VertexBuffer.hpp
+            Bindables/VertexBuffer.cpp
+
+            Bindables/IndexBuffer.hpp
+            Bindables/IndexBuffer.cpp
+
 
             )
 
