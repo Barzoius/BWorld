@@ -23,8 +23,11 @@ public:
     static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice, VkSurfaceKHR);
 
     void createSwapChain(); 
-    void recreateSwapchain();
+    void createSwapChainImageViews();
+    void destroySwapChainImageViews();
 
+    void recreateSwapchain();
+    
     VkSwapchainKHR getHandle() const;
 
 private:
@@ -41,6 +44,8 @@ private:
     int height;
 
     std::vector<VkImage> swapChainImages;
+    std::vector<VkImageView> swapChainImageViews;
+
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
 };

@@ -12,6 +12,8 @@ VulkanDevice::~VulkanDevice()
     graphicsQueue.reset();
     computeQueue.reset();
 
+
+    swapchain->destroySwapChainImageViews();
     vkDestroySwapchainKHR(handle, swapchain->getHandle(), nullptr);
 
     if(handle != VK_NULL_HANDLE) 
@@ -30,6 +32,7 @@ void VulkanDevice::Initialize()
                                                         instance.getResolution().width, 
                                                         instance.getResolution().height);
     swapchain -> createSwapChain();
+    swapchain -> createSwapChainImageViews();
 }
 
 void VulkanDevice::pickDevice()

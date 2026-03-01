@@ -15,6 +15,16 @@ add_library(VkCore STATIC
             VulkanSwapchain.hpp
             VulkanSwapchain.cpp
 
+            VulkanImage.hpp
+            VulkanImage.cpp
+
+            Pipeline/VulkanPipeline.hpp
+            Pipeline/GraphicsPipeline.hpp
+            Pipeline/ComputePipeline.hpp
+
+            Pipeline/Shader.hpp
+            Pipeline/Shader.cpp
+
             )
 
 target_link_libraries(VkCore PRIVATE BEngine)
