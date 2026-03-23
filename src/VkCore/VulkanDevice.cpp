@@ -35,6 +35,13 @@ void VulkanDevice::Initialize()
     swapchain -> createSwapChainImageViews();
 }
 
+VkDevice VulkanDevice::get() const
+{
+    return handle;
+}
+
+VulkanSwapchain* VulkanDevice::getSwapchain() const { return swapchain.get(); }
+
 void VulkanDevice::pickDevice()
 {
         std::cout << "Instance handle at pickDevice = "

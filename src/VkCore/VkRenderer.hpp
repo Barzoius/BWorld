@@ -6,22 +6,29 @@
 #include <vector>
 #include <iostream>
 
-#include "Instance.hpp"
-#include "VulkanDevice.hpp"
+#include "VkContext.hpp"
+#include "Pipeline/GraphicsPipeline.hpp"
+
+#include "Pipeline/RenderPass.hpp"
+
 
 class VkRenderer : public Renderer
 {
 public:
-    void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&) override;
+    VkRenderer(VkContext& ctx) : Renderer(ctx), renderPass(ctx) {}
+    void Initialize(Context&) override;
     void RenderFrame() override;
     void Shutdown() override;
 
     void UpdateResolution(const Resolution&) override;
 
-    VkRenderer();
-
 private:
-    Instance instance;
-    VulkanDevice device;
+    RenderPass renderPass;
+
+    std::vector<std::unique_ptr<VulkanPipeline>> gfxPipelines;
+    std::vector<std::unique_ptr<VulkanPipeline>> computePipelines;
+    std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;
+    std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
+
     
 };

@@ -280,3 +280,22 @@ SwapChainSupportDetails VulkanSwapchain::querySwapChainSupport(VkPhysicalDevice 
     return details;
 }
 
+VkFormat VulkanSwapchain::getImageFormat() const
+{
+    return swapChainImageFormat;
+}
+
+
+VkExtent2D VulkanSwapchain::getExtent() const
+{
+    return swapChainExtent;
+}
+
+int VulkanSwapchain::getWidth() const
+{
+    return width;
+}
+int VulkanSwapchain::getHeight() const
+{
+    return height;
+}

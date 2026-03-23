@@ -30,6 +30,13 @@ public:
     
     VkSwapchainKHR getHandle() const;
 
+    VkFormat getImageFormat() const;
+    VkExtent2D getExtent() const;
+
+    int getWidth() const;
+    int getHeight() const;
+
+
 private:
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>&, SwapchainColorMode);
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>&);

@@ -11,6 +11,8 @@ enum class ShaderType
 
 };
 
+/** struct used for trait mapping the shader flag bits **/
+
 template<ShaderType>
 struct ShaderStageTraits;
 

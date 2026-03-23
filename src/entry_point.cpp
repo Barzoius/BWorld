@@ -7,6 +7,8 @@
 
 #include "VkRenderer.hpp"
 
+#include "VkContext.hpp"
+
 
 int main()
 {
@@ -17,11 +19,15 @@ int main()
     
     (void)Engine::Init(specs);
 
-    static VkRenderer vkR;
-    Engine::GetRenderer() = &vkR;
-    Engine::GetRenderer()->Initialize(Engine::GetRequiredVulkanExtensions(), 
+    
+    static VkContext context;
+    context.Initialize(Engine::GetRequiredVulkanExtensions(), 
                                       Engine::GetSurfaceInfo(),
                                       Engine::GetResolution());
+    static VkRenderer vkR(context);
+
+    Engine::GetRenderer() = &vkR;
+    Engine::GetRenderer()->Initialize(context);
 
 
     Scene* scene = new Scene();

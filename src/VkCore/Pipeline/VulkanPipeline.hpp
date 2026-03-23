@@ -1,10 +1,14 @@
 #pragma once
 #include "Shader.hpp"
+#include "VkContext.hpp"
 
+#include "RenderPass.hpp"
 
 class VulkanPipeline
 {
 public:
-    void createPipeline(Shader<ShaderType::VERTEX> vertex, Shader<ShaderType::FRAGMENT> fragment);
+	VulkanPipeline() = default;
+	virtual ~VulkanPipeline() = default;
+    void bindPipeline();   
 
 };

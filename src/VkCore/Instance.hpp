@@ -46,7 +46,6 @@ public:
 
 
     VkSurfaceKHR getSurfaceHandle() const;
-
     Resolution getResolution() const;
 
 private:

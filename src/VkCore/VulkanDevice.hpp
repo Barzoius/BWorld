@@ -23,6 +23,10 @@ public:
 
     //std::shared_ptr<VulkanQueue> transferQueue;
 
+    VulkanSwapchain* getSwapchain() const;
+
+    VkDevice get() const;
+
 private:
 
     void pickDevice();

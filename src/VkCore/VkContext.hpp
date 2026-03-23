@@ -1,0 +1,28 @@
+#pragma once
+
+#include "Context.hpp"
+
+#include "vulkan/vulkan.h"
+
+#include "Instance.hpp"
+#include "VulkanDevice.hpp"
+//#include "VulkanSwapchain.hpp"
+
+class VkContext : public Context
+{
+public:
+    VkContext();
+    ~VkContext() = default;
+    void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&) override;
+    void Destroy() override;
+
+    const VulkanDevice& getDevice() const { return device; }
+    const Instance& getInstance() const { return instance; }
+
+    
+
+private:
+    Instance instance;
+    VulkanDevice device;
+    
+};

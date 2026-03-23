@@ -1,4 +1,8 @@
 add_library(VkCore STATIC
+
+            VkContext.hpp
+            VkContext.cpp
+
             VkRenderer.cpp
             VkRenderer.hpp
             
@@ -22,12 +26,17 @@ add_library(VkCore STATIC
             Pipeline/VulkanPipeline.cpp
 
             Pipeline/GraphicsPipeline.hpp
+            Pipeline/GraphicsPipeline.cpp
+
             Pipeline/ComputePipeline.hpp
 
             Pipeline/Shader.hpp
             Pipeline/Shader.cpp
 
             Pipeline/ShaderType.hpp
+
+            Pipeline/RenderPass.hpp
+            Pipeline/RenderPass.cpp
 
             Bindables/Bindable.hpp
 
