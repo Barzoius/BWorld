@@ -3,16 +3,7 @@
 #include <string>
 
 Instance::Instance() = default;
-Instance::~Instance()
-{
-    std::cout << "Instance destructor\n";
-
-    if (enableValidationLayers) 
-        DestroyDebugUtilsMessengerEXT(handle, debugMessenger, nullptr);
-    
-    vkDestroySurfaceKHR(handle, surface, nullptr);
-    vkDestroyInstance(handle, nullptr);
-}
+Instance::~Instance() = default;
 
 void Instance::Initialize(const std::vector<const char*>& exts, 
                           const SurfaceInfo& si, 
@@ -30,6 +21,17 @@ void Instance::Initialize(const std::vector<const char*>& exts,
     createInstance();
     setupDebugMessenger();
     createSurface();
+}
+
+void Instance::Destroy()
+{
+    std::cout << "Instance destroyed\n";
+
+    if (enableValidationLayers) 
+        DestroyDebugUtilsMessengerEXT(handle, debugMessenger, nullptr);
+    
+    vkDestroySurfaceKHR(handle, surface, nullptr);
+    vkDestroyInstance(handle, nullptr);
 }
 
 void Instance::createInstance()

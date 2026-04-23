@@ -9,6 +9,7 @@ class RenderPass
 public:
     RenderPass(VkContext&);
     ~RenderPass();
+    void Destroy();
 
     void createRenderPass();
     VkRenderPass get() const;

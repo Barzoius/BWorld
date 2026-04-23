@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <memory>
 
 namespace fs = std::filesystem;
 
@@ -17,11 +18,7 @@ void VkRenderer::Initialize(Context& context)
     vertex = std::make_unique<Shader<ShaderType::VERTEX>>(vkContext, vert);
     fragment = std::make_unique<Shader<ShaderType::FRAGMENT>>(vkContext, frag);
 
-    renderPass.createRenderPass();
-   
-    // gfxPipelines.reserve(1);
-    // gfxPipelines.push_back(std::make_unique<GraphicsPipeline>());
-    // gfxPipelines[0]->createPipeline(device, *vertex, *fragment, renderPass);
+    CreateSwapChain();
 
 }
 
@@ -32,6 +29,19 @@ void VkRenderer::RenderFrame() {
 
 void VkRenderer::Shutdown() {
     std::cout << "VkRenderer shutdown\n";
+    
+    renderPass.Destroy();
+    vertex ->Destroy();
+    fragment -> Destroy();
+
+    if (swapchain)
+    {
+        vkDeviceWaitIdle(vkContext.getDevice().get());
+
+        swapchain->Destroy();
+        swapchain.reset();
+    }
+
 }
 
  void VkRenderer::UpdateResolution(const Resolution& res)
@@ -41,10 +51,11 @@ void VkRenderer::Shutdown() {
 
 void VkRenderer::CreateSwapChain()
 {
-    // swapchain = std::make_unique<VulkanSwapchain>(handle, phyD, instance.getSurfaceHandle(), 
-    //                                                     instance.getResolution().width, 
-    //                                                     instance.getResolution().height);
-    // swapchain -> createSwapChain();
-    // swapchain -> createSwapChainImageViews();
+
+    swapchain = std::make_unique<VulkanSwapchain>(vkContext.getDevice().get(), vkContext.getDevice().getPhyD(),  vkContext.getInstance().getSurfaceHandle(), 
+                                                         vkContext.getInstance().getResolution().width, 
+                                                         vkContext.getInstance().getResolution().height);
+    swapchain -> createSwapChain();
+    swapchain -> createSwapChainImageViews();
 
 }

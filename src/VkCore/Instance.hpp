@@ -34,7 +34,7 @@ public:
     ~Instance();
 
     void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&);
-
+    void Destroy();
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,

@@ -5,18 +5,29 @@
 #include <limits> 
 #include <algorithm>
 
-VulkanSwapchain::VulkanSwapchain(const VkDevice& d,
-                                 const VkPhysicalDevice& pd, 
-                                 const VkSurfaceKHR& s, int w, int h) : 
+VulkanSwapchain::VulkanSwapchain(VkDevice d,
+                                 VkPhysicalDevice pd, 
+                                VkSurfaceKHR s, int w, int h) : 
                                  device(d), phyD(pd), surface(s), width(w), height(h)
 {
-
+    std::cout << "Device handle: " << device << "\n";
 }
 
-VulkanSwapchain::~VulkanSwapchain()
-{
-    std::cout << "Swapchain DESTRUCTOR\n";
+VulkanSwapchain::~VulkanSwapchain() = default;
 
+void VulkanSwapchain::Destroy()
+{
+    
+    destroySwapChainImageViews();
+
+    if (handle != VK_NULL_HANDLE)
+    {
+        vkDestroySwapchainKHR(device, handle, nullptr);
+        handle = VK_NULL_HANDLE;
+    }
+    
+
+    std::cout << "Swapchain Destroyed\n";
 }
 
 VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats, SwapchainColorMode colorMode )
@@ -242,9 +253,15 @@ void VulkanSwapchain::createSwapChainImageViews()
 
 void VulkanSwapchain::destroySwapChainImageViews()
 {
+    
     for (auto imageView : swapChainImageViews) {
+
         vkDestroyImageView(device, imageView, nullptr);
+        
     }
+    swapChainImageViews.clear();
+    std::cout << "SwapChainImageViews Destroyed \n";
+
 }
 
 VkSwapchainKHR VulkanSwapchain::getHandle() const

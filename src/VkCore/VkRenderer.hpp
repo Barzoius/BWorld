@@ -29,9 +29,9 @@ public:
 
 private:
     VkContext& vkContext;
-    RenderPass renderPass;
     std::unique_ptr<VulkanSwapchain> swapchain;
 
+    RenderPass renderPass;
     std::vector<std::unique_ptr<VulkanPipeline>> gfxPipelines;
     std::vector<std::unique_ptr<VulkanPipeline>> computePipelines;
     std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;

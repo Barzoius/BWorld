@@ -14,5 +14,7 @@ void VkContext::Initialize(const std::vector<const char*>& exts,
 
 void VkContext::Destroy()
 {
-    
+    vkDeviceWaitIdle(device.get());
+    device.Destroy(); 
+    instance.Destroy();
 }

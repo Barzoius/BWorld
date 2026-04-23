@@ -4,7 +4,6 @@
 
 #include "VkUtils.hpp"
 
-
 enum class SwapchainColorMode {
     SRGB,        
     UNORM,      
@@ -15,10 +14,11 @@ enum class SwapchainColorMode {
 class VulkanSwapchain
 {
 public:
-    VulkanSwapchain(const VkDevice&, const VkPhysicalDevice&, const VkSurfaceKHR&, int, int);
+    VulkanSwapchain(VkDevice, VkPhysicalDevice, VkSurfaceKHR, int, int);
     ~VulkanSwapchain();
 
     void createSwapChain(); 
+    void Destroy();
     void createSwapChainImageViews();
     void destroySwapChainImageViews();
 
@@ -38,9 +38,9 @@ private:
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>&);
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR&) ;
 private:
-    const VkDevice& device;
-    const VkPhysicalDevice& phyD;
-    const VkSurfaceKHR& surface;
+    VkDevice device;
+    VkPhysicalDevice phyD;
+    VkSurfaceKHR surface;
     VkSwapchainKHR handle{};  
 
     int width;

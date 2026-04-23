@@ -20,6 +20,8 @@ public:
     ~Shader();
     VkShaderModule get() const;
 
+    void Destroy();
+
     VkPipelineShaderStageCreateInfo getStageInfo() const;
 private:
     void createShaderModule(const std::vector<char>&);
@@ -59,6 +61,12 @@ Shader<Stage>::Shader(VkContext& c, const std::string& path) : context(c)
 
 template <ShaderType Stage>
 Shader<Stage>::~Shader()
+{
+    // vkDestroyShaderModule(context.getDevice().get(), handle, nullptr);
+}
+
+template <ShaderType Stage>
+void Shader<Stage>::Destroy()
 {
     vkDestroyShaderModule(context.getDevice().get(), handle, nullptr);
 }

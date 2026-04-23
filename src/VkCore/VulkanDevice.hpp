@@ -16,6 +16,7 @@ public:
     ~VulkanDevice();
 
     void Initialize();
+    void Destroy();
 
     std::shared_ptr<VulkanQueue> graphicsQueue;
     std::shared_ptr<VulkanQueue> computeQueue;
@@ -26,6 +27,7 @@ public:
     VulkanSwapchain* getSwapchain() const;
 
     VkDevice get() const;
+    VkPhysicalDevice getPhyD() const;
 
 private:
 
@@ -45,7 +47,7 @@ private:
     VkDevice handle{};
     VkSurfaceKHR surface{};
 
-    std::unique_ptr<VulkanSwapchain> swapchain;
+    // std::unique_ptr<VulkanSwapchain> swapchain;
 
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphicsFamily;

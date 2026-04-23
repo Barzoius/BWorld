@@ -7,20 +7,19 @@ VulkanDevice::VulkanDevice(const Instance& i) : instance(i)
     std::cout << "VulkanDevice constructor\n";
 }
 
-VulkanDevice::~VulkanDevice()
+VulkanDevice::~VulkanDevice() = default;
+
+void VulkanDevice::Destroy()
 {
     graphicsQueue.reset();
     computeQueue.reset();
 
 
-    swapchain->destroySwapChainImageViews();
-    vkDestroySwapchainKHR(handle, swapchain->getHandle(), nullptr);
-
     if(handle != VK_NULL_HANDLE) 
     {
         vkDeviceWaitIdle(handle);
         vkDestroyDevice(handle, nullptr);
-        std::cout << "LogicalDevice destructor\n";
+        std::cout << "LogicalDevice detroyed\n";
     }
 }
 
@@ -28,11 +27,6 @@ void VulkanDevice::Initialize()
 {
     pickDevice();
     createLogicalDevice();
-    swapchain = std::make_unique<VulkanSwapchain>(handle, phyD, instance.getSurfaceHandle(), 
-                                                        instance.getResolution().width, 
-                                                        instance.getResolution().height);
-    swapchain -> createSwapChain();
-    swapchain -> createSwapChainImageViews();
 }
 
 VkDevice VulkanDevice::get() const
@@ -40,7 +34,11 @@ VkDevice VulkanDevice::get() const
     return handle;
 }
 
-VulkanSwapchain* VulkanDevice::getSwapchain() const { return swapchain.get(); }
+VkPhysicalDevice VulkanDevice::getPhyD() const
+{
+    return phyD;
+}
+
 
 void VulkanDevice::pickDevice()
 {

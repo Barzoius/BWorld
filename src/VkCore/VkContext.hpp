@@ -12,6 +12,8 @@ class VkContext : public Context
 public:
     VkContext();
     ~VkContext() = default;
+    VkContext(const VkContext&) = delete;
+    VkContext& operator=(const VkContext&) = delete;
     void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&) override;
     void Destroy() override;
 
