@@ -38,7 +38,6 @@ private:
     bool checkDeviceExtensionSupport(VkPhysicalDevice);
     void findQueueFamilies(VkPhysicalDevice);
     
-    
 
 private:
     const Instance& instance;    

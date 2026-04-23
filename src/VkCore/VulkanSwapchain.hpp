@@ -2,11 +2,8 @@
 #include "vulkan/vulkan.h"
 #include <vector>
 
-struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
-};
+#include "VkUtils.hpp"
+
 
 enum class SwapchainColorMode {
     SRGB,        
@@ -20,7 +17,6 @@ class VulkanSwapchain
 public:
     VulkanSwapchain(const VkDevice&, const VkPhysicalDevice&, const VkSurfaceKHR&, int, int);
     ~VulkanSwapchain();
-    static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice, VkSurfaceKHR);
 
     void createSwapChain(); 
     void createSwapChainImageViews();

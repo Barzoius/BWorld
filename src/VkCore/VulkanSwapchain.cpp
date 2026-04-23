@@ -164,7 +164,7 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& cap
 
 void VulkanSwapchain::createSwapChain()
 {
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(phyD, surface);
+    vkutil::SwapChainSupportDetails swapChainSupport = vkutil::QuerySwapChainSupport(phyD, surface);
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats, SwapchainColorMode::SRGB);
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -252,33 +252,6 @@ VkSwapchainKHR VulkanSwapchain::getHandle() const
     return handle;
 }
 
-
-
-SwapChainSupportDetails VulkanSwapchain::querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surf) 
-{
-    SwapChainSupportDetails details;
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surf, &details.capabilities);
-
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surf, &formatCount, nullptr);
-
-    if (formatCount != 0) {
-        details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surf, &formatCount, details.formats.data());
-    }
-
-    uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surf, &presentModeCount, nullptr);
-
-    if (presentModeCount != 0) {
-        details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surf, 
-                                                  &presentModeCount, details.presentModes.data());
-    }
-
-    return details;
-}
 
 VkFormat VulkanSwapchain::getImageFormat() const
 {

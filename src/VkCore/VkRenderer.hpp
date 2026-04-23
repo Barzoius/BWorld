@@ -2,6 +2,7 @@
 
 #include "vulkan/vulkan.h"
 #include "Renderer.hpp"
+#include "VkContext.hpp"
 
 #include <vector>
 #include <iostream>
@@ -11,19 +12,25 @@
 
 #include "Pipeline/RenderPass.hpp"
 
+#include "VulkanSwapchain.hpp"
 
 class VkRenderer : public Renderer
 {
 public:
-    VkRenderer(VkContext& ctx) : Renderer(ctx), renderPass(ctx) {}
+    VkRenderer(VkContext& ctx) : Renderer(ctx), vkContext(ctx), renderPass(ctx) {}
     void Initialize(Context&) override;
     void RenderFrame() override;
     void Shutdown() override;
 
     void UpdateResolution(const Resolution&) override;
 
+    void CreateSwapChain();
+    void RecreateSwapCahin();
+
 private:
+    VkContext& vkContext;
     RenderPass renderPass;
+    std::unique_ptr<VulkanSwapchain> swapchain;
 
     std::vector<std::unique_ptr<VulkanPipeline>> gfxPipelines;
     std::vector<std::unique_ptr<VulkanPipeline>> computePipelines;

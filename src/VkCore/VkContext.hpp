@@ -6,7 +6,6 @@
 
 #include "Instance.hpp"
 #include "VulkanDevice.hpp"
-//#include "VulkanSwapchain.hpp"
 
 class VkContext : public Context
 {
@@ -18,7 +17,6 @@ public:
 
     const VulkanDevice& getDevice() const { return device; }
     const Instance& getInstance() const { return instance; }
-
     
 
 private:

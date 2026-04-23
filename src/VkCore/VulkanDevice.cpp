@@ -1,5 +1,5 @@
 #include "VulkanDevice.hpp"
-
+#include "VkUtils.hpp"
 #include <set>
 
 VulkanDevice::VulkanDevice(const Instance& i) : instance(i)
@@ -67,7 +67,7 @@ void VulkanDevice::pickDevice()
 
     if (phyD == VK_NULL_HANDLE) 
     {
-        std::cout<< "ERRORRRp\n";
+        std::cout<< "ERRORRR\n";
         throw std::runtime_error("failed to find a suitable GPU!");
     }
         
@@ -84,12 +84,12 @@ bool VulkanDevice::isDeviceSuitable(VkPhysicalDevice device)
 
     if(extensionsSupported)
     {
-        swapChainAdequate = !swapchain->querySwapChainSupport(device, instance.getSurfaceHandle()).formats.empty() &&
-                            !swapchain->querySwapChainSupport(device, instance.getSurfaceHandle()).presentModes.empty();
+        swapChainAdequate = !vkutil::QuerySwapChainSupport(device, instance.getSurfaceHandle()).formats.empty() &&
+                            !vkutil::QuerySwapChainSupport(device, instance.getSurfaceHandle()).presentModes.empty();
 
     }
 
-    return indices.isComplete() && extensionsSupported;
+    return indices.isComplete() && extensionsSupported && swapChainAdequate;
 
 }
 

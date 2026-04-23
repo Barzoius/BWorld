@@ -8,12 +8,6 @@ namespace fs = std::filesystem;
 void VkRenderer::Initialize(Context& context) 
 {
     std::cout << "VkRenderer initialized\n";
-    
-    //auto& vkContext = dynamic_cast<VkContext&>(context);
-    auto& vkContext = static_cast<VkContext&>(context);
-
-    auto& device = vkContext.getDevice();
-    //auto& swapchain = vkContext.getSwapchain();
 
     std::string frag = "Shaders/base1.frag.spv";
     std::string vert = "Shaders/base1.vert.spv";
@@ -45,4 +39,12 @@ void VkRenderer::Shutdown() {
 
  }
 
+void VkRenderer::CreateSwapChain()
+{
+    // swapchain = std::make_unique<VulkanSwapchain>(handle, phyD, instance.getSurfaceHandle(), 
+    //                                                     instance.getResolution().width, 
+    //                                                     instance.getResolution().height);
+    // swapchain -> createSwapChain();
+    // swapchain -> createSwapChainImageViews();
 
+}

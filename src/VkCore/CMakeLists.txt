@@ -19,6 +19,9 @@ add_library(VkCore STATIC
             VulkanSwapchain.hpp
             VulkanSwapchain.cpp
 
+            VkUtils.hpp
+            VkUtils.cpp
+
             VulkanImage.hpp
             VulkanImage.cpp
 
