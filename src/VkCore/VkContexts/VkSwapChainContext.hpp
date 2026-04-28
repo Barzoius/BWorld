@@ -1,15 +1,15 @@
-// #include  "vulkan/vulkan.h"
-// #include "vector"
+#pragma once
 
-// struct VkSwapchainContext {
-//     VkSurfaceKHR surface;
+#include  "vulkan/vulkan.h"
+#include "vector"
 
-//     VkSwapchainKHR swapchain;
-//     VkFormat imageFormat;
-//     VkExtent2D extent;
+struct VkSwapchainContext {
+    VkSurfaceKHR surface;
 
-//     std::vector<VkImage> images;
-//     std::vector<VkImageView> imageViews;
+    VkSwapchainKHR swapchain;
+    VkFormat imageFormat;
+    VkExtent2D extent;
 
-//     std::vector<VkFramebuffer> framebuffers;
-// };
+    int width;
+    int height;
+};

@@ -3,16 +3,17 @@
 #include "vulkan/vulkan.h"
 
 #include "VkContext.hpp"
+#include "VkContexts/VkSwapChainContext.hpp"
 
 class RenderPass
 {
 public:
-    RenderPass(VkContext&);
+    RenderPass(VkContext&, const VkSwapchainContext&);
     ~RenderPass();
     void Destroy();
 
     void createRenderPass();
-    VkRenderPass get() const;
+    VkRenderPass getRenderPass() const;
 
 
     RenderPass(const RenderPass&) = delete;
@@ -21,4 +22,5 @@ public:
 private:
     VkRenderPass renderPass = VK_NULL_HANDLE;
     VkContext& context;
+    VkSwapchainContext swapchainContext;
 };

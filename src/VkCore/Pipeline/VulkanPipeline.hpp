@@ -10,5 +10,6 @@ public:
 	VulkanPipeline() = default;
 	virtual ~VulkanPipeline() = default;
     void bindPipeline();   
+	void Destroy();
 
 };

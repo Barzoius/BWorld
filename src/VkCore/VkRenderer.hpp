@@ -17,7 +17,7 @@
 class VkRenderer : public Renderer
 {
 public:
-    VkRenderer(VkContext& ctx) : Renderer(ctx), vkContext(ctx), renderPass(ctx) {}
+    VkRenderer(VkContext& ctx) : Renderer(ctx), vkContext(ctx){}
     void Initialize(Context&) override;
     void RenderFrame() override;
     void Shutdown() override;
@@ -25,13 +25,23 @@ public:
     void UpdateResolution(const Resolution&) override;
 
     void CreateSwapChain();
+    void CreateRenderPass();
+    void CreateGFXPipeline();
     void RecreateSwapCahin();
+
+    // things to move from here
+    void createFramebuffers();
 
 private:
     VkContext& vkContext;
     std::unique_ptr<VulkanSwapchain> swapchain;
+    std::unique_ptr<RenderPass> renderPass;
+    std::vector<VkFramebuffer> swapChainFramebuffers;
 
-    RenderPass renderPass;
+    VkSwapchainContext swapchainContext;
+
+    std::unique_ptr<GraphicsPipeline> gfxPipeline;
+    
     std::vector<std::unique_ptr<VulkanPipeline>> gfxPipelines;
     std::vector<std::unique_ptr<VulkanPipeline>> computePipelines;
     std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;

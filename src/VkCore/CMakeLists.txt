@@ -11,13 +11,14 @@ add_library(VkCore STATIC
 
             VulkanDevice.hpp
             VulkanDevice.cpp
-            
-
+        
             Instance.hpp
             Instance.cpp
 
             VulkanSwapchain.hpp
             VulkanSwapchain.cpp
+
+            VkContexts/VkSwapChainContext.hpp
 
             VkUtils.hpp
             VkUtils.cpp
@@ -26,7 +27,7 @@ add_library(VkCore STATIC
             VulkanImage.cpp
 
             Pipeline/VulkanPipeline.hpp
-            Pipeline/VulkanPipeline.cpp
+
 
             Pipeline/GraphicsPipeline.hpp
             Pipeline/GraphicsPipeline.cpp

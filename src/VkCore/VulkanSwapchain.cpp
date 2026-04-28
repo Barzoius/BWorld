@@ -289,3 +289,9 @@ int VulkanSwapchain::getHeight() const
 {
     return height;
 }
+
+
+std::vector<VkImageView> VulkanSwapchain::getImageViews()
+{
+    return swapChainImageViews;
+}
