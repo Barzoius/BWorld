@@ -1,0 +1,20 @@
+## To-Do 
+
+- [ ] Build base arhitecture until first 
+    - Modify Queue class
+    - Group the frame resources
+- [ ] Do UML and Dependency graphs
+- [ ] Do OpenGL test renderer
+- [ ] Check Linux compatibilty
+- [ ] Do complete input system
+- [ ] Integrate Bindables
+- [ ] Redo UML and Dependency graphs
+- [ ] Integrate ImGUI or QT
+- [ ] Move to 3D
+- [ ] Add Camera 
+-----
+- [ ] Add other relevant things
+- [ ] Move to bindless
+- [ ] Add Compute Shaders
+-----
+- [ ] Actual project please

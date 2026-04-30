@@ -22,18 +22,23 @@ void VkRenderer::Initialize(Context& context)
     CreateRenderPass();
     CreateGFXPipeline();
     createFramebuffers();
+    CreateCommandPool();
 
 }
 
 void VkRenderer::RenderFrame() {
-    std::cout << "VkRenderer rendering frame\n";
-   
+    
+   //vkWaitForFences(vkContext.getDevice().get(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
 }
 
 void VkRenderer::Shutdown() {
     std::cout << "VkRenderer shutdown\n";
     
     vkDeviceWaitIdle(vkContext.getDevice().get());
+
+    // vkDestroySemaphore(vkContext.getDevice().get(), imageAvailableSemaphore, nullptr);
+    // vkDestroySemaphore(vkContext.getDevice().get(), renderFinishedSemaphore, nullptr);
+    // vkDestroyFence(vkContext.getDevice().get(), inFlightFence, nullptr);
 
     for (auto framebuffer : swapChainFramebuffers) {
         vkDestroyFramebuffer(vkContext.getDevice().get(), framebuffer, nullptr);
@@ -65,6 +70,12 @@ void VkRenderer::Shutdown() {
         swapchain->Destroy();
         swapchain.reset();
     }
+    if(commandPool)
+    {
+        commandPool->Destroy();
+        commandPool.reset();
+    }
+
 
 }
 
@@ -126,4 +137,29 @@ void VkRenderer::createFramebuffers()
     }
 
     std::cout<<"FrameBuffers Created\n";
+}
+
+void VkRenderer::CreateCommandPool()
+{
+    commandPool = std::make_unique<VulkanCommandPool>(vkContext, swapchainContext, *renderPass, swapChainFramebuffers);
+
+    commandPool.get()->Initialize();
+}
+
+
+void VkRenderer::createSyncObjects()
+{
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    if (vkCreateSemaphore(vkContext.getDevice().get(), &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+    vkCreateSemaphore(vkContext.getDevice().get(), &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
+    vkCreateFence(vkContext.getDevice().get(), &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create semaphores!");
+    }
+
 }

@@ -1,6 +1,6 @@
 #include "VulkanCommandPool.hpp"
 
-VulkanCommandPool::VulkanCommandPool(VulkanDevice& d) : device(d)
+VulkanCommandPool::VulkanCommandPool(VkContext& c, VkSwapchainContext& sc, RenderPass& r, std::vector<VkFramebuffer>& swf) : context(c), swapchainContext(sc), renderPass(r), swapchainFrameBuffers(swf)
 {
     std::cout << "CommandPool constructor\n";
 
@@ -8,14 +8,14 @@ VulkanCommandPool::VulkanCommandPool(VulkanDevice& d) : device(d)
 
 void VulkanCommandPool::Initialize()
 {
-    QueueFamilyIndices queueFamilyIndices = device.indices;
+    vkutil::QueueFamilyIndices queueFamilyIndices = context.getDevice().getDeviceIndices();
 
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-    if (vkCreateCommandPool(device.get(), &poolInfo, nullptr, &handle) != VK_SUCCESS) {
+    if (vkCreateCommandPool(context.getDevice().get(), &poolInfo, nullptr, &handle) != VK_SUCCESS) {
         throw std::runtime_error("failed to create command pool!");
     }
 
@@ -26,9 +26,13 @@ void VulkanCommandPool::Initialize()
 VulkanCommandPool::~VulkanCommandPool()
 {
     
-    vkDestroyCommandPool(device.get(), handle, nullptr);
-    std::cout << "CommandPool destructor\n";
 
+}
+
+void VulkanCommandPool::Destroy()
+{
+    vkDestroyCommandPool(context.getDevice().get(), handle, nullptr);
+    std::cout << "CommandPool destroyed\n";
 }
 
 void VulkanCommandPool::initBuffer()
@@ -39,28 +43,33 @@ void VulkanCommandPool::initBuffer()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    if (vkAllocateCommandBuffers(device.get(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(context.getDevice().get(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
     }
 }
 
 void VulkanCommandPool::recordCommandBuffer(uint32_t imageIndex)
 {
-//     VkCommandBufferBeginInfo beginInfo{};
-//     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-//     beginInfo.flags = 0; // Optional
-//     beginInfo.pInheritanceInfo = nullptr; // Optional
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = 0; // Optional
+    beginInfo.pInheritanceInfo = nullptr; // Optional
 
-//     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-//         throw std::runtime_error("failed to begin recording command buffer!");
-//     }
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }
 
-//     VkRenderPassBeginInfo renderPassInfo{};
-//     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-//     renderPassInfo.renderPass = renderPass;
-//     renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
-//     renderPassInfo.renderArea.offset = {0, 0};
-//     renderPassInfo.renderArea.extent = swapChainExtent;
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = renderPass.getRenderPass();
+    renderPassInfo.framebuffer = swapchainFrameBuffers[imageIndex];
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapchainContext.extent;
+    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
+
+    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 

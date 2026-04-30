@@ -4,10 +4,10 @@
 
 
 #include "Instance.hpp"
+#include "VkUtils.hpp"
 #include "VulkanQueue.hpp"
 #include "VulkanSwapchain.hpp"
 
-#include <optional>
 
 class VulkanDevice
 {
@@ -21,11 +21,11 @@ public:
     std::shared_ptr<VulkanQueue> graphicsQueue;
     std::shared_ptr<VulkanQueue> computeQueue;
     std::shared_ptr<VulkanQueue> presentQueue;
-
     //std::shared_ptr<VulkanQueue> transferQueue;
 
     VkDevice get() const;
     VkPhysicalDevice getPhyD() const;
+    vkutil::QueueFamilyIndices getDeviceIndices() const;
 
 private:
 
@@ -37,6 +37,7 @@ private:
     bool isDeviceSuitable(VkPhysicalDevice);
     bool checkDeviceExtensionSupport(VkPhysicalDevice);
     void findQueueFamilies(VkPhysicalDevice);
+
     
 
 private:
@@ -46,18 +47,7 @@ private:
     VkSurfaceKHR surface{};
 
 
-    struct QueueFamilyIndices {
-        std::optional<uint32_t> graphicsFamily;
-        std::optional<uint32_t> presentFamily;
-        std::optional<uint32_t> computeFamily;
-        
-
-        bool isComplete() const {
-            return graphicsFamily.has_value() &&
-                   presentFamily.has_value() &&
-                   computeFamily.has_value();
-        }
-    } indices;
+    vkutil::QueueFamilyIndices indices;
 
     const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME };

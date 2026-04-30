@@ -14,6 +14,8 @@
 
 #include "VulkanSwapchain.hpp"
 
+#include "VulkanCommandPool.hpp"
+
 class VkRenderer : public Renderer
 {
 public:
@@ -27,6 +29,7 @@ public:
     void CreateSwapChain();
     void CreateRenderPass();
     void CreateGFXPipeline();
+    void CreateCommandPool();
     void RecreateSwapCahin();
 
     // things to move from here
@@ -41,11 +44,18 @@ private:
     VkSwapchainContext swapchainContext;
 
     std::unique_ptr<GraphicsPipeline> gfxPipeline;
+
+    std::unique_ptr<VulkanCommandPool> commandPool;
     
     std::vector<std::unique_ptr<VulkanPipeline>> gfxPipelines;
     std::vector<std::unique_ptr<VulkanPipeline>> computePipelines;
     std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;
     std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
 
-    
+    /// everything here gets moved
+    VkSemaphore imageAvailableSemaphore;
+    VkSemaphore renderFinishedSemaphore;
+    VkFence inFlightFence;
+
+    void createSyncObjects();
 };

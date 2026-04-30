@@ -12,6 +12,8 @@ public:
 
     ~GraphicsPipeline() override;
 
+    void bindPipeline(VkCommandBuffer&) override;
+
     void createPipeline(const Shader<ShaderType::VERTEX>&, const Shader<ShaderType::FRAGMENT>&, RenderPass&);
 
     void createPiplineLayout();

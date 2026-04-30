@@ -23,6 +23,10 @@ add_library(VkCore STATIC
             VkUtils.hpp
             VkUtils.cpp
 
+            VulkanCommandPool.hpp
+            VulkanCommandPool.cpp
+
+
             VulkanImage.hpp
             VulkanImage.cpp
 

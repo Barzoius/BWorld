@@ -21,6 +21,7 @@ void Scene::Run()
 void Scene::Update()
 {
     window->PoolEvents();
+    Engine::GetRenderer()->RenderFrame();
 }
 
 

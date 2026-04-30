@@ -9,7 +9,7 @@ class VulkanPipeline
 public:
 	VulkanPipeline() = default;
 	virtual ~VulkanPipeline() = default;
-    void bindPipeline();   
+    virtual void bindPipeline(VkCommandBuffer&) = 0;   
 	void Destroy();
 
 };

@@ -175,3 +175,7 @@ void VulkanDevice::createLogicalDevice()
     
 }
 
+vkutil::QueueFamilyIndices VulkanDevice::getDeviceIndices() const
+{
+    return indices;
+}
