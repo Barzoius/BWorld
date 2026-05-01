@@ -1,10 +1,10 @@
 ## To-Do 
 
-- [x] Build base arhitecture until first 
+- [x] Build base arhitecture until first render
     - [ ] Modify Queue class
     - [ ] Group the frame resources
 - [ ] Naming standardization
-- [ ] Do UML and Dependency graphs
+- [x] Do UML and Dependency graphs
 - [ ] Do OpenGL test renderer
 - [ ] Check Linux compatibilty
 - [ ] Do complete input system
