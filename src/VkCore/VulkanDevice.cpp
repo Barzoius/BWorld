@@ -11,8 +11,8 @@ VulkanDevice::~VulkanDevice() = default;
 
 void VulkanDevice::Destroy()
 {
-    graphicsQueue.reset();
-    computeQueue.reset();
+    // graphicsQueue.reset();
+    // computeQueue.reset();
 
 
     if(handle != VK_NULL_HANDLE) 
@@ -172,7 +172,12 @@ void VulkanDevice::createLogicalDevice()
         throw std::runtime_error("failed to create logical device!");
 
     std::cout << "LogicalDevice created\n";
+
+    vkGetDeviceQueue(handle, indices.graphicsFamily.value(), 0, &graphicsQueue);
+    vkGetDeviceQueue(handle, indices.presentFamily.value(), 0, &presentQueue);
     
+    std::cout << "Queues handles created\n";
+
 }
 
 vkutil::QueueFamilyIndices VulkanDevice::getDeviceIndices() const

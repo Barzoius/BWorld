@@ -18,9 +18,9 @@ public:
     void Initialize();
     void Destroy();
 
-    std::shared_ptr<VulkanQueue> graphicsQueue;
-    std::shared_ptr<VulkanQueue> computeQueue;
-    std::shared_ptr<VulkanQueue> presentQueue;
+    // std::shared_ptr<VulkanQueue> graphicsQueue;
+    // std::shared_ptr<VulkanQueue> computeQueue;
+    // std::shared_ptr<VulkanQueue> presentQueue;
     //std::shared_ptr<VulkanQueue> transferQueue;
 
     VkDevice get() const;
@@ -39,7 +39,8 @@ private:
     void findQueueFamilies(VkPhysicalDevice);
 
     
-
+    
+    
 private:
     const Instance& instance;    
     VkPhysicalDevice phyD{};
@@ -51,4 +52,9 @@ private:
 
     const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+public:
+    // these have to be moved from here !!!
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
 };

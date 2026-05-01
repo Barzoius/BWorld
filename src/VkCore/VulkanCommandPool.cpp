@@ -29,6 +29,12 @@ VulkanCommandPool::~VulkanCommandPool()
 
 }
 
+VkCommandPool VulkanCommandPool::get_handle() const
+{
+    return handle;
+}
+
+
 void VulkanCommandPool::Destroy()
 {
     vkDestroyCommandPool(context.getDevice().get(), handle, nullptr);

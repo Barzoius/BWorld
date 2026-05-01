@@ -18,6 +18,9 @@ public:
 
     void createPiplineLayout();
 
+	VkPipeline get_handle() const override;
+
+
     void Destroy();
 
 private:

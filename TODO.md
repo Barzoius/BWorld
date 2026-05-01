@@ -1,8 +1,9 @@
 ## To-Do 
 
-- [ ] Build base arhitecture until first 
-    - Modify Queue class
-    - Group the frame resources
+- [x] Build base arhitecture until first 
+    - [ ] Modify Queue class
+    - [ ] Group the frame resources
+- [ ] Naming standardization
 - [ ] Do UML and Dependency graphs
 - [ ] Do OpenGL test renderer
 - [ ] Check Linux compatibilty
@@ -14,7 +15,10 @@
 - [ ] Add Camera 
 -----
 - [ ] Add other relevant things
+    - [ ] ??
+    - [ ] ??
 - [ ] Move to bindless
 - [ ] Add Compute Shaders
 -----
 - [ ] Actual project please
+    - [ ] ??

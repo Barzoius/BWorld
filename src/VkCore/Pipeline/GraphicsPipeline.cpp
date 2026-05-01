@@ -76,6 +76,11 @@ void GraphicsPipeline::bindPipeline(VkCommandBuffer& commandBuffer)
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 }
 
+VkPipeline GraphicsPipeline::get_handle() const
+{
+    return graphicsPipeline;
+}
+
 
 void GraphicsPipeline::createPiplineLayout()
 {

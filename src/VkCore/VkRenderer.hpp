@@ -57,5 +57,9 @@ private:
     VkSemaphore renderFinishedSemaphore;
     VkFence inFlightFence;
 
+    VkCommandBuffer commandBuffer{};
+
     void createSyncObjects();
+    void createCommandBuffer();
+    void recordCommandBuffer(uint32_t imageIndex);
 };

@@ -19,6 +19,8 @@ public:
 
     void initBuffer();
     void recordCommandBuffer(uint32_t imageIndex); 
+    
+    VkCommandPool get_handle() const;
 
 private:
     VkContext& context;
