@@ -2,6 +2,10 @@
 #include <string>
 #include "GLFW/glfw3.h"
 
+#include "Inputs/Keyboard.hpp"
+#include "Inputs/Mouse.hpp"
+
+
 struct WND_SPECS
 {
     std::string wnd_name;
@@ -27,12 +31,19 @@ public:
     void FullScreen();
 
     int ShouldClose() const;
+    void Close() const;
 
     void PoolEvents() const;
 
     GLFWwindow* GetHandle() const { return window.glfwHandle; }
 
+    void ProcessInput();
+
 private:
     WND_SPECS specs;
     WND_DATA window;
+
+public:
+    Keyboard keyboard;
+    Mouse mouse;
 };

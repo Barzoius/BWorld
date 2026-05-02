@@ -20,6 +20,9 @@ void Scene::Run()
 
 void Scene::Update()
 {
+    window->ProcessInput();
+    if(window->keyboard.WasPressed(GLFW_KEY_ESCAPE))
+        window->Close();
     window->PoolEvents();
     Engine::GetRenderer()->RenderFrame();
 }

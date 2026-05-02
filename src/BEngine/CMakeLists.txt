@@ -7,6 +7,15 @@ add_library(BEngine STATIC
             
             Scene.cpp
             Scene.hpp
+
+            Inputs/Keyboard.hpp
+            Inputs/Keyboard.cpp
+
+            Inputs/Mouse.hpp
+            Inputs/Mouse.cpp
+
+
+
             )
             
 target_link_libraries(BEngine

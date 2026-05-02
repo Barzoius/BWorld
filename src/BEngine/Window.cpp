@@ -20,6 +20,12 @@ int Window::ShouldClose() const
     return glfwWindowShouldClose(window.glfwHandle);
 }
 
+void Window::Close() const
+{
+    glfwSetWindowShouldClose(window.glfwHandle, true);
+}
+
+
 void Window::PoolEvents() const
 {
     glfwPollEvents();
@@ -29,4 +35,9 @@ Window::~Window()
 {
     if (window.glfwHandle)
         glfwDestroyWindow(window.glfwHandle);
+}
+
+void Window::ProcessInput()
+{    
+    keyboard.SetKey(GLFW_KEY_ESCAPE, glfwGetKey(window.glfwHandle, GLFW_KEY_ESCAPE));
 }
