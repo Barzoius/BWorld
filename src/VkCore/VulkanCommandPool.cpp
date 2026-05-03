@@ -8,14 +8,14 @@ VulkanCommandPool::VulkanCommandPool(VkContext& c, VkSwapchainContext& sc, Rende
 
 void VulkanCommandPool::Initialize()
 {
-    vkutil::QueueFamilyIndices queueFamilyIndices = context.getDevice().getDeviceIndices();
+    vkutil::QueueFamilyIndices queueFamilyIndices = context.get_device().getDeviceIndices();
 
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-    if (vkCreateCommandPool(context.getDevice().get(), &poolInfo, nullptr, &handle) != VK_SUCCESS) {
+    if (vkCreateCommandPool(context.get_device().get(), &poolInfo, nullptr, &handle) != VK_SUCCESS) {
         throw std::runtime_error("failed to create command pool!");
     }
 
@@ -37,7 +37,7 @@ VkCommandPool VulkanCommandPool::get_handle() const
 
 void VulkanCommandPool::Destroy()
 {
-    vkDestroyCommandPool(context.getDevice().get(), handle, nullptr);
+    vkDestroyCommandPool(context.get_device().get(), handle, nullptr);
     std::cout << "CommandPool destroyed\n";
 }
 
@@ -49,7 +49,7 @@ void VulkanCommandPool::initBuffer()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    if (vkAllocateCommandBuffers(context.getDevice().get(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(context.get_device().get(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
     }
 }

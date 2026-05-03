@@ -8,6 +8,9 @@
 - [ ] Do OpenGL test renderer
 - [ ] Check Linux compatibilty
 - [ ] Do complete input system
+    - [x] Keyboard
+    - [ ] Mouse
+    - [ ] Controller
 - [ ] Integrate Bindables
 - [ ] Redo UML and Dependency graphs
 - [ ] Integrate ImGUI or QT

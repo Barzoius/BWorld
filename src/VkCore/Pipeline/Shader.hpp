@@ -68,7 +68,7 @@ Shader<Stage>::~Shader()
 template <ShaderType Stage>
 void Shader<Stage>::Destroy()
 {
-    vkDestroyShaderModule(context.getDevice().get(), handle, nullptr);
+    vkDestroyShaderModule(context.get_device().get(), handle, nullptr);
 }
 
 template <ShaderType Stage>
@@ -78,7 +78,7 @@ void Shader<Stage>::createShaderModule(const std::vector<char>& code)
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = code.size();
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
-    if (vkCreateShaderModule(context.getDevice().get(), &createInfo, nullptr, &handle) != VK_SUCCESS) 
+    if (vkCreateShaderModule(context.get_device().get(), &createInfo, nullptr, &handle) != VK_SUCCESS) 
         throw std::runtime_error("failed to create shader module!");
 
     std::cout<<"Create Shader Module"<<std::endl;

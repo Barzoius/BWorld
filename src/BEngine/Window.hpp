@@ -42,7 +42,10 @@ private:
     void set_callbacks();
 private:
     static void s_keyboard_callback(GLFWwindow*, int, int, int, int);
-    static void s_mouse_callback(GLFWwindow*);
+    static void s_mouse_move_callback(GLFWwindow*, double, double);
+    static void s_mouse_buttons_callback(GLFWwindow*, int, int, int);
+    static void s_mouse_wheel_callback(GLFWwindow*, double, double);
+    static void s_mouse_enter_callback(GLFWwindow*, int);
 
 private:
     WND_SPECS specs;

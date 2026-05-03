@@ -34,11 +34,11 @@ void VkRenderer::Initialize(Context& context)
 
 void VkRenderer::RenderFrame() {
     
-    vkWaitForFences(vkContext.getDevice().get(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(vkContext.getDevice().get(), 1, &inFlightFence);
+    vkWaitForFences(vkContext.get_device().get(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(vkContext.get_device().get(), 1, &inFlightFence);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(vkContext.getDevice().get(), swapchain.get()->getHandle(), UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(vkContext.get_device().get(), swapchain.get()->getHandle(), UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     vkResetCommandBuffer(commandBuffer, 0);
     recordCommandBuffer(imageIndex);
@@ -59,7 +59,7 @@ void VkRenderer::RenderFrame() {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(vkContext.getDevice().graphicsQueue, 1, &submitInfo, inFlightFence) != VK_SUCCESS) 
+    if (vkQueueSubmit(vkContext.get_device().graphicsQueue, 1, &submitInfo, inFlightFence) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
@@ -77,20 +77,20 @@ void VkRenderer::RenderFrame() {
 
     presentInfo.pResults = nullptr; // Optional
 
-    vkQueuePresentKHR(vkContext.getDevice().presentQueue, &presentInfo);
+    vkQueuePresentKHR(vkContext.get_device().presentQueue, &presentInfo);
 }
 
 void VkRenderer::Shutdown() {
     std::cout << "VkRenderer shutdown\n";
     
-    vkDeviceWaitIdle(vkContext.getDevice().get());
+    vkDeviceWaitIdle(vkContext.get_device().get());
 
-    vkDestroySemaphore(vkContext.getDevice().get(), imageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(vkContext.getDevice().get(), renderFinishedSemaphore, nullptr);
-    vkDestroyFence(vkContext.getDevice().get(), inFlightFence, nullptr);
+    vkDestroySemaphore(vkContext.get_device().get(), imageAvailableSemaphore, nullptr);
+    vkDestroySemaphore(vkContext.get_device().get(), renderFinishedSemaphore, nullptr);
+    vkDestroyFence(vkContext.get_device().get(), inFlightFence, nullptr);
 
     for (auto framebuffer : swapChainFramebuffers) {
-        vkDestroyFramebuffer(vkContext.getDevice().get(), framebuffer, nullptr);
+        vkDestroyFramebuffer(vkContext.get_device().get(), framebuffer, nullptr);
     }
     swapChainFramebuffers.clear();
 
@@ -136,9 +136,9 @@ void VkRenderer::Shutdown() {
 void VkRenderer::CreateSwapChain()
 {
 
-    swapchain = std::make_unique<VulkanSwapchain>(vkContext.getDevice().get(), vkContext.getDevice().getPhyD(),  vkContext.getInstance().getSurfaceHandle(), 
-                                                         vkContext.getInstance().getResolution().width, 
-                                                         vkContext.getInstance().getResolution().height);
+    swapchain = std::make_unique<VulkanSwapchain>(vkContext.get_device().get(), vkContext.get_device().getPhyD(),  vkContext.get_instance().getSurfaceHandle(), 
+                                                         vkContext.get_instance().getResolution().width, 
+                                                         vkContext.get_instance().getResolution().height);
     swapchain -> createSwapChain();
     swapchain -> createSwapChainImageViews();
 
@@ -179,7 +179,7 @@ void VkRenderer::createFramebuffers()
         frameBufferInfo.height = swapchainContext.height;
         frameBufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(vkContext.getDevice().get(), &frameBufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) 
+        if (vkCreateFramebuffer(vkContext.get_device().get(), &frameBufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) 
         {
             throw std::runtime_error("failed to create framebuffer!");
         }
@@ -203,7 +203,7 @@ void VkRenderer::createCommandBuffer()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    if (vkAllocateCommandBuffers(vkContext.getDevice().get(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(vkContext.get_device().get(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
     }
 
@@ -270,9 +270,9 @@ void VkRenderer::createSyncObjects()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateSemaphore(vkContext.getDevice().get(), &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
-    vkCreateSemaphore(vkContext.getDevice().get(), &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
-    vkCreateFence(vkContext.getDevice().get(), &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
+    if (vkCreateSemaphore(vkContext.get_device().get(), &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+    vkCreateSemaphore(vkContext.get_device().get(), &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
+    vkCreateFence(vkContext.get_device().get(), &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
     throw std::runtime_error("failed to create semaphores!");
     }
 

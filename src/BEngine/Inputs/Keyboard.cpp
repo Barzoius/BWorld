@@ -21,11 +21,7 @@ bool Keyboard::KeyIsEmpty() const noexcept
     return keybuffer.empty();
 }
 
-void Keyboard::ClearKeyQueue() noexcept
-{
-    std::queue<Event> empty;
-    std::swap(keybuffer, empty);
-}
+void Keyboard::ClearKeyQueue() noexcept { while (!keybuffer.empty()) keybuffer.pop(); }
 
 void Keyboard::Clear() noexcept
 {

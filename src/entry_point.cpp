@@ -24,8 +24,8 @@ int main()
     context.Initialize(Engine::GetRequiredVulkanExtensions(), 
                                       Engine::GetSurfaceInfo(),
                                       Engine::GetResolution());
+                                      
     VkRenderer vkR(context);
-
     Engine::GetRenderer() = &vkR;
     Engine::GetRenderer()->Initialize(context);
 

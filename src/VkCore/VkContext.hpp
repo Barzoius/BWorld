@@ -17,8 +17,8 @@ public:
     void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&) override;
     void Destroy() override;
 
-    const VulkanDevice& getDevice() const { return device; }
-    const Instance& getInstance() const { return instance; }
+    const VulkanDevice& get_device() const { return device; }
+    const Instance& get_instance() const { return instance; }
     
 
 private:

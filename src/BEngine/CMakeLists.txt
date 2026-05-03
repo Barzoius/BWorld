@@ -14,8 +14,6 @@ add_library(BEngine STATIC
             Inputs/Mouse.hpp
             Inputs/Mouse.cpp
 
-
-
             )
             
 target_link_libraries(BEngine

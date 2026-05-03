@@ -14,7 +14,7 @@ RenderPass::~RenderPass()
 
 void RenderPass::Destroy()
 {
-    vkDestroyRenderPass(context.getDevice().get(), renderPass, nullptr);
+    vkDestroyRenderPass(context.get_device().get(), renderPass, nullptr);
 }
 
 void RenderPass::createRenderPass()
@@ -61,7 +61,7 @@ void RenderPass::createRenderPass()
     renderPassInfo.pDependencies = &dependency;
     //----------------------------
 
-    if (vkCreateRenderPass(context.getDevice().get(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+    if (vkCreateRenderPass(context.get_device().get(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
     }
 

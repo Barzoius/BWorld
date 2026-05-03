@@ -15,8 +15,8 @@ GraphicsPipeline::~GraphicsPipeline()
 
 void GraphicsPipeline::Destroy()
 {
-    vkDestroyPipeline(context.getDevice().get(), graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(context.getDevice().get(), pipelineLayout, nullptr);
+    vkDestroyPipeline(context.get_device().get(), graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(context.get_device().get(), pipelineLayout, nullptr);
 
     std::cout<<"GFXPipieline destroyed\n";
 
@@ -63,7 +63,7 @@ void GraphicsPipeline::createPipeline(const Shader<ShaderType::VERTEX>& vertex, 
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
     pipelineInfo.basePipelineIndex = -1; // Optional
 
-    if (vkCreateGraphicsPipelines(context.getDevice().get(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(context.get_device().get(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
@@ -91,7 +91,7 @@ void GraphicsPipeline::createPiplineLayout()
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
     pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-    if (vkCreatePipelineLayout(context.getDevice().get(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) 
+    if (vkCreatePipelineLayout(context.get_device().get(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create pipeline layout!");
     }
