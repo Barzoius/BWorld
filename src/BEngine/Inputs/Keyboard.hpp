@@ -6,7 +6,6 @@
 
 class Keyboard
 {
-    friend class Window;
 
 public:
     class Event
@@ -21,17 +20,17 @@ public:
 
         private:
             Type type;
-            unsigned char code;
+            int code;
 
         public:
             Event() noexcept : type(Type::Invalid), code(0u) {}
-            Event(Type type, unsigned char code) noexcept : type(type), code(code) {}
+            Event(Type type, int code) noexcept : type(type), code(code) {}
 
             bool IsPressed() const noexcept { return type == Type::Press; }
             bool IsReleased() const noexcept { return type == Type::Release; }
             bool IsValid() const noexcept { return type != Type::Invalid; }
 
-            unsigned char GetCode() const noexcept { return code; }
+            int GetCode() const noexcept { return code; }
     };
 
 public:
@@ -40,14 +39,11 @@ public:
     Keyboard& operator=(const Keyboard&) = delete;
 
 
-    bool KeyIsPressed(unsigned char) const noexcept;
-    Event ReadKey() noexcept;
+    bool KeyIsPressed(int) const noexcept;
+    std::optional<Event> ReadKey() noexcept;
     bool KeyIsEmpty() const noexcept;
-    void ClearQueue() noexcept;
+    void ClearKeyQueue() noexcept;
 
-    char ReadChar() noexcept;
-    bool CharIsEmpty() const noexcept;
-    void ClearChar() noexcept;
 
     void Clear() noexcept;
 
@@ -56,16 +52,15 @@ public:
     void DisableAutorepeat() noexcept;
     bool AutorepeatIsEnabled() const noexcept;
 
-private:
-    void OnKeyPressed(unsigned char keycode) noexcept;
-    void OnKeyReleased(unsigned char keycode) noexcept;
-    void OnChar(char character) noexcept;
+public:
+    void OnKeyPressed(int) noexcept;
+    void OnKeyReleased(int) noexcept;
 
     // clears the keystates
     void ClearState() noexcept;
 
-    template<class T>
-    static void TrimBuffer(std::queue<T>& buffer) noexcept;
+    template<class K>
+    static void TrimBuffer(std::queue<K>&) noexcept;
 
 private:
 
@@ -76,35 +71,6 @@ private:
     
     std::bitset<nKeys> keystates;
     std::queue<Event> keybuffer;
-    std::queue<char> charbuffer;
 
-
-    // to be deleted
-public:
-    void SetKey(int key, bool pressed)
-    {
-        if (pressed)
-            current.set(key);
-        else
-            current.reset(key);
-    }
-
-    bool IsDown(int key) const
-    {
-        return current.test(key);
-    }
-
-    bool WasPressed(int key) const
-    {
-        return current.test(key) && !previous.test(key);
-    }
-
-    void EndFrame()
-    {
-        previous = current;
-    }
-
-    std::bitset<nKeys> current;
-    std::bitset<nKeys> previous;
 
 };

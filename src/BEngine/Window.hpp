@@ -37,7 +37,12 @@ public:
 
     GLFWwindow* GetHandle() const { return window.glfwHandle; }
 
-    void ProcessInput();
+
+private:
+    void set_callbacks();
+private:
+    static void s_keyboard_callback(GLFWwindow*, int, int, int, int);
+    static void s_mouse_callback(GLFWwindow*);
 
 private:
     WND_SPECS specs;

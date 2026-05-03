@@ -1,6 +1,8 @@
 #include "Window.hpp"
 #include <stdexcept>
 
+#include <iostream>
+
 Window::Window(WND_SPECS specs) : specs(specs)
 {
     window.glfwHandle = glfwCreateWindow(
@@ -13,6 +15,8 @@ Window::Window(WND_SPECS specs) : specs(specs)
 
     if (!window.glfwHandle)
         throw std::runtime_error("Failed to create window");
+
+    set_callbacks();
 }
 
 int Window::ShouldClose() const
@@ -37,7 +41,25 @@ Window::~Window()
         glfwDestroyWindow(window.glfwHandle);
 }
 
-void Window::ProcessInput()
-{    
-    keyboard.SetKey(GLFW_KEY_ESCAPE, glfwGetKey(window.glfwHandle, GLFW_KEY_ESCAPE));
+
+void Window::set_callbacks()
+{
+    glfwSetWindowUserPointer(window.glfwHandle, this);
+    glfwSetKeyCallback(window.glfwHandle, s_keyboard_callback);
+}
+
+void Window::s_keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+    if (!win) return;
+
+    Keyboard& kbd = win->keyboard;
+
+    if(action == GLFW_PRESS)
+        kbd.OnKeyPressed(key);
+    else if(action == GLFW_RELEASE)
+        kbd.OnKeyReleased(key);
+    else if(action == GLFW_REPEAT && kbd.AutorepeatIsEnabled())
+        return; // not implemented yet
 }

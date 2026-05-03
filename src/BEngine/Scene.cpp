@@ -1,6 +1,7 @@
 #include "Engine.hpp"
 #include "Scene.hpp"
 
+#include "iostream"
 Scene::Scene()
 {
     window = Engine::GetWindow();
@@ -11,7 +12,6 @@ void Scene::Run()
 {
     if (!window)
         return;
-
     while (!window->ShouldClose())
         Update();
 
@@ -20,10 +20,19 @@ void Scene::Run()
 
 void Scene::Update()
 {
-    window->ProcessInput();
-    if(window->keyboard.WasPressed(GLFW_KEY_ESCAPE))
-        window->Close();
     window->PoolEvents();
+
+    while(auto e  = window->keyboard.ReadKey())
+    {
+        if(e->IsPressed())
+        {
+            if (e->GetCode() == GLFW_KEY_ESCAPE)
+            {
+                window->Close();
+            }
+        }
+    }
+    
     Engine::GetRenderer()->RenderFrame();
 }
 
