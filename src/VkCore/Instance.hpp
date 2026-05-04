@@ -33,8 +33,8 @@ public:
 
     ~Instance();
 
-    void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&);
-    void Destroy();
+    void initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&);
+    void destroy();
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -45,17 +45,18 @@ public:
     }
 
 
-    VkSurfaceKHR getSurfaceHandle() const;
-    Resolution getResolution() const;
+    VkSurfaceKHR get_surface_handle() const;
+    Resolution get_resolution() const;
+    VkInstance get_handle() const;
 
 private:
-    void createInstance();
-    void createSurface();
-    void setupDebugMessenger();
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+    void create_instance();
+    void create_surface();
+    void setup_debug_messenger();
+    void populate_debug_messenger_createinfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-    bool checkExtensions();
-    bool checkValidationLayerSupport();
+    bool check_extensions();
+    bool check_validation_layer_support();
 public:
     VkInstance handle{};
     VkDebugUtilsMessengerEXT debugMessenger{};

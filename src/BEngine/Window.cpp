@@ -19,21 +19,12 @@ Window::Window(WND_SPECS specs) : specs(specs)
     set_callbacks();
 }
 
-int Window::ShouldClose() const
-{
-    return glfwWindowShouldClose(window.glfwHandle);
-}
+int Window::should_close() const { return glfwWindowShouldClose(window.glfwHandle); }
 
-void Window::Close() const
-{
-    glfwSetWindowShouldClose(window.glfwHandle, true);
-}
+void Window::close() const { glfwSetWindowShouldClose(window.glfwHandle, true); }
 
 
-void Window::PoolEvents() const
-{
-    glfwPollEvents();
-}
+void Window::poll_events() const { glfwPollEvents(); }
 
 Window::~Window()
 {
@@ -61,10 +52,10 @@ void Window::s_keyboard_callback(GLFWwindow* window, int key, int scancode, int 
     Keyboard& kbd = win->keyboard;
 
     if(action == GLFW_PRESS)
-        kbd.OnKeyPressed(key);
+        kbd.on_key_pressed(key);
     else if(action == GLFW_RELEASE)
-        kbd.OnKeyReleased(key);
-    else if(action == GLFW_REPEAT && kbd.AutorepeatIsEnabled())
+        kbd.on_key_released(key);
+    else if(action == GLFW_REPEAT && kbd.autorepeat_is_enabled())
         return; // not implemented yet
 }
 

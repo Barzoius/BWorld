@@ -28,12 +28,12 @@ public:
     Window(WND_SPECS specs);
     ~Window();
 
-    void FullScreen();
+    void full_screen();
 
-    int ShouldClose() const;
-    void Close() const;
+    int should_close() const;
+    void close() const;
 
-    void PoolEvents() const;
+    void poll_events() const;
 
     GLFWwindow* GetHandle() const { return window.glfwHandle; }
 

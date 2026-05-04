@@ -18,7 +18,7 @@ VulkanSwapchain::~VulkanSwapchain() = default;
 void VulkanSwapchain::Destroy()
 {
     
-    destroySwapChainImageViews();
+    destroy_swapchain_image_views();
 
     if (handle != VK_NULL_HANDLE)
     {
@@ -30,7 +30,7 @@ void VulkanSwapchain::Destroy()
     std::cout << "Swapchain Destroyed\n";
 }
 
-VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats, SwapchainColorMode colorMode )
+VkSurfaceFormatKHR VulkanSwapchain::choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& formats, SwapchainColorMode colorMode )
 {
     if (formats.empty()) 
         throw std::runtime_error("No surface formats available");
@@ -126,7 +126,7 @@ VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<Vk
 }
 
 
-VkPresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+VkPresentModeKHR VulkanSwapchain::choose_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
 
     std::vector<VkPresentModeKHR > preffered = 
@@ -150,7 +150,7 @@ VkPresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const std::vector<VkPres
     
 }
 
-VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+VkExtent2D VulkanSwapchain::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities)
 {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
     {
@@ -177,9 +177,9 @@ void VulkanSwapchain::createSwapChain()
 {
     vkutil::SwapChainSupportDetails swapChainSupport = vkutil::QuerySwapChainSupport(phyD, surface);
 
-    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats, SwapchainColorMode::SRGB);
-    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+    VkSurfaceFormatKHR surfaceFormat = choose_swap_surface_format(swapChainSupport.formats, SwapchainColorMode::SRGB);
+    VkPresentModeKHR presentMode = choose_swap_present_mode(swapChainSupport.presentModes);
+    VkExtent2D extent = choose_swap_extent(swapChainSupport.capabilities);
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 
@@ -221,7 +221,7 @@ void VulkanSwapchain::createSwapChain()
     vkGetSwapchainImagesKHR(device, handle, &imageCount, swapChainImages.data());
 }
 
-void VulkanSwapchain::createSwapChainImageViews()
+void VulkanSwapchain::create_swapchain_image_views()
 {
     swapChainImageViews.resize(swapChainImages.size());
 
@@ -251,7 +251,7 @@ void VulkanSwapchain::createSwapChainImageViews()
     }
 }
 
-void VulkanSwapchain::destroySwapChainImageViews()
+void VulkanSwapchain::destroy_swapchain_image_views()
 {
     
     for (auto imageView : swapChainImageViews) {
@@ -264,34 +264,34 @@ void VulkanSwapchain::destroySwapChainImageViews()
 
 }
 
-VkSwapchainKHR VulkanSwapchain::getHandle() const
+VkSwapchainKHR VulkanSwapchain::get_handle() const
 {
     return handle;
 }
 
 
-VkFormat VulkanSwapchain::getImageFormat() const
+VkFormat VulkanSwapchain::get_image_format() const
 {
     return swapChainImageFormat;
 }
 
 
-VkExtent2D VulkanSwapchain::getExtent() const
+VkExtent2D VulkanSwapchain::get_extent() const
 {
     return swapChainExtent;
 }
 
-int VulkanSwapchain::getWidth() const
+int VulkanSwapchain::get_width() const
 {
     return width;
 }
-int VulkanSwapchain::getHeight() const
+int VulkanSwapchain::get_height() const
 {
     return height;
 }
 
 
-std::vector<VkImageView> VulkanSwapchain::getImageViews()
+std::vector<VkImageView> VulkanSwapchain::get_image_views()
 {
     return swapChainImageViews;
 }

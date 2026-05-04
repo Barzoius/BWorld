@@ -12,7 +12,7 @@ void Scene::Run()
 {
     if (!window)
         return;
-    while (!window->ShouldClose())
+    while (!window->should_close())
         Update();
 
 }
@@ -20,16 +20,41 @@ void Scene::Run()
 
 void Scene::Update()
 {
-    window->PoolEvents();
+    window->poll_events();
 
-    while(auto e  = window->keyboard.ReadKey())
+    while(auto e  = window->keyboard.read_key())
     {
-        if(e->IsPressed())
+        if(e->is_pressed())
         {
-            if (e->GetCode() == GLFW_KEY_ESCAPE)
+            switch(e->get_code())
             {
-                window->Close();
-            }
+                case GLFW_KEY_ESCAPE:
+                    window->close();
+                    break;
+                case GLFW_KEY_P:
+                    std::cout<<"WIREFRANE_MODE"<<std::endl;
+                    break;
+                
+                case GLFW_KEY_A:
+                    std::cout<<"KEY_A = MOVE_LEFT"<<std::endl;
+                    break;
+                case GLFW_KEY_D:
+                    std::cout<<"KEY_D = MOVE_RIGHT"<<std::endl;
+                    break;
+                case GLFW_KEY_W:
+                    std::cout<<"KEY_W = MOVE_FRONT"<<std::endl;
+                    break;
+                case GLFW_KEY_S:
+                    std::cout<<"KEY_S = MOVE_BACK"<<std::endl;
+                    break;
+                case GLFW_KEY_Q:
+                    std::cout<<"KEY_Q = MOVE_UP"<<std::endl;
+                    break;
+                case GLFW_KEY_E:
+                    std::cout<<"KEY_E = MOVE_DOWN"<<std::endl;
+                    break;
+            }   
+
         }
     }
 

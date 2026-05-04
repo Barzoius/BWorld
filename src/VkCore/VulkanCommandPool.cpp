@@ -8,7 +8,7 @@ VulkanCommandPool::VulkanCommandPool(VkContext& c, VkSwapchainContext& sc, Rende
 
 void VulkanCommandPool::Initialize()
 {
-    vkutil::QueueFamilyIndices queueFamilyIndices = context.get_device().getDeviceIndices();
+    vkutil::QueueFamilyIndices queueFamilyIndices = context.get_device().get_device_indices();
 
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;

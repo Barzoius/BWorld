@@ -5,7 +5,7 @@
 Instance::Instance() = default;
 Instance::~Instance() = default;
 
-void Instance::Initialize(const std::vector<const char*>& exts, 
+void Instance::initialize(const std::vector<const char*>& exts, 
                           const SurfaceInfo& si, 
                           const Resolution& res)
 {
@@ -18,12 +18,12 @@ void Instance::Initialize(const std::vector<const char*>& exts,
     if (enableValidationLayers)
         requiered_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  
 
-    createInstance();
-    setupDebugMessenger();
-    createSurface();
+    create_instance();
+    setup_debug_messenger();
+    create_surface();
 }
 
-void Instance::Destroy()
+void Instance::destroy()
 {
     std::cout << "Instance destroyed\n";
 
@@ -34,9 +34,9 @@ void Instance::Destroy()
     vkDestroyInstance(handle, nullptr);
 }
 
-void Instance::createInstance()
+void Instance::create_instance()
 {
-    if (enableValidationLayers && !checkValidationLayerSupport()) 
+    if (enableValidationLayers && !check_validation_layer_support()) 
         throw std::runtime_error("validation layers requested, but not available!");
     
     VkApplicationInfo appInfo{};
@@ -60,14 +60,14 @@ void Instance::createInstance()
     {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
-        populateDebugMessengerCreateInfo(debugCreateInfo);
+        populate_debug_messenger_createinfo(debugCreateInfo);
         createInfo.pNext = &debugCreateInfo;
     } else {
         createInfo.enabledLayerCount = 0;
         createInfo.pNext = nullptr;
     }
 
-    if(!checkExtensions())
+    if(!check_extensions())
         throw std::runtime_error("requiered extensions missing");
 
     if (vkCreateInstance(&createInfo, nullptr, &handle) != VK_SUCCESS) 
@@ -77,7 +77,7 @@ void Instance::createInstance()
 
 }
 
-void Instance::createSurface()
+void Instance::create_surface()
 {
 #ifdef _WIN32
     VkWin32SurfaceCreateInfoKHR createInfo{};
@@ -117,18 +117,12 @@ void Instance::createSurface()
 #endif
 }
 
-VkSurfaceKHR Instance::getSurfaceHandle() const
-{
-    return surface;
-}
+VkSurfaceKHR Instance::get_surface_handle() const { return surface; }
 
-Resolution Instance::getResolution() const
-{
-    return resolution;
-}
+Resolution Instance::get_resolution() const { return resolution; }
 
 
-bool Instance::checkExtensions()
+bool Instance::check_extensions()
 {
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -150,7 +144,7 @@ bool Instance::checkExtensions()
 }
 
 
-bool Instance::checkValidationLayerSupport()
+bool Instance::check_validation_layer_support()
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -179,12 +173,12 @@ bool Instance::checkValidationLayerSupport()
 }
 
 
-void Instance::setupDebugMessenger()
+void Instance::setup_debug_messenger()
 {
     if (!enableValidationLayers) return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-    populateDebugMessengerCreateInfo(createInfo);
+    populate_debug_messenger_createinfo(createInfo);
 
     if (CreateDebugUtilsMessengerEXT(handle, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) 
         throw std::runtime_error("failed to set up debug messenger!");
@@ -192,7 +186,7 @@ void Instance::setupDebugMessenger()
     
 }
 
-void Instance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+void Instance::populate_debug_messenger_createinfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;

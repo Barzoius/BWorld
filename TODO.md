@@ -9,7 +9,7 @@
 - [ ] Check Linux compatibilty
 - [ ] Do complete input system
     - [x] Keyboard
-    - [ ] Mouse
+    - [x] Mouse
     - [ ] Controller
 - [ ] Integrate Bindables
 - [ ] Redo UML and Dependency graphs

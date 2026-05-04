@@ -18,13 +18,13 @@ void VkRenderer::Initialize(Context& context)
     vertex = std::make_unique<Shader<ShaderType::VERTEX>>(vkContext, vert);
     fragment = std::make_unique<Shader<ShaderType::FRAGMENT>>(vkContext, frag);
 
-    CreateSwapChain();
-    CreateRenderPass();
-    CreateGFXPipeline();
+    create_swapchain();
+    create_renderpass();
+    create_GFX_pipeline();
 
-    createFramebuffers();
+    create_framebuffers();
 
-    CreateCommandPool();
+    create_commandpool();
 
     createCommandBuffer();
 
@@ -38,7 +38,7 @@ void VkRenderer::RenderFrame() {
     vkResetFences(vkContext.get_device().get(), 1, &inFlightFence);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(vkContext.get_device().get(), swapchain.get()->getHandle(), UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(vkContext.get_device().get(), swapchain.get()->get_handle(), UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     vkResetCommandBuffer(commandBuffer, 0);
     recordCommandBuffer(imageIndex);
@@ -70,7 +70,7 @@ void VkRenderer::RenderFrame() {
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = { swapchain.get()->getHandle() };
+    VkSwapchainKHR swapChains[] = { swapchain.get()->get_handle() };
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
@@ -133,42 +133,42 @@ void VkRenderer::Shutdown() {
 
  }
 
-void VkRenderer::CreateSwapChain()
+void VkRenderer::create_swapchain()
 {
 
-    swapchain = std::make_unique<VulkanSwapchain>(vkContext.get_device().get(), vkContext.get_device().getPhyD(),  vkContext.get_instance().getSurfaceHandle(), 
-                                                         vkContext.get_instance().getResolution().width, 
-                                                         vkContext.get_instance().getResolution().height);
+    swapchain = std::make_unique<VulkanSwapchain>(vkContext.get_device().get(), vkContext.get_device().getPhyD(),  vkContext.get_instance().get_surface_handle(), 
+                                                         vkContext.get_instance().get_resolution().width, 
+                                                         vkContext.get_instance().get_resolution().height);
     swapchain -> createSwapChain();
-    swapchain -> createSwapChainImageViews();
+    swapchain -> create_swapchain_image_views();
 
-    swapchainContext.extent = swapchain -> getExtent();
-    swapchainContext.imageFormat = swapchain -> getImageFormat();
-    swapchainContext.width = swapchain -> getWidth();
-    swapchainContext.height = swapchain -> getHeight();
+    swapchainContext.extent = swapchain -> get_extent();
+    swapchainContext.imageFormat = swapchain -> get_image_format();
+    swapchainContext.width = swapchain -> get_width();
+    swapchainContext.height = swapchain -> get_height();
 
 }
 
-void VkRenderer::CreateRenderPass()
+void VkRenderer::create_renderpass()
 {
     renderPass = std::make_unique<RenderPass>(vkContext, swapchainContext);
     renderPass.get()->createRenderPass();
 }
 
-void VkRenderer::CreateGFXPipeline()
+void VkRenderer::create_GFX_pipeline()
 {
     gfxPipeline = std::make_unique<GraphicsPipeline>(vkContext, swapchainContext);
     gfxPipeline.get()->createPipeline(*vertex, *fragment, *renderPass);
 }
 
-void VkRenderer::createFramebuffers()
+void VkRenderer::create_framebuffers()
 {
-    size_t size = swapchain.get()->getImageViews().size();
+    size_t size = swapchain.get()->get_image_views().size();
     swapChainFramebuffers.resize(size);
 
     for(size_t i = 0; i < size; i++)
     {
-        VkImageView attachments[] = {swapchain.get()->getImageViews()[i]};
+        VkImageView attachments[] = {swapchain.get()->get_image_views()[i]};
     
         VkFramebufferCreateInfo frameBufferInfo{};
         frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -188,7 +188,7 @@ void VkRenderer::createFramebuffers()
     std::cout<<"FrameBuffers Created\n";
 }
 
-void VkRenderer::CreateCommandPool()
+void VkRenderer::create_commandpool()
 {
     commandPool = std::make_unique<VulkanCommandPool>(vkContext, swapchainContext, *renderPass, swapChainFramebuffers);
 

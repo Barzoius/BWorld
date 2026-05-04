@@ -25,8 +25,8 @@ void VulkanDevice::Destroy()
 
 void VulkanDevice::Initialize()
 {
-    pickDevice();
-    createLogicalDevice();
+    pick_device();
+    create_logical_device();
 }
 
 VkDevice VulkanDevice::get() const
@@ -40,7 +40,7 @@ VkPhysicalDevice VulkanDevice::getPhyD() const
 }
 
 
-void VulkanDevice::pickDevice()
+void VulkanDevice::pick_device()
 {
         std::cout << "Instance handle at pickDevice = "
               << instance.handle << "\n";
@@ -56,7 +56,7 @@ void VulkanDevice::pickDevice()
 
     for (const auto& device : devices)
     {
-        if (isDeviceSuitable(device)) 
+        if (is_device_suitable(device)) 
         {
             phyD = device;
             break;
@@ -73,17 +73,17 @@ void VulkanDevice::pickDevice()
     std::cout << "PhysicalDevice picked\n";
 }
 
-bool VulkanDevice::isDeviceSuitable(VkPhysicalDevice device)
+bool VulkanDevice::is_device_suitable(VkPhysicalDevice device)
 {
-    findQueueFamilies(device);
+    find_queue_families(device);
 
     bool swapChainAdequate = false;
-    bool extensionsSupported = checkDeviceExtensionSupport(device);
+    bool extensionsSupported = check_device_extension_support(device);
 
     if(extensionsSupported)
     {
-        swapChainAdequate = !vkutil::QuerySwapChainSupport(device, instance.getSurfaceHandle()).formats.empty() &&
-                            !vkutil::QuerySwapChainSupport(device, instance.getSurfaceHandle()).presentModes.empty();
+        swapChainAdequate = !vkutil::QuerySwapChainSupport(device, instance.get_surface_handle()).formats.empty() &&
+                            !vkutil::QuerySwapChainSupport(device, instance.get_surface_handle()).presentModes.empty();
 
     }
 
@@ -91,7 +91,7 @@ bool VulkanDevice::isDeviceSuitable(VkPhysicalDevice device)
 
 }
 
-void VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
+void VulkanDevice::find_queue_families(VkPhysicalDevice device)
 {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -110,7 +110,7 @@ void VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
             indices.computeFamily = i;
          
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, instance.getSurfaceHandle(), &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, instance.get_surface_handle(), &presentSupport);
         if (presentSupport) 
             indices.presentFamily = i;
             
@@ -124,7 +124,7 @@ void VulkanDevice::findQueueFamilies(VkPhysicalDevice device)
     
 }
 
-bool VulkanDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
+bool VulkanDevice::check_device_extension_support(VkPhysicalDevice device)
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -141,7 +141,7 @@ bool VulkanDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
     return requiredExtensions.empty();
 }
 
-void VulkanDevice::createLogicalDevice()
+void VulkanDevice::create_logical_device()
 {
     VkDeviceQueueCreateInfo queueCreateInfo{};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -180,7 +180,4 @@ void VulkanDevice::createLogicalDevice()
 
 }
 
-vkutil::QueueFamilyIndices VulkanDevice::getDeviceIndices() const
-{
-    return indices;
-}
+vkutil::QueueFamilyIndices VulkanDevice::get_device_indices() const { return indices; }

@@ -26,14 +26,14 @@ public:
 
     void UpdateResolution(const Resolution&) override;
 
-    void CreateSwapChain();
-    void CreateRenderPass();
-    void CreateGFXPipeline();
-    void CreateCommandPool();
-    void RecreateSwapCahin();
+    void create_swapchain();
+    void create_renderpass();
+    void create_GFX_pipeline();
+    void create_commandpool();
+    void recreate_swapcahin();
 
     // things to move from here
-    void createFramebuffers();
+    void create_framebuffers();
 
 private:
     VkContext& vkContext;

@@ -26,11 +26,11 @@ public:
             Event() noexcept : type(Type::Invalid), code(0u) {}
             Event(Type type, int code) noexcept : type(type), code(code) {}
 
-            bool IsPressed() const noexcept { return type == Type::Press; }
-            bool IsReleased() const noexcept { return type == Type::Release; }
-            bool IsValid() const noexcept { return type != Type::Invalid; }
+            bool is_pressed() const noexcept { return type == Type::Press; }
+            bool is_released() const noexcept { return type == Type::Release; }
+            bool is_valid() const noexcept { return type != Type::Invalid; }
 
-            int GetCode() const noexcept { return code; }
+            int get_code() const noexcept { return code; }
     };
 
 public:
@@ -39,28 +39,28 @@ public:
     Keyboard& operator=(const Keyboard&) = delete;
 
 
-    bool KeyIsPressed(int) const noexcept;
-    std::optional<Event> ReadKey() noexcept;
-    bool KeyIsEmpty() const noexcept;
-    void ClearKeyQueue() noexcept;
+    bool key_is_pressed(int) const noexcept;
+    std::optional<Event> read_key() noexcept;
+    bool key_is_empty() const noexcept;
+    void clear_key_queue() noexcept;
 
 
-    void Clear() noexcept;
+    void clear() noexcept;
 
     // autorepeat controls
-    void EnableAutorepeat() noexcept;
-    void DisableAutorepeat() noexcept;
-    bool AutorepeatIsEnabled() const noexcept;
+    void enable_autorepeat() noexcept;
+    void disable_autorepeat() noexcept;
+    bool autorepeat_is_enabled() const noexcept;
 
 public:
-    void OnKeyPressed(int) noexcept;
-    void OnKeyReleased(int) noexcept;
+    void on_key_pressed(int) noexcept;
+    void on_key_released(int) noexcept;
 
     // clears the keystates
-    void ClearState() noexcept;
+    void clear_state() noexcept;
 
     template<class K>
-    static void TrimBuffer(std::queue<K>&) noexcept;
+    static void trim_buffer(std::queue<K>&) noexcept;
 
 private:
 

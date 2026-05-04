@@ -25,21 +25,19 @@ public:
 
     VkDevice get() const;
     VkPhysicalDevice getPhyD() const;
-    vkutil::QueueFamilyIndices getDeviceIndices() const;
+    vkutil::QueueFamilyIndices get_device_indices() const;
 
 private:
 
-    void pickDevice();
-    void createLogicalDevice();
-    void createQueue();
+    void pick_device();
+    void create_logical_device();
+    void create_queue();
     
 
-    bool isDeviceSuitable(VkPhysicalDevice);
-    bool checkDeviceExtensionSupport(VkPhysicalDevice);
-    void findQueueFamilies(VkPhysicalDevice);
-
-    
-    
+    bool is_device_suitable(VkPhysicalDevice);
+    bool check_device_extension_support(VkPhysicalDevice);
+    void find_queue_families(VkPhysicalDevice);
+ 
     
 private:
     const Instance& instance;    
