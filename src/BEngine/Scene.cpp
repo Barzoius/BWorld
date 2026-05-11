@@ -1,6 +1,8 @@
 #include "Engine.hpp"
 #include "Scene.hpp"
 
+#include "Utils/Utils.hpp"
+
 #include "iostream"
 Scene::Scene()
 {
@@ -53,6 +55,9 @@ void Scene::Update()
                 case GLFW_KEY_E:
                     std::cout<<"KEY_E = MOVE_DOWN"<<std::endl;
                     break;
+                case GLFW_KEY_R:
+                    std::cout<<"KEY_R = RANDOM_INT: "<< bengine_rand::rand<uint32_t>(0, 100)<<std::endl; 
+                    break;                
             }   
 
         }

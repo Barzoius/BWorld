@@ -14,10 +14,15 @@ add_library(BEngine STATIC
             Inputs/Mouse.hpp
             Inputs/Mouse.cpp
 
+            Utils/Utils.hpp
+            Utils/Utils.cpp
+
+
             )
             
 target_link_libraries(BEngine
     PRIVATE glfw
+    PRIVATE glm
     PUBLIC RHI
 )
 

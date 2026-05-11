@@ -2,7 +2,7 @@
 
 - [x] Build base arhitecture until first render
     - [ ] Modify Queue class
-    - [ ] Group the frame resources
+    - [x] Group the frame resources
 - [ ] Naming standardization
 - [x] Do UML and Dependency graphs
 - [ ] Do OpenGL test renderer
@@ -11,6 +11,7 @@
     - [x] Keyboard
     - [x] Mouse
     - [ ] Controller
+- [ ] Overhaul syncing
 - [ ] Integrate Bindables
 - [ ] Redo UML and Dependency graphs
 - [ ] Integrate ImGUI or QT
