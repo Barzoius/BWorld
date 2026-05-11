@@ -5,6 +5,7 @@
 #include "VkContext.hpp"
 
 #include <vector>
+#include <array>
 #include <iostream>
 
 #include "VkContext.hpp"
@@ -19,7 +20,7 @@
 class VkRenderer : public Renderer
 {
 public:
-    VkRenderer(VkContext& ctx) : Renderer(ctx), vkContext(ctx){}
+    VkRenderer(VkContext& ctx) : Renderer(ctx), m_vkContext(ctx){}
     void Initialize(Context&) override;
     void RenderFrame() override;
     void Shutdown() override;
@@ -32,11 +33,12 @@ public:
     void create_commandpool();
     void recreate_swapcahin();
 
+    void create_frame_data();
     // things to move from here
     void create_framebuffers();
 
 private:
-    VkContext& vkContext;
+    VkContext& m_vkContext;
     std::unique_ptr<VulkanSwapchain> swapchain;
     std::unique_ptr<RenderPass> renderPass;
     std::vector<VkFramebuffer> swapChainFramebuffers;
@@ -57,9 +59,22 @@ private:
     VkSemaphore renderFinishedSemaphore;
     VkFence inFlightFence;
 
-    VkCommandBuffer commandBuffer{};
 
-    void createSyncObjects();
-    void createCommandBuffer();
-    void recordCommandBuffer(uint32_t imageIndex);
+    void recordCommandBuffer(VkCommandBuffer&, uint32_t);
+
+private:
+    static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+    uint32_t currentFrame = 0;
+
+    struct FrameData
+    {
+        VkCommandBuffer m_commandBuffer;
+        VkSemaphore m_imgAvailableSmph;
+        VkSemaphore m_renderFinishedSmph; 
+        VkFence m_inFlightFence;
+    };
+
+    std::array<FrameData, MAX_FRAMES_IN_FLIGHT> frameResources;
+
+    std::vector<VkSemaphore> m_imagesInFlightSmph;
 };
