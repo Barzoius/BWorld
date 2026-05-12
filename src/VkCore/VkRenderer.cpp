@@ -27,7 +27,7 @@ void VkRenderer::Initialize(Context& context)
 
     create_commandpool();
 
-    m_imagesInFlightSmph.resize(swapchain->get_image_views().size(), VK_NULL_HANDLE);
+    m_renderFinishedSmph.resize(swapchain->get_image_views().size(), VK_NULL_HANDLE);
     create_frame_data();
 
 
@@ -37,16 +37,30 @@ void VkRenderer::Initialize(Context& context)
 
 void VkRenderer::RenderFrame() 
 {
-    vkWaitForFences(m_vkContext.get_device().get(), 1, &frameResources[currentFrame].m_inFlightFence, VK_TRUE, UINT64_MAX);
+    VkResult result_fence = vkWaitForFences(m_vkContext.get_device().get(), 1, &frameResources[currentFrame].m_inFlightFence, VK_TRUE, 1'000'000'000ULL);
+
+    if (result_fence == VK_TIMEOUT)
+    {
+        throw std::runtime_error("Fence wait timeout (GPU hang or deadlock)");
+    }
     vkResetFences(m_vkContext.get_device().get(), 1, &frameResources[currentFrame].m_inFlightFence);
 
 
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(m_vkContext.get_device().get(), swapchain.get()->get_handle(), UINT64_MAX, frameResources[currentFrame].m_imgAvailableSmph, VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(m_vkContext.get_device().get(), swapchain.get()->get_handle(), UINT64_MAX, frameResources[currentFrame].m_imgAvailableSmph, VK_NULL_HANDLE, &imageIndex);
 
-    
-    // VkSemaphore waitImageSemaphore = m_imagesInFlightSmph[imageIndex];
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        throw std::runtime_error("Swapchain out of date during acquire");
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    {
+        throw std::runtime_error("Failed to acquire swapchain image");
+    }
+
+
+
 
     vkResetCommandBuffer(frameResources[currentFrame].m_commandBuffer, 0);
     recordCommandBuffer(frameResources[currentFrame].m_commandBuffer, imageIndex);
@@ -63,7 +77,7 @@ void VkRenderer::RenderFrame()
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &frameResources[currentFrame].m_commandBuffer;
 
-    VkSemaphore signalSemaphores[] = {frameResources[currentFrame].m_renderFinishedSmph};
+    VkSemaphore signalSemaphores[] = {m_renderFinishedSmph[imageIndex]};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -71,6 +85,7 @@ void VkRenderer::RenderFrame()
     {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
+    
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -95,9 +110,14 @@ void VkRenderer::Shutdown() {
     
     vkDeviceWaitIdle(m_vkContext.get_device().get());
 
+    for(size_t i = 0; i < swapchain.get()->get_image_views().size(); i++)
+    {
+        vkDestroySemaphore(m_vkContext.get_device().get(), m_renderFinishedSmph[i], nullptr);
+    }
+
+    
     for(auto frame : frameResources)
     {
-        vkDestroySemaphore(m_vkContext.get_device().get(), frame.m_renderFinishedSmph, nullptr);
         vkDestroySemaphore(m_vkContext.get_device().get(), frame.m_imgAvailableSmph, nullptr);
         vkDestroyFence(m_vkContext.get_device().get(), frame.m_inFlightFence, nullptr);
     }
@@ -289,15 +309,19 @@ void VkRenderer::create_frame_data()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
+    for(size_t i = 0; i < swapchain.get()->get_image_views().size(); i++)
+    {
+                vkCreateSemaphore(m_vkContext.get_device().get(), 
+                          &semaphoreInfo, nullptr,
+                          &m_renderFinishedSmph[i]); 
+    }
+
     for (auto& frame : frameResources)
     {
         if(
         vkCreateSemaphore(m_vkContext.get_device().get(), 
                           &semaphoreInfo, nullptr, 
                           &frame.m_imgAvailableSmph) != VK_SUCCESS ||
-        vkCreateSemaphore(m_vkContext.get_device().get(), 
-                          &semaphoreInfo, nullptr,
-                          &frame.m_renderFinishedSmph) != VK_SUCCESS ||
         vkCreateFence(m_vkContext.get_device().get(), 
                       &fenceInfo, nullptr, 
                       &frame.m_inFlightFence) != VK_SUCCESS

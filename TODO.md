@@ -4,6 +4,7 @@
     - [ ] Modify Queue class
     - [x] Group the frame resources
 - [ ] Naming standardization
+- [ ] Logging system
 - [x] Do UML and Dependency graphs
 - [ ] Do OpenGL test renderer
 - [ ] Check Linux compatibilty

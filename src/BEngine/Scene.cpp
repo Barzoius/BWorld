@@ -57,7 +57,10 @@ void Scene::Update()
                     break;
                 case GLFW_KEY_R:
                     std::cout<<"KEY_R = RANDOM_INT: "<< bengine_rand::rand<uint32_t>(0, 100)<<std::endl; 
-                    break;                
+                    break;        
+                case GLFW_KEY_CAPS_LOCK:
+                    std::cout<<"KEY_CAPS_LOCK:"<<std::endl; 
+                    break;            
             }   
 
         }

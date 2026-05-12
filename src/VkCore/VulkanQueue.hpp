@@ -3,6 +3,13 @@
 #include "vulkan/vulkan.h"
 #include <vector>
 
+struct QueueSubmitInfo
+{
+    std::vector<VkCommandBuffer> m_cmdBuf;
+    std::vector<VkSemaphore> m_waits;
+    std::vector<VkSemaphore> m_signals;
+};
+
 class VulkanQueue
 {
 public:

@@ -54,11 +54,6 @@ private:
     std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;
     std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
 
-    /// everything here gets moved
-    VkSemaphore imageAvailableSemaphore;
-    VkSemaphore renderFinishedSemaphore;
-    VkFence inFlightFence;
-
 
     void recordCommandBuffer(VkCommandBuffer&, uint32_t);
 
@@ -70,11 +65,14 @@ private:
     {
         VkCommandBuffer m_commandBuffer;
         VkSemaphore m_imgAvailableSmph;
-        VkSemaphore m_renderFinishedSmph; 
         VkFence m_inFlightFence;
     };
 
     std::array<FrameData, MAX_FRAMES_IN_FLIGHT> frameResources;
 
-    std::vector<VkSemaphore> m_imagesInFlightSmph;
+      
+    std::vector<VkSemaphore> m_renderFinishedSmph;
+
+    std::vector<VkSemaphore> m_testSmph;
+
 };

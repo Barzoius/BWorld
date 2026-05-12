@@ -12,10 +12,8 @@ namespace bengine_rand
     template<typename T>
     T rand(T low, T high);
 
-
     template<typename T>
     T rand_vec(float low, float high);
-
 
     glm::vec3 rand_rgb_color();
     glm::vec3 rand_normalized_color();
