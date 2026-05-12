@@ -19,6 +19,8 @@ public:
 
     const VulkanDevice& get_device() const { return device; }
     const Instance& get_instance() const { return instance; }
+
+    void update_instance_resolution(const Resolution&);
     
 
 private:

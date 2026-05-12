@@ -22,6 +22,8 @@ public:
     void create_swapchain_image_views();
     void destroy_swapchain_image_views();
 
+    void update_resolution(int, int);
+
     void recreate_swapchain();
     
     VkSwapchainKHR get_handle() const;

@@ -47,38 +47,27 @@ void VkRenderer::RenderFrame()
         throw std::runtime_error("Fence wait timeout (GPU hang or deadlock)");
     }
 
+
+
+    vkResetFences(m_vkContext.get_device().get(), 1, &m_inFlightFence[currentFrame]);
+
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(m_vkContext.get_device().get(), swapchain.get()->get_handle(), UINT64_MAX, m_imgAvailableSmph[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR /*|| m_framebufferResized*/) 
     {
-        m_framebufferResized = false;
+        //m_framebufferResized = false;
         recreate_swapcahin();
-        return;
+        
     } else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
 
-    vkResetFences(m_vkContext.get_device().get(), 1, &m_inFlightFence[currentFrame]);
-
-
-
-
-    if (result == VK_ERROR_OUT_OF_DATE_KHR)
-    {
-        throw std::runtime_error("Swapchain out of date during acquire");
-    }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-    {
-        throw std::runtime_error("Failed to acquire swapchain image");
-    }
-
-
-
-
     vkResetCommandBuffer(m_commandBuffer[currentFrame], 0);
     recordCommandBuffer(m_commandBuffer[currentFrame], imageIndex);
+
+
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -170,7 +159,10 @@ void VkRenderer::Shutdown() {
 
  void VkRenderer::UpdateResolution(const Resolution& res)
  {
-
+    swapchain.get()->update_resolution(res.width, res.height);
+    m_vkContext.update_instance_resolution(res);
+    
+    std::cout<<"UPDATE RESOLUTION RENDERER\n";
  }
 
 void VkRenderer::create_swapchain()
@@ -197,6 +189,8 @@ void VkRenderer::recreate_swapcahin()
 
     create_swapchain();
     create_framebuffers();
+    
+
 }
 
 void VkRenderer::clean_swapchain()

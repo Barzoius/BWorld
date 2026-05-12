@@ -24,6 +24,7 @@ struct WND_DATA {
 
 class Window
 {
+friend class Engine;
 public:
     Window(WND_SPECS specs);
     ~Window();
@@ -34,6 +35,12 @@ public:
     void close() const;
 
     void poll_events() const;
+
+    void update_resolution(int, int);
+    bool was_resized() const;
+    void clear_resize_flag();
+    void set_resize_flag();
+    
 
     GLFWwindow* GetHandle() const { return window.glfwHandle; }
 
@@ -48,9 +55,11 @@ private:
     static void s_mouse_wheel_callback(GLFWwindow*, double, double);
     static void s_mouse_enter_callback(GLFWwindow*, int);
 
-private:
+public:
     WND_SPECS specs;
     WND_DATA window;
+
+    bool framebufferResized = false;
 
 public:
     Keyboard keyboard;

@@ -26,12 +26,24 @@ void Window::close() const { glfwSetWindowShouldClose(window.glfwHandle, true); 
 
 void Window::poll_events() const { glfwPollEvents(); }
 
+bool Window::was_resized() const { return framebufferResized; }
+void Window::clear_resize_flag() { framebufferResized = false; }
+void Window::set_resize_flag() { framebufferResized = true; }
+
+
+
 Window::~Window()
 {
     if (window.glfwHandle)
         glfwDestroyWindow(window.glfwHandle);
 }
 
+void Window::update_resolution(int width, int height)
+{
+    specs.wnd_width = width;
+    specs.wnd_height = height;
+    std::cout<<"Window Update Resolution\n";
+}
 
 void Window::set_callbacks()
 {
@@ -49,6 +61,10 @@ void Window::set_callbacks()
 void Window::s_framebuffer_resize_callback(GLFWwindow* window, int width, int height)
 {
     
+    Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+    win->update_resolution(width, height);
+    win->set_resize_flag();
+
 }
 
 void Window::s_keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

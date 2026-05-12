@@ -18,3 +18,8 @@ void VkContext::Destroy()
     device.Destroy(); 
     instance.destroy();
 }
+
+void VkContext::update_instance_resolution(const Resolution& res)
+{
+    instance.update_resolution(res);
+}

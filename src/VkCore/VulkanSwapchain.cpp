@@ -295,3 +295,10 @@ std::vector<VkImageView> VulkanSwapchain::get_image_views()
 {
     return swapChainImageViews;
 }
+
+
+void VulkanSwapchain::update_resolution(int w, int h)
+{
+    width = w;
+    height = h;
+}

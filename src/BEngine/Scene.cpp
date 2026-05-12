@@ -24,6 +24,13 @@ void Scene::Update()
 {
     window->poll_events();
 
+    if(window->was_resized())
+    {
+        Engine::GetRenderer()->UpdateResolution({window->specs.wnd_width, 
+                                                 window->specs.wnd_height});
+        window->clear_resize_flag();
+    }
+
     while(auto e  = window->keyboard.read_key())
     {
         if(e->is_pressed())

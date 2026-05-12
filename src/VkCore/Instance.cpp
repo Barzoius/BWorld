@@ -121,6 +121,7 @@ VkSurfaceKHR Instance::get_surface_handle() const { return surface; }
 
 Resolution Instance::get_resolution() const { return resolution; }
 
+void Instance::update_resolution(const Resolution& res){ resolution = res; }
 
 bool Instance::check_extensions()
 {
