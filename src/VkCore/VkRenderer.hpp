@@ -31,6 +31,8 @@ public:
     void create_renderpass();
     void create_GFX_pipeline();
     void create_commandpool();
+
+    void clean_swapchain();
     void recreate_swapcahin();
 
     void create_frame_data();
@@ -57,22 +59,23 @@ private:
 
     void recordCommandBuffer(VkCommandBuffer&, uint32_t);
 
+    bool m_framebufferResized = false;
+
 private:
     static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t currentFrame = 0;
 
-    struct FrameData
-    {
-        VkCommandBuffer m_commandBuffer;
-        VkSemaphore m_imgAvailableSmph;
-        VkFence m_inFlightFence;
-    };
 
-    std::array<FrameData, MAX_FRAMES_IN_FLIGHT> frameResources;
-
-      
+    std::vector<VkCommandBuffer> m_commandBuffer;
+    std::vector<VkSemaphore> m_imgAvailableSmph;
     std::vector<VkSemaphore> m_renderFinishedSmph;
+    std::vector<VkFence> m_inFlightFence;
 
-    std::vector<VkSemaphore> m_testSmph;
+    uint64_t frameValue; 
+
+
+    VkSemaphore m_gpuTimeline;
+    uint64_t m_gpuCounter = 0;
+    void create_gpu_timeline();
 
 };

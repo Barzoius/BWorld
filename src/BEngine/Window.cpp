@@ -37,11 +37,18 @@ void Window::set_callbacks()
 {
     glfwSetWindowUserPointer(window.glfwHandle, this);
 
+    glfwSetFramebufferSizeCallback(window.glfwHandle, s_framebuffer_resize_callback);
+
     glfwSetKeyCallback(window.glfwHandle, s_keyboard_callback);
 
     glfwSetCursorPosCallback(window.glfwHandle, s_mouse_move_callback);
     glfwSetScrollCallback(window.glfwHandle, s_mouse_wheel_callback);
     glfwSetCursorEnterCallback(window.glfwHandle, s_mouse_enter_callback);
+}
+
+void Window::s_framebuffer_resize_callback(GLFWwindow* window, int width, int height)
+{
+    
 }
 
 void Window::s_keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

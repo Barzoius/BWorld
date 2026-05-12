@@ -11,10 +11,6 @@ VulkanDevice::~VulkanDevice() = default;
 
 void VulkanDevice::Destroy()
 {
-    // graphicsQueue.reset();
-    // computeQueue.reset();
-
-
     if(handle != VK_NULL_HANDLE) 
     {
         vkDeviceWaitIdle(handle);
@@ -150,16 +146,29 @@ void VulkanDevice::create_logical_device()
     float queuePriority = 1.0f;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
-    VkPhysicalDeviceFeatures deviceFeatures{};
-    
+
+
+    //------------------------------------[TIMELINE_FEATURES]------------------------------------//
+    VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeatures{};
+    timelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES;
+    timelineFeatures.timelineSemaphore = VK_TRUE;
+
+    VkPhysicalDeviceFeatures2 deviceFeatures2{};
+    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    deviceFeatures2.features = {};
+    deviceFeatures2.pNext = &timelineFeatures;
+    //-------------------------------------------------------------------------------------------//
+
+
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pNext = &deviceFeatures2;
     createInfo.pQueueCreateInfos = &queueCreateInfo;
     createInfo.queueCreateInfoCount = 1; 
-    createInfo.pEnabledFeatures = &deviceFeatures;
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+    
 
     if (enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());

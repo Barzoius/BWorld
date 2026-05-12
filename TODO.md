@@ -2,9 +2,10 @@
 
 - [x] Build base arhitecture until first render
     - [ ] Modify Queue class
-    - [x] Group the frame resources
+    - [x] Group the frame resources (removed, it was stupid)
 - [ ] Naming standardization
 - [ ] Logging system
+- [ ] Move to timeline semaphores pronto !!!
 - [x] Do UML and Dependency graphs
 - [ ] Do OpenGL test renderer
 - [ ] Check Linux compatibilty

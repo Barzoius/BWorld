@@ -41,6 +41,7 @@ public:
 private:
     void set_callbacks();
 private:
+    static void s_framebuffer_resize_callback(GLFWwindow*, int, int);
     static void s_keyboard_callback(GLFWwindow*, int, int, int, int);
     static void s_mouse_move_callback(GLFWwindow*, double, double);
     static void s_mouse_buttons_callback(GLFWwindow*, int, int, int);
