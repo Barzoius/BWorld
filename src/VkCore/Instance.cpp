@@ -2,6 +2,8 @@
 #include <unordered_set>
 #include <string>
 
+#include "VkLog.hpp"
+
 Instance::Instance() = default;
 Instance::~Instance() = default;
 
@@ -212,6 +214,9 @@ void Instance::get_instance_version()
     uint32_t instanceVer = 0;
 
     VkResult res = vkEnumerateInstanceVersion(&instanceVer);
+
+    VK_CHECK(res);
+
     if(res != VK_SUCCESS)
         throw std::runtime_error("no instance versions???");
 

@@ -4,7 +4,7 @@
     - [ ] Modify Queue class
     - [x] Group the frame resources (removed, it was stupid)
 - [ ] Naming standardization
-- [ ] Logging system
+- [x] Logging system
 - [ ] Move to timeline semaphores pronto !!!
 - [x] Do UML and Dependency graphs
 - [ ] Do OpenGL test renderer
@@ -14,8 +14,8 @@
     - [x] Mouse
     - [ ] Controller
 - [ ] Overhaul syncing
-        - [ ] Use timeline semaphores
-        - [ ] Create a new swap chain while still drawing with old swap chain
+    - [ ] Use timeline semaphores
+    - [ ] Create a new swap chain while still drawing with old swap chain
 - [ ] Move to dynamic rendering
 - [ ] Integrate Bindables
 - [ ] Redo UML and Dependency graphs

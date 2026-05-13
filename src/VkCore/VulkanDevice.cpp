@@ -2,6 +2,8 @@
 #include "VkUtils.hpp"
 #include <set>
 
+#include "VkLog.hpp"
+
 VulkanDevice::VulkanDevice(const Instance& i) : instance(i)
 {
     std::cout << "VulkanDevice constructor\n";
@@ -189,8 +191,13 @@ void VulkanDevice::create_logical_device()
         createInfo.enabledLayerCount = 0;
     }
 
+
+    
+    
     if (vkCreateDevice(phyD, &createInfo, nullptr, &handle) != VK_SUCCESS) 
         throw std::runtime_error("failed to create logical device!");
+
+    
 
     std::cout << "LogicalDevice created\n";
 

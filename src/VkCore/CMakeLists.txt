@@ -5,6 +5,8 @@ add_library(VkCore STATIC
 
             VkRenderer.cpp
             VkRenderer.hpp
+
+            VkLog.hpp
             
             VulkanQueue.hpp
             VulkanQueue.cpp
