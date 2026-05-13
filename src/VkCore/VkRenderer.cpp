@@ -28,12 +28,11 @@ void VkRenderer::Initialize(Context& context)
     create_commandpool();
 
     m_renderFinishedSmph.resize(swapchain->get_image_views().size(), VK_NULL_HANDLE);
+    m_imgAvailableSmph.resize(MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE);
     m_commandBuffer.resize(MAX_FRAMES_IN_FLIGHT);
-    m_imgAvailableSmph.resize(MAX_FRAMES_IN_FLIGHT);
-    m_inFlightFence.resize(MAX_FRAMES_IN_FLIGHT);
+    m_inFlightFence.resize(MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE);
     create_frame_data();
-
-
+    
 }
 
 
@@ -47,10 +46,6 @@ void VkRenderer::RenderFrame()
         throw std::runtime_error("Fence wait timeout (GPU hang or deadlock)");
     }
 
-
-
-    vkResetFences(m_vkContext.get_device().get(), 1, &m_inFlightFence[currentFrame]);
-
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(m_vkContext.get_device().get(), swapchain.get()->get_handle(), UINT64_MAX, m_imgAvailableSmph[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
@@ -58,10 +53,15 @@ void VkRenderer::RenderFrame()
     {
         //m_framebufferResized = false;
         recreate_swapcahin();
+        return;
         
     } else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
+
+
+
+    vkResetFences(m_vkContext.get_device().get(), 1, &m_inFlightFence[currentFrame]);
 
 
     vkResetCommandBuffer(m_commandBuffer[currentFrame], 0);
@@ -189,7 +189,6 @@ void VkRenderer::recreate_swapcahin()
 
     create_swapchain();
     create_framebuffers();
-    
 
 }
 

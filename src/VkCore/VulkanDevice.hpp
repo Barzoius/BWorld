@@ -48,8 +48,10 @@ private:
 
     vkutil::QueueFamilyIndices indices;
 
+    
     const std::vector<const char*> deviceExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME };
 
 public:
     // these have to be moved from here !!!

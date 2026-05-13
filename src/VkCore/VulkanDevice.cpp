@@ -139,33 +139,45 @@ bool VulkanDevice::check_device_extension_support(VkPhysicalDevice device)
 
 void VulkanDevice::create_logical_device()
 {
+    //------------------------------------[QUEUE_CREATE_INFO]------------------------------------//
     VkDeviceQueueCreateInfo queueCreateInfo{};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
     queueCreateInfo.queueCount = 1;
     float queuePriority = 1.0f;
     queueCreateInfo.pQueuePriorities = &queuePriority;
+    //-------------------------------------------------------------------------------------------//
 
-
-
+    //------------------------------------[DYNAMIC_RENDERING]------------------------------------//
+    VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeatures = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
+        .pNext = nullptr,
+        .dynamicRendering = VK_TRUE
+    };
+    //-------------------------------------------------------------------------------------------//
+    
     //------------------------------------[TIMELINE_FEATURES]------------------------------------//
     VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeatures{};
     timelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES;
     timelineFeatures.timelineSemaphore = VK_TRUE;
-
-    VkPhysicalDeviceFeatures2 deviceFeatures2{};
-    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    deviceFeatures2.features = {};
-    deviceFeatures2.pNext = &timelineFeatures;
+    timelineFeatures.pNext = &dynamicRenderingFeatures;
     //-------------------------------------------------------------------------------------------//
 
+    //------------------------------------[CORE DEVICE FEATURES]---------------------------------//
+    VkPhysicalDeviceFeatures2 deviceFeatures2{};
+    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    deviceFeatures2.features.geometryShader = VK_TRUE;
+    deviceFeatures2.features.tessellationShader = VK_TRUE;
+    deviceFeatures2.pNext = &timelineFeatures;
+    //-------------------------------------------------------------------------------------------//
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pNext = &deviceFeatures2;
     createInfo.pQueueCreateInfos = &queueCreateInfo;
     createInfo.queueCreateInfoCount = 1; 
-
+    createInfo.enabledLayerCount = 0;
+    createInfo.ppEnabledLayerNames = NULL;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
     

@@ -36,16 +36,18 @@ void Instance::destroy()
 
 void Instance::create_instance()
 {
+    get_instance_version();
+
     if (enableValidationLayers && !check_validation_layer_support()) 
         throw std::runtime_error("validation layers requested, but not available!");
     
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Renderer";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
     appInfo.pEngineName = "BEngine";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
+    appInfo.apiVersion = VK_MAKE_API_VERSION(0, m_instanceVer.major, m_instanceVer.minor, 0);
     appInfo.pNext = nullptr;
 
     VkInstanceCreateInfo createInfo{};
@@ -203,4 +205,18 @@ void Instance::populate_debug_messenger_createinfo(VkDebugUtilsMessengerCreateIn
         VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
     createInfo.pfnUserCallback = debugCallback;
+}
+
+void Instance::get_instance_version()
+{
+    uint32_t instanceVer = 0;
+
+    VkResult res = vkEnumerateInstanceVersion(&instanceVer);
+    if(res != VK_SUCCESS)
+        throw std::runtime_error("no instance versions???");
+
+    m_instanceVer.major = VK_API_VERSION_MAJOR(instanceVer);
+    m_instanceVer.minor = VK_API_VERSION_MINOR(instanceVer);
+    m_instanceVer.patch = VK_API_VERSION_PATCH(instanceVer);
+
 }

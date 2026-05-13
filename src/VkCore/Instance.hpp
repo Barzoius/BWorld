@@ -56,6 +56,8 @@ private:
     void setup_debug_messenger();
     void populate_debug_messenger_createinfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
+    void get_instance_version();
+
     bool check_extensions();
     bool check_validation_layer_support();
 public:
@@ -66,6 +68,12 @@ public:
     SurfaceInfo surfaceInfo;
     Resolution resolution;
     VkSurfaceKHR surface;
+private:
+    struct {
+        uint32_t major = 0;
+        uint32_t minor = 0;
+        uint32_t patch = 0;
+    }m_instanceVer;
 };
 
 
