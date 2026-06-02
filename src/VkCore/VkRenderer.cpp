@@ -1,10 +1,7 @@
 #include "VkRenderer.hpp"
-
-#include <filesystem>
-#include <fstream>
 #include <memory>
 
-namespace fs = std::filesystem;
+
 
 void VkRenderer::Initialize(Context& context) 
 {
@@ -12,7 +9,6 @@ void VkRenderer::Initialize(Context& context)
 
     std::string frag = "Shaders/base1.frag.spv";
     std::string vert = "Shaders/base1.vert.spv";
-
 
 
     vertex = std::make_unique<Shader<ShaderType::VERTEX>>(m_vkContext, vert);
@@ -32,7 +28,7 @@ void VkRenderer::Initialize(Context& context)
     m_commandBuffer.resize(MAX_FRAMES_IN_FLIGHT);
     m_inFlightFence.resize(MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE);
     create_frame_data();
-    
+
 }
 
 
@@ -51,6 +47,15 @@ void VkRenderer::RenderFrame()
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR /*|| m_framebufferResized*/) 
     {
+        vkDestroySemaphore(m_vkContext.get_device().get(), m_imgAvailableSmph[currentFrame], nullptr);
+
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        if (vkCreateSemaphore(m_vkContext.get_device().get(), &semaphoreInfo, nullptr, &m_imgAvailableSmph[currentFrame]) != VK_SUCCESS)
+            throw std::runtime_error("failed to create semaphore!");
+
+
         //m_framebufferResized = false;
         recreate_swapcahin();
         return;

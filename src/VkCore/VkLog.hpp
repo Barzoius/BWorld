@@ -106,6 +106,8 @@ inline std::string format_string(const char* fmt, ...)
 }
 
 
+
+
 #define LLOGI(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::INFO, format_string(fmt,##__VA_ARGS__))
 #define LLOGW(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::WARNING, format_string(fmt, ##__VA_ARGS__))
 #define LLOGE(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::VK_ERROR, format_string(fmt, ##__VA_ARGS__))
@@ -130,6 +132,8 @@ inline const char* ivkGetVulkanResultString(VkResult result) {
         default: return "UNKNOWN_VK_RESULT";
     }
 }
+
+#define VK_FORCE_FAIL VK_ERROR_DEVICE_LOST
 
 #define VK_ASSERT(func) do { \
     VkResult vk_assert_result = (func); \

@@ -2,17 +2,15 @@
 
 - [x] Build base arhitecture until first render
     - [ ] Modify Queue class
-    - [x] Group the frame resources (removed, it was stupid)
+    - [x] Group the frame resources (removed, it was stupid) [it was not stupid, I will readd it]
 - [ ] Naming standardization
 - [x] Logging system
-- [ ] Move to timeline semaphores pronto !!!
 - [x] Do UML and Dependency graphs
 - [ ] Do OpenGL test renderer
 - [ ] Check Linux compatibilty
-- [ ] Do complete input system
+- [x] Do complete input system
     - [x] Keyboard
     - [x] Mouse
-    - [ ] Controller
 - [ ] Overhaul syncing
     - [ ] Use timeline semaphores
     - [ ] Create a new swap chain while still drawing with old swap chain
