@@ -39,6 +39,16 @@ public:
     // things to move from here
     void create_framebuffers();
 
+    void create_frame_data_v2();
+    void create_sync_resources();
+    void clean_new_sync();
+    void render_with_new_sync();
+
+    void clean_swapchain_v2();
+    void create_swapchain_v2();
+    void recreate_swapchain_v2();
+
+
 private:
     VkContext& m_vkContext;
     std::unique_ptr<VulkanSwapchain> swapchain;
@@ -73,9 +83,22 @@ private:
 
     uint64_t frameValue; 
 
+    struct frameData
+    {
+        VkCommandPool s_commandPool = nullptr;
+        VkCommandBuffer s_commandBuffer = nullptr;
+        VkSemaphore s_imgAcquiredSmph = nullptr;
+    };
 
-    VkSemaphore m_gpuTimeline;
-    uint64_t m_gpuCounter = 0;
-    void create_gpu_timeline();
+    std::array<frameData, MAX_FRAMES_IN_FLIGHT> m_frameResources;
+    VkSemaphore timelineSmph = nullptr; // cpu-gpu
+    std::vector<VkSemaphore> m_renderCompleteSmphs; 
+
+    uint64_t nextSignalValue = MAX_FRAMES_IN_FLIGHT + 1;
+
+    bool m_swapchainRecreation = false;
+
+    VkImage depthImage = nullptr;
+    VkImageView depthImageView = nullptr;
 
 };

@@ -267,9 +267,12 @@ void VulkanSwapchain::destroy_swapchain_image_views()
 VkSwapchainKHR VulkanSwapchain::get_handle() const{ return handle; }
 VkFormat VulkanSwapchain::get_image_format() const { return swapChainImageFormat; }
 VkExtent2D VulkanSwapchain::get_extent() const { return swapChainExtent; }
+
 int VulkanSwapchain::get_width() const { return width; }
 int VulkanSwapchain::get_height() const { return height; }
+
 std::vector<VkImageView> VulkanSwapchain::get_image_views() { return swapChainImageViews; }
+std::vector<VkImage> VulkanSwapchain::get_images() { return swapChainImages; }
 
 
 void VulkanSwapchain::update_resolution(int w, int h)

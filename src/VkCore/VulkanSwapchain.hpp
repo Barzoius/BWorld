@@ -35,7 +35,7 @@ public:
     int get_height() const;
 
     std::vector<VkImageView> get_image_views();
-
+    std::vector<VkImage> get_images();
 
 private:
     VkSurfaceFormatKHR choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>&, SwapchainColorMode);

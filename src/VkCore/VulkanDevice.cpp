@@ -63,7 +63,6 @@ void VulkanDevice::pick_device()
 
     if (phyD == VK_NULL_HANDLE) 
     {
-        std::cout<< "ERRORRR\n";
         throw std::runtime_error("failed to find a suitable GPU!");
     }
         
@@ -173,9 +172,42 @@ void VulkanDevice::create_logical_device()
     deviceFeatures2.pNext = &timelineFeatures;
     //-------------------------------------------------------------------------------------------//
 
+    VkPhysicalDeviceVulkan14Features supportedFeatures14{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES, .pNext = nullptr };
+	VkPhysicalDeviceVulkan13Features supportedFeatures13{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = &supportedFeatures14 };
+	VkPhysicalDeviceVulkan12Features supportedFeatures12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = &supportedFeatures13 };
+	VkPhysicalDeviceFeatures2 supportedFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &supportedFeatures12 };
+	vkGetPhysicalDeviceFeatures2(phyD, &supportedFeatures);
+
+    if (!supportedFeatures13.dynamicRendering || !supportedFeatures13.synchronization2 ||
+		!supportedFeatures12.timelineSemaphore)
+	{
+		std::cout<<"Physical device doesn't meet the feature requirements\n";
+	
+	}
+
+    VkPhysicalDeviceVulkan14Features features14
+	{
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
+		.pNext = nullptr,
+	};
+	VkPhysicalDeviceVulkan13Features features13
+	{
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+		.pNext = &features14,
+		.synchronization2 = VK_TRUE,
+		.dynamicRendering = VK_TRUE,
+	};
+	VkPhysicalDeviceVulkan12Features features12
+	{
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+		.pNext = &features13,
+		.timelineSemaphore = VK_TRUE
+	};
+	VkPhysicalDeviceFeatures2 features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features12 };
+
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pNext = &deviceFeatures2;
+    createInfo.pNext = &features;
     createInfo.pQueueCreateInfos = &queueCreateInfo;
     createInfo.queueCreateInfoCount = 1; 
     createInfo.enabledLayerCount = 0;
