@@ -33,7 +33,6 @@ public:
     void create_commandpool();
 
     void clean_swapchain();
-    void recreate_swapcahin();
 
     void create_frame_data();
     // things to move from here
@@ -45,7 +44,6 @@ public:
     void render_with_new_sync();
 
     void clean_swapchain_v2();
-    void create_swapchain_v2();
     void recreate_swapchain_v2();
 
 

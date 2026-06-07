@@ -3,7 +3,7 @@
 - [x] Build base arhitecture until first render
     - [ ] Modify Queue class
     - [x] Group the frame resources (removed, it was stupid) [it was not stupid, I will readd it]
-- [ ] Naming standardization
+- [x] Naming standardization
 - [x] Logging system
 - [x] Do UML and Dependency graphs
 - [ ] Do OpenGL test renderer
@@ -12,9 +12,10 @@
     - [x] Keyboard
     - [x] Mouse
 - [ ] Overhaul syncing
-    - [ ] Use timeline semaphores
+    - [x] Use timeline semaphores
     - [ ] Create a new swap chain while still drawing with old swap chain
-- [ ] Move to dynamic rendering
+- [x] Move to dynamic rendering
+    - [ ] Update pipline creation (less swapchain coupling)
 - [ ] Integrate Bindables
 - [ ] Redo UML and Dependency graphs
 - [ ] Integrate ImGUI or QT

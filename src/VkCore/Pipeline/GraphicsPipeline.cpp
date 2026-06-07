@@ -40,8 +40,18 @@ void GraphicsPipeline::createPipeline(const Shader<ShaderType::VERTEX>& vertex, 
     initColorBlend();
     initDynamicStates();
 
+    // structure required for dynamic rendering
+	VkPipelineRenderingCreateInfo renderInfo
+	{
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+		.colorAttachmentCount = 1,
+		.pColorAttachmentFormats = &swapchainContext.imageFormat
+		// .depthAttachmentFormat = 0 // i have to pass the depth format !!!!!!!!!!!!!!!!!!!
+	};
+
 
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.pNext = &renderInfo;
     pipelineInfo.pVertexInputState = &vertexInput;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
     pipelineInfo.pViewportState = &viewportState;
@@ -57,7 +67,7 @@ void GraphicsPipeline::createPipeline(const Shader<ShaderType::VERTEX>& vertex, 
     pipelineInfo.layout = pipelineLayout;
 
     
-    pipelineInfo.renderPass = renderPass.getRenderPass();
+    pipelineInfo.renderPass = VK_NULL_HANDLE; //renderPass.getRenderPass();
     pipelineInfo.subpass = 0;
 
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
@@ -127,23 +137,23 @@ void GraphicsPipeline::initInputAssembly()
 void GraphicsPipeline::initViewportState()
 {
 
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = static_cast<float>(swapchainContext.width);
-    viewport.height = static_cast<float>(swapchainContext.height);
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
+    // viewport.x = 0.0f;
+    // viewport.y = 0.0f;
+    // viewport.width = static_cast<float>(swapchainContext.width);
+    // viewport.height = static_cast<float>(swapchainContext.height);
+    // viewport.minDepth = 0.0f;
+    // viewport.maxDepth = 1.0f;
 
-    scissor = {};
-    scissor.offset = {0, 0};
-    scissor.extent = swapchainContext.extent;
+    // scissor = {};
+    // scissor.offset = {0, 0};
+    // scissor.extent = swapchainContext.extent;
 
     viewportState = {};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
-    viewportState.pViewports = &viewport;
+    viewportState.pViewports = nullptr; //&viewport;
     viewportState.scissorCount = 1;
-    viewportState.pScissors = &scissor;
+    viewportState.pScissors = nullptr; //&scissor;
 }
 
 void GraphicsPipeline::initRasterizer()

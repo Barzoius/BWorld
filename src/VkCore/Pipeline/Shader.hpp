@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 
+
 template<ShaderType Stage>
 class Shader
 {
@@ -60,10 +61,7 @@ Shader<Stage>::Shader(VkContext& c, const std::string& path) : context(c)
 }
 
 template <ShaderType Stage>
-Shader<Stage>::~Shader()
-{
-    // vkDestroyShaderModule(context.getDevice().get(), handle, nullptr);
-}
+Shader<Stage>::~Shader() {}
 
 template <ShaderType Stage>
 void Shader<Stage>::Destroy()

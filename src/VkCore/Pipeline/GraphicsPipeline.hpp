@@ -47,8 +47,8 @@ private:
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 
 
-    VkViewport viewport{};
-    VkRect2D scissor{};
+    // VkViewport viewport{};
+    // VkRect2D scissor{};
     
 private:
     VkContext& context;

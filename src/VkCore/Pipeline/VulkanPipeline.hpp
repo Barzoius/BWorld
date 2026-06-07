@@ -12,5 +12,4 @@ public:
     virtual void bindPipeline(VkCommandBuffer&) = 0;   
 	virtual VkPipeline get_handle() const = 0;
 	void Destroy();
-
 };

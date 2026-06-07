@@ -2,6 +2,9 @@
 #include <memory>
 
 
+#include "Bindables/VertexSystem.hpp"
+
+
 
 void VkRenderer::Initialize(Context& context) 
 {
@@ -16,18 +19,8 @@ void VkRenderer::Initialize(Context& context)
 
     create_swapchain();
 
-    create_renderpass();
     create_GFX_pipeline();
 
-    create_framebuffers();
-
-    // create_commandpool();
-
-    // m_renderFinishedSmph.resize(swapchain->get_image_views().size(), VK_NULL_HANDLE);
-    // m_imgAvailableSmph.resize(MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE);
-    // m_commandBuffer.resize(MAX_FRAMES_IN_FLIGHT);
-    // m_inFlightFence.resize(MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE);
-    // create_frame_data();
 
     create_sync_resources();
     create_frame_data_v2();
@@ -38,84 +31,12 @@ void VkRenderer::Initialize(Context& context)
 
 void VkRenderer::RenderFrame() 
 {
-    // VkResult result_fence = vkWaitForFences(m_vkContext.get_device().get(), 1, &m_inFlightFence[currentFrame], VK_TRUE, UINT64_MAX);
-
-    // if (result_fence == VK_TIMEOUT)
-    // {
-    //     throw std::runtime_error("Fence wait timeout (GPU hang or deadlock)");
-    // }
-
-    // uint32_t imageIndex;
-    // VkResult result = vkAcquireNextImageKHR(m_vkContext.get_device().get(), swapchain.get()->get_handle(), UINT64_MAX, m_imgAvailableSmph[currentFrame], VK_NULL_HANDLE, &imageIndex);
-
-    // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR /*|| m_framebufferResized*/) 
-    // {
-    //     vkDestroySemaphore(m_vkContext.get_device().get(), m_imgAvailableSmph[currentFrame], nullptr);
-
-    //     VkSemaphoreCreateInfo semaphoreInfo{};
-    //     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    //     if (vkCreateSemaphore(m_vkContext.get_device().get(), &semaphoreInfo, nullptr, &m_imgAvailableSmph[currentFrame]) != VK_SUCCESS)
-    //         throw std::runtime_error("failed to create semaphore!");
-
-
-    //     //m_framebufferResized = false;
-    //     recreate_swapcahin();
-    //     return;
-        
-    // } else if (result != VK_SUCCESS) {
-    //     throw std::runtime_error("failed to acquire swap chain image!");
-    // }
-
-
-
-    // vkResetFences(m_vkContext.get_device().get(), 1, &m_inFlightFence[currentFrame]);
-
-
-    // vkResetCommandBuffer(m_commandBuffer[currentFrame], 0);
-    // recordCommandBuffer(m_commandBuffer[currentFrame], imageIndex);
-
-
-
-    // VkSubmitInfo submitInfo{};
-    // submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-    // VkSemaphore waitSemaphores[] = {m_imgAvailableSmph[currentFrame]};
-    // VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    // submitInfo.waitSemaphoreCount = 1;
-    // submitInfo.pWaitSemaphores = waitSemaphores;
-    // submitInfo.pWaitDstStageMask = waitStages;
-
-    // submitInfo.commandBufferCount = 1;
-    // submitInfo.pCommandBuffers = &m_commandBuffer[currentFrame];
-
-    // VkSemaphore signalSemaphores[] = {m_renderFinishedSmph[imageIndex]};
-    // submitInfo.signalSemaphoreCount = 1;
-    // submitInfo.pSignalSemaphores = signalSemaphores;
-
-    // if (vkQueueSubmit(m_vkContext.get_device().graphicsQueue, 1, &submitInfo, m_inFlightFence[currentFrame]) != VK_SUCCESS) 
-    // {
-    //     throw std::runtime_error("failed to submit draw command buffer!");
-    // }
-    
-
-    // VkPresentInfoKHR presentInfo{};
-    // presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-    // presentInfo.waitSemaphoreCount = 1;
-    // presentInfo.pWaitSemaphores = signalSemaphores;
-
-    // VkSwapchainKHR swapChains[] = { swapchain.get()->get_handle() };
-    // presentInfo.swapchainCount = 1;
-    // presentInfo.pSwapchains = swapChains;
-    // presentInfo.pImageIndices = &imageIndex;
-
-    // presentInfo.pResults = nullptr; // Optional
-
-    // vkQueuePresentKHR(m_vkContext.get_device().presentQueue, &presentInfo);
-
-    // currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
+    DVS::VertexLayout vl;
+    vl.append(DVS::VertexLayout::Position3D).append(DVS::VertexLayout::Float3Color);
+    DVS::VertexBuffer vb(std::move(vl));
+    vb.emplace_back(DVS::VKFLOAT3{1.0f, 1.0f, 5.0f}, DVS::VKFLOAT3{1.0f, 1.0f, 5.0f});
+    auto pos = vb[0].attribute<DVS::VertexLayout::Position3D>();
+    std::cout<<pos.z;
     render_with_new_sync();
 }
 
@@ -124,30 +45,33 @@ void VkRenderer::Shutdown() {
     
     vkDeviceWaitIdle(m_vkContext.get_device().get());
 
-    for(size_t i = 0; i < swapchain.get()->get_image_views().size(); i++)
-    {
-        vkDestroySemaphore(m_vkContext.get_device().get(), m_renderFinishedSmph[i], nullptr);
-    }
 
-    
-    for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        vkDestroySemaphore(m_vkContext.get_device().get(), m_imgAvailableSmph[i], nullptr);
-        vkDestroyFence(m_vkContext.get_device().get(), m_inFlightFence[i], nullptr);
-    }
+    if (timelineSmph)
+	{
+		vkDestroySemaphore(m_vkContext.get_device().get(), timelineSmph, nullptr);
+	}
 
-    clean_swapchain();
+    for (auto &data : m_frameResources)
+	{
+		vkDestroySemaphore(m_vkContext.get_device().get(), data.s_imgAcquiredSmph, nullptr);
+		vkDestroyCommandPool(m_vkContext.get_device().get(), data.s_commandPool, nullptr); 
+	}
+
+
+    for (VkSemaphore &semaphore : m_renderCompleteSmphs)
+	{
+		vkDestroySemaphore(m_vkContext.get_device().get(), semaphore, nullptr);
+	}
+	m_renderCompleteSmphs.clear();
+
+    clean_swapchain_v2();
 
     if (gfxPipeline)
     {
         gfxPipeline->Destroy();
         gfxPipeline.reset();
     }
-    if (renderPass)
-    {
-        renderPass->Destroy();
-        renderPass.reset();
-    }
+
     if (vertex)
     {
         vertex->Destroy();
@@ -191,16 +115,6 @@ void VkRenderer::create_swapchain()
 
 }
 
-void VkRenderer::recreate_swapcahin()
-{
-    vkDeviceWaitIdle(m_vkContext.get_device().get());
-
-    clean_swapchain();
-
-    create_swapchain();
-    create_framebuffers();
-
-}
 
 void VkRenderer::clean_swapchain()
 {
@@ -460,7 +374,7 @@ void VkRenderer::render_with_new_sync()
     {
         vkDeviceWaitIdle(m_vkContext.get_device().get());
         clean_swapchain_v2();
-        create_swapchain_v2();
+        create_swapchain();
         m_swapchainRecreation = false;
     }
 
@@ -549,10 +463,10 @@ void VkRenderer::render_with_new_sync()
         .imageMemoryBarrierCount = static_cast<uint32_t>(layoutBarriers.size()),
         .pImageMemoryBarriers = layoutBarriers.data()
     };
-    std::cout<<"BARR1-before\n";
+    // std::cout<<"BARR1-before\n";
 
     vkCmdPipelineBarrier2(data.s_commandBuffer, &depInfo);
-    std::cout<<"BARR1\n";
+    // std::cout<<"BARR1\n";
     VkRenderingAttachmentInfo colorAttInfo
     {
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -637,10 +551,10 @@ void VkRenderer::render_with_new_sync()
 		.imageMemoryBarrierCount = 1,
 		.pImageMemoryBarriers = &presentLayoutBarrier
 	};
-    std::cout<<"BARR2-before\n";
+    // std::cout<<"BARR2-before\n";
 
 	vkCmdPipelineBarrier2(data.s_commandBuffer, &presentDepInfo);
-    std::cout<<"BARR2\n";
+    // std::cout<<"BARR2\n";
 
 
 	vkEndCommandBuffer(data.s_commandBuffer);
@@ -701,14 +615,11 @@ void VkRenderer::render_with_new_sync()
 
 void VkRenderer::clean_swapchain_v2()
 {
-
+    swapchain.get()->Destroy();
 }
 
 
-void VkRenderer::create_swapchain_v2()
-{
 
-}
 
 void VkRenderer::recreate_swapchain_v2()
 {

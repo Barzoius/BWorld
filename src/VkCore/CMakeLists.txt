@@ -50,11 +50,15 @@ add_library(VkCore STATIC
 
             Bindables/Bindable.hpp
 
+            Bindables/VertexSystem.hpp
+
             Bindables/VertexBuffer.hpp
             Bindables/VertexBuffer.cpp
 
             Bindables/IndexBuffer.hpp
             Bindables/IndexBuffer.cpp
+
+            Drawables/Drawable.hpp
 
 
             )
@@ -78,7 +82,8 @@ if(NOT Vulkan_FOUND)
 endif()
 
 target_link_libraries(VkCore
-    PRIVATE glfw
+    PRIVATE glfw glm
+
 )
 
 
