@@ -2,7 +2,7 @@
 #include <memory>
 
 
-#include "Bindables/VertexSystem.hpp"
+#include "Resources/VertexSystem.hpp"
 
 
 
@@ -21,8 +21,7 @@ void VkRenderer::Initialize(Context& context)
     create_swapchain();
 
     construct_vertex_buffer();
-    std::cout << "WAWAWA\n";
-    std::cout<<"COUNT: "<<m_vertexBuffer->get_wrapper_buffer().get_layout().get_count()<<"\n";
+
     create_GFX_pipeline();
 
 
@@ -46,7 +45,6 @@ void VkRenderer::construct_vertex_buffer()
     m_vertexBuffer = std::make_unique<VertexBuffer>(m_vkContext, vb);
 
     m_vertexBuffer -> create_buffer();
-    std::cout<<"COUNT: "<<m_vertexBuffer->get_wrapper_buffer().get_layout().get_count()<<"\n";
     
 }
 
@@ -55,16 +53,6 @@ void VkRenderer::construct_vertex_buffer()
 
 void VkRenderer::RenderFrame() 
 {
-    // DVS::VertexLayout vl;
-    // vl.append(DVS::VertexLayout::Position3D).append(DVS::VertexLayout::Normal);
-    // DVS::VertexBuffer vb(std::move(vl));
-    // vb.emplace_back(DVS::VKFLOAT3{1.0f, 1.0f, 5.0f}, DVS::VKFLOAT3{1.0f, 1.0f, 2.0f});
-    // vb.emplace_back(DVS::VKFLOAT3{9.0f, 4.0f, 6.0f}, DVS::VKFLOAT3{2.0f, 15.0f, 0.0f});
-    // auto pos = vb[0].attribute<DVS::VertexLayout::Position3D>();
-    // auto& n = vb[1].attribute<DVS::VertexLayout::Normal>();
-    // vb.back().attribute<DVS::VertexLayout::Normal>().z = 420.0f;
-
-    // std::cout<<n.z;
     render_with_new_sync();
 }
 
@@ -125,8 +113,6 @@ void VkRenderer::Shutdown() {
  {
     swapchain.get()->update_resolution(res.width, res.height);
     m_vkContext.update_instance_resolution(res);
-    
-    std::cout<<"UPDATE RESOLUTION RENDERER\n";
  }
 
 void VkRenderer::create_swapchain()
@@ -158,55 +144,20 @@ void VkRenderer::clean_swapchain()
 }
 
 
-void VkRenderer::create_renderpass()
-{
-    renderPass = std::make_unique<RenderPass>(m_vkContext, swapchainContext);
-    renderPass.get()->createRenderPass();
-}
 
 void VkRenderer::create_GFX_pipeline()
 {
-    std::cout << "PIPELINE VB PTR: " << m_vertexBuffer.get() << "\n";
-
     gfxPipeline = std::make_unique<GraphicsPipeline>(m_vkContext, swapchainContext);
 
     GraphicsPipelineDesc desc{};
-    std::cout<<"COUNT: "<<m_vertexBuffer->get_wrapper_buffer().get_layout().get_count()<<"\n";
     desc.vertLayout.bindDesc = m_vertexBuffer->get_bind_desc();
 
     desc.vertLayout.attrDescs = m_vertexBuffer->get_attr_desc();
     desc.vertShader = vertex.get();
     desc.fragShader = fragment.get();
     gfxPipeline.get()->create_pipeline(desc);
-    //gfxPipeline.get()->createPipeline(*vertex, *fragment, *renderPass);
 }
 
-void VkRenderer::create_framebuffers()
-{
-    size_t size = swapchain.get()->get_image_views().size();
-    swapChainFramebuffers.resize(size);
-
-    for(size_t i = 0; i < size; i++)
-    {
-        VkImageView attachments[] = {swapchain.get()->get_image_views()[i]};
-    
-        VkFramebufferCreateInfo frameBufferInfo{};
-        frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        frameBufferInfo.renderPass = renderPass.get()->getRenderPass();
-        frameBufferInfo.attachmentCount = 1;
-        frameBufferInfo.pAttachments = attachments;
-        frameBufferInfo.width = swapchainContext.width;
-        frameBufferInfo.height = swapchainContext.height;
-        frameBufferInfo.layers = 1;
-
-        if (vkCreateFramebuffer(m_vkContext.get_device().get(), &frameBufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) 
-        {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
-    }
-
-    std::cout<<"FrameBuffers Created\n";
-}
 
 void VkRenderer::create_commandpool()
 {
@@ -268,53 +219,6 @@ void VkRenderer::recordCommandBuffer(VkCommandBuffer& buffer, uint32_t imageInde
 
 
 
-
-void VkRenderer::create_frame_data()
-{
-
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool.get()->get_handle();
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
-
-
-    if(vkAllocateCommandBuffers(m_vkContext.get_device().get(), &allocInfo, m_commandBuffer.data())!= VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to allocate command buffers");
-    }
-
-
-    VkSemaphoreCreateInfo semaphoreInfo{};
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    VkFenceCreateInfo fenceInfo{};
-    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-    for(size_t i = 0; i < swapchain.get()->get_image_views().size(); i++)
-    {
-                vkCreateSemaphore(m_vkContext.get_device().get(), 
-                          &semaphoreInfo, nullptr,
-                          &m_renderFinishedSmph[i]); 
-    }
-
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        if(
-        vkCreateSemaphore(m_vkContext.get_device().get(), 
-                          &semaphoreInfo, nullptr, 
-                          &m_imgAvailableSmph[i]) != VK_SUCCESS ||
-        vkCreateFence(m_vkContext.get_device().get(), 
-                      &fenceInfo, nullptr, 
-                      &m_inFlightFence[i]) != VK_SUCCESS
-        )
-        {
-            throw std::runtime_error("failed to create synchronization objects for a frame!");
-        }
-    }
-
-}
 
 
 void VkRenderer::create_sync_resources()
@@ -504,10 +408,9 @@ void VkRenderer::render_with_new_sync()
         .imageMemoryBarrierCount = static_cast<uint32_t>(layoutBarriers.size()),
         .pImageMemoryBarriers = layoutBarriers.data()
     };
-    // std::cout<<"BARR1-before\n";
 
     vkCmdPipelineBarrier2(data.s_commandBuffer, &depInfo);
-    // std::cout<<"BARR1\n";
+
     VkRenderingAttachmentInfo colorAttInfo
     {
         .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -569,7 +472,6 @@ void VkRenderer::render_with_new_sync()
         vkCmdBindVertexBuffers(data.s_commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdDraw(data.s_commandBuffer, static_cast<uint32_t>(m_vertexBuffer->get_size()), 1, 0, 0);
-        //vkCmdDraw(data.s_commandBuffer, 3, 1, 0, 0);
     };
     vkCmdEndRendering(data.s_commandBuffer);
 
@@ -598,10 +500,8 @@ void VkRenderer::render_with_new_sync()
 		.imageMemoryBarrierCount = 1,
 		.pImageMemoryBarriers = &presentLayoutBarrier
 	};
-    // std::cout<<"BARR2-before\n";
 
 	vkCmdPipelineBarrier2(data.s_commandBuffer, &presentDepInfo);
-    // std::cout<<"BARR2\n";
 
 
 	vkEndCommandBuffer(data.s_commandBuffer);
@@ -665,12 +565,18 @@ void VkRenderer::clean_swapchain_v2()
     swapchain.get()->Destroy();
 }
 
-
-
-
 void VkRenderer::recreate_swapchain_v2()
 {
 
+}
+
+void VkRenderer::copy_buffer(VkBuffer, VkBuffer, VkDeviceSize)
+{
+    // VkCommandBufferAllocateInfo allocInfo{};
+    // allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    // allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    // allocInfo.commandPool = ;
+    // allocInfo.commandBufferCount = 1;
 }
 
 

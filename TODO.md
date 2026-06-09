@@ -17,6 +17,10 @@
 - [x] Move to dynamic rendering
     - [ ] Update pipline creation (less swapchain coupling)
 - [ ] Integrate Bindables
+    - [x] Vertex Buffer
+    - [ ] Index Buffer
+    - [ ] Maybe implement PVP
+    - [ ] Uniform Buffer
 - [ ] Redo UML and Dependency graphs
 - [ ] Integrate ImGUI or QT
 - [ ] Move to 3D

@@ -45,15 +45,14 @@ add_library(VkCore STATIC
             Pipeline/RenderPass.hpp
             Pipeline/RenderPass.cpp
 
-            Bindables/Bindable.hpp
 
-            Bindables/VertexSystem.hpp
+            Resources/VertexSystem.hpp
 
-            Bindables/VertexBuffer.hpp
-            Bindables/VertexBuffer.cpp
+            Resources/VertexBuffer.hpp
+            Resources/VertexBuffer.cpp
 
-            Bindables/IndexBuffer.hpp
-            Bindables/IndexBuffer.cpp
+            Resources/IndexBuffer.hpp
+            Resources/IndexBuffer.cpp
 
             Drawables/Drawable.hpp
 

@@ -408,33 +408,6 @@ namespace DVS
         }
 
 
-        // i think i can make these 2 static
-
-        VkVertexInputBindingDescription get_bind_desc() noexcept
-        {
-            VkVertexInputBindingDescription bindDesc{};
-            bindDesc.binding = 0; // modulate this later
-            bindDesc.stride = (uint32_t)this->get_size_in_bytes();
-            bindDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // modulate this later
-
-            return bindDesc;
-        }
-
-
-        std::vector<VkVertexInputAttributeDescription> get_attr_desc()
-        {
-            std::vector<VkVertexInputAttributeDescription> descs;
-            descs.resize(m_layout.get_count());
-            for(int i = 0; i < descs.size(); i++)
-            {
-                descs[i].binding = 0; // modulate this later
-                descs[i].location = i;
-                descs[i].format = this -> get_layout().resolve_by_index((size_t)i).get_format();
-                descs[i].offset = this -> get_layout().resolve_by_index((size_t)i).get_offset();
-            }
-
-            return descs;
-        }
     private:
         std::vector<char> m_buffer;
         VertexLayout m_layout;

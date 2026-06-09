@@ -1,6 +1,5 @@
 #include "Shader.hpp"
 #include "VkContexts/VkSwapChainContext.hpp"
-#include "RenderPass.hpp"
 
 
 #include <memory>
@@ -13,7 +12,6 @@ struct GraphicsPipelineDesc
         std::vector<VkVertexInputAttributeDescription> attrDescs;
     }vertLayout;
 
-    VkRenderPass renderPass = VK_NULL_HANDLE;
 
     Shader<ShaderType::VERTEX>* vertShader = nullptr;
     Shader<ShaderType::TCS>* tcsShader = nullptr;  
@@ -33,7 +31,7 @@ public:
 
     void bindPipeline(VkCommandBuffer&);
 
-    void createPipeline(const Shader<ShaderType::VERTEX>&, const Shader<ShaderType::FRAGMENT>&, RenderPass&);
+    
 
     void createPiplineLayout();
 

@@ -17,7 +17,7 @@
 
 #include "VulkanCommandPool.hpp"
 
-#include "Bindables/VertexBuffer.hpp"
+#include "Resources/VertexBuffer.hpp"
 
 class VkRenderer : public Renderer
 {
@@ -30,15 +30,12 @@ public:
     void UpdateResolution(const Resolution&) override;
 
     void create_swapchain();
-    void create_renderpass();
     void create_GFX_pipeline();
     void create_commandpool();
 
     void clean_swapchain();
 
-    void create_frame_data();
     // things to move from here
-    void create_framebuffers();
 
     void create_frame_data_v2();
     void create_sync_resources();
@@ -48,6 +45,7 @@ public:
     void clean_swapchain_v2();
     void recreate_swapchain_v2();
 
+    void copy_buffer(VkBuffer, VkBuffer, VkDeviceSize);
 
 private:
     VkContext& m_vkContext;

@@ -6,6 +6,8 @@ VertexBuffer::VertexBuffer(VkContext& c, DVS::VertexBuffer vbuf) : m_context(c) 
 
 void VertexBuffer::create_buffer()
 {
+
+
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = m_buffer.get_size_in_bytes();
@@ -19,20 +21,54 @@ void VertexBuffer::create_buffer()
     alloc_and_bind_mem();
 
     void* data;
-    vkMapMemory(m_context.get_device().get(), m_vkMem, 0, bufferInfo.size, 0, &data);
-    memcpy(data, m_buffer.get_data(), (size_t) bufferInfo.size);
+    vkMapMemory(m_context.get_device().get(), m_vkMem, 0, m_buffer.get_size_in_bytes(), 0, &data);
+    memcpy(data, m_buffer.get_data(), (size_t) m_buffer.get_size_in_bytes());
     vkUnmapMemory(m_context.get_device().get(), m_vkMem);
+
+    // VkBuffer stagingBuffer;
+    // VkDeviceMemory stagingBufferMemory;
+
+    // construct_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    
+    // void* data;
+    // vkMapMemory(m_context.get_device().get(), stagingBufferMemory, 0, m_buffer.get_size_in_bytes(), 0, &data);
+    // memcpy(data, m_buffer.get_data(), (size_t) m_buffer.get_size_in_bytes());
+    // vkUnmapMemory(m_context.get_device().get(), stagingBufferMemory);
+
+    // construct_buffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vkBuffer, m_vkMem);
 }
 
-VkBuffer VertexBuffer::get_handle()
+void VertexBuffer::construct_buffer(VkBufferUsageFlags p_usage, VkMemoryPropertyFlags p_properties, VkBuffer& p_buffer, VkDeviceMemory& p_bufferMem)
 {
-    return m_vkBuffer;
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = m_buffer.get_size_in_bytes();
+    bufferInfo.usage = p_usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateBuffer(m_context.get_device().get(), &bufferInfo, nullptr, &m_vkBuffer) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create vertex buffer!");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(m_context.get_device().get(), m_vkBuffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = find_mem_type(memRequirements.memoryTypeBits, p_properties);
+
+    if (vkAllocateMemory(m_context.get_device().get(), &allocInfo, nullptr, &m_vkMem) != VK_SUCCESS) 
+    {
+        throw std::runtime_error("failed to allocate vertex buffer memory!");
+    }
+
+    vkBindBufferMemory(m_context.get_device().get(), m_vkBuffer, m_vkMem, 0);
 }
 
-size_t VertexBuffer::get_size()
-{
-    return m_buffer.get_size_in_bytes();
-}
+
+
 
 
 
@@ -43,12 +79,6 @@ void VertexBuffer::destroy_buffer() noexcept
 }
 
 
-//remove this
-void VertexBuffer::check_mem()
-{
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(m_context.get_device().get(), m_vkBuffer, &memRequirements);
-}
 
 uint32_t VertexBuffer::find_mem_type(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
@@ -82,19 +112,33 @@ void VertexBuffer::alloc_and_bind_mem()
     vkBindBufferMemory(m_context.get_device().get(), m_vkBuffer, m_vkMem, 0);
 }
 
-void VertexBuffer::map_mem()
-{
 
+void VertexBuffer::alloc_and_bind_mem(VkBuffer& p_buffer, VkDeviceMemory& p_bufferMem)
+{
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(m_context.get_device().get(), p_buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = find_mem_type(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    if (vkAllocateMemory(m_context.get_device().get(), &allocInfo, nullptr, &p_bufferMem) != VK_SUCCESS) 
+    {
+        throw std::runtime_error("failed to allocate vertex buffer memory!");
+    }
+
+    vkBindBufferMemory(m_context.get_device().get(), p_buffer, p_bufferMem, 0);
 }
 
-void VertexBuffer::bind() noexcept
-{
-    
-}
+
+
+VkBuffer VertexBuffer::get_handle(){ return m_vkBuffer; }
+VkBuffer VertexBuffer::get_staging_buffer_handle() { return m_stagBuffer; }
+size_t VertexBuffer::get_size() { return m_buffer.get_size_in_bytes(); }
 
 VkVertexInputBindingDescription VertexBuffer::get_bind_desc()
 {
-    // std::cout << "Bind SIZE: " << this->m_buffer.get_layout().get_size() << "\n";
 
     VkVertexInputBindingDescription bindDesc{};
     bindDesc.binding = 0; // modulate this later
@@ -105,10 +149,7 @@ VkVertexInputBindingDescription VertexBuffer::get_bind_desc()
 }
 std::vector<VkVertexInputAttributeDescription> VertexBuffer::get_attr_desc()
 {
-    std::cout << "THIS PTR: " << this << "\n";
 
-    // std::cout<<"ATTRIBUTES\n";
-    // std::cout << "Attr count: " << this->m_buffer.get_layout().get_count() << "\n";
     std::vector<VkVertexInputAttributeDescription> descs;
     descs.resize(m_buffer.get_layout().get_count());
     for(int i = 0; i < descs.size(); i++)

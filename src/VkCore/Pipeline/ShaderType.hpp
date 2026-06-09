@@ -13,6 +13,8 @@ enum class ShaderType
 
 /** struct used for trait mapping the shader flag bits **/
 
+// i should move this directly to Shader.hpp
+
 template<ShaderType>
 struct ShaderStageTraits;
 

@@ -17,69 +17,8 @@ void GraphicsPipeline::Destroy()
 {
     vkDestroyPipeline(context.get_device().get(), graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(context.get_device().get(), pipelineLayout, nullptr);
-
-    std::cout<<"GFXPipieline destroyed\n";
-
 }
 
-void GraphicsPipeline::createPipeline(const Shader<ShaderType::VERTEX>& vertex, const Shader<ShaderType::FRAGMENT>& fragment, RenderPass& renderPass)
-{
-    VkGraphicsPipelineCreateInfo pipelineInfo{};
-    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-
-    pipelineInfo.stageCount = 2;
-    VkPipelineShaderStageCreateInfo shaderStages[] = {vertex.getStageInfo(), fragment.getStageInfo()};
-    pipelineInfo.pStages = shaderStages;
-
-    initVertexInput();
-    initInputAssembly();
-    initViewportState();
-    initRasterizer();
-    initMultisample();
-    initDepthStencil();
-    initColorBlend();
-    initDynamicStates();
-
-    // structure required for dynamic rendering
-	VkPipelineRenderingCreateInfo renderInfo
-	{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-		.colorAttachmentCount = 1,
-		.pColorAttachmentFormats = &swapchainContext.imageFormat
-		// .depthAttachmentFormat = 0 // i have to pass the depth format !!!!!!!!!!!!!!!!!!!
-	};
-
-
-    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.pNext = &renderInfo;
-    pipelineInfo.pVertexInputState = &vertexInput;
-    pipelineInfo.pInputAssemblyState = &inputAssembly;
-    pipelineInfo.pViewportState = &viewportState;
-    pipelineInfo.pRasterizationState = &rasterizer;
-    pipelineInfo.pMultisampleState = &multisampling;
-    pipelineInfo.pDepthStencilState = nullptr; // optional
-    pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.pDynamicState = &dynamicState;
-
-
-    createPiplineLayout();
-
-    pipelineInfo.layout = pipelineLayout;
-
-    
-    pipelineInfo.renderPass = VK_NULL_HANDLE; //renderPass.getRenderPass();
-    pipelineInfo.subpass = 0;
-
-    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
-    pipelineInfo.basePipelineIndex = -1; // Optional
-
-    if (vkCreateGraphicsPipelines(context.get_device().get(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create graphics pipeline!");
-    }
-
-    std::cout<<"GFXPipieline created\n";
-
-}
 
 void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc)
 {
@@ -150,7 +89,7 @@ void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc)
     pipelineInfo.layout = pipelineLayout;
 
     
-    pipelineInfo.renderPass = VK_NULL_HANDLE; //renderPass.getRenderPass();
+    pipelineInfo.renderPass = VK_NULL_HANDLE; 
     pipelineInfo.subpass = 0;
 
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
@@ -160,7 +99,6 @@ void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc)
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
-    std::cout<<"GFXPipieline created\n";
 }
 
 void GraphicsPipeline::bindPipeline(VkCommandBuffer& commandBuffer) 
