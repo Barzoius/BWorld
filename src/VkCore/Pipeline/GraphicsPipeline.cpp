@@ -81,6 +81,88 @@ void GraphicsPipeline::createPipeline(const Shader<ShaderType::VERTEX>& vertex, 
 
 }
 
+void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc)
+{
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+
+    std::vector<VkPipelineShaderStageCreateInfo> stages;
+
+    if(desc.vertShader)
+        stages.emplace_back(desc.vertShader->getStageInfo());
+    if(desc.tcsShader) // check features too
+        stages.emplace_back(desc.tcsShader->getStageInfo());
+    if(desc.tesShader)
+        stages.emplace_back(desc.tesShader->getStageInfo());
+    if(desc.geomShader)
+        stages.emplace_back(desc.geomShader->getStageInfo());
+    if(desc.fragShader)
+        stages.emplace_back(desc.fragShader->getStageInfo());
+    
+    pipelineInfo.stageCount = static_cast<uint32_t>(stages.size());
+    pipelineInfo.pStages = stages.data();
+
+
+    // with vertex buffer
+    vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+    vertexInput.vertexBindingDescriptionCount = 1;
+    vertexInput.pVertexBindingDescriptions = &desc.vertLayout.bindDesc;
+
+    vertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(desc.vertLayout.attrDescs.size());
+    vertexInput.pVertexAttributeDescriptions = desc.vertLayout.attrDescs.data();
+
+
+
+
+    initInputAssembly();
+    initViewportState();
+    initRasterizer();
+    initMultisample();
+    initDepthStencil();
+    initColorBlend();
+    initDynamicStates();
+
+    // structure required for dynamic rendering
+	VkPipelineRenderingCreateInfo renderInfo
+	{
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+		.colorAttachmentCount = 1,
+		.pColorAttachmentFormats = &swapchainContext.imageFormat
+		// .depthAttachmentFormat = 0 // i have to pass the depth format !!!!!!!!!!!!!!!!!!!
+	};
+
+
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.pNext = &renderInfo;
+    pipelineInfo.pVertexInputState = &vertexInput;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = nullptr; // optional
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDynamicState = &dynamicState;
+
+
+    createPiplineLayout();
+
+    pipelineInfo.layout = pipelineLayout;
+
+    
+    pipelineInfo.renderPass = VK_NULL_HANDLE; //renderPass.getRenderPass();
+    pipelineInfo.subpass = 0;
+
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
+    pipelineInfo.basePipelineIndex = -1; // Optional
+
+    if (vkCreateGraphicsPipelines(context.get_device().get(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics pipeline!");
+    }
+
+    std::cout<<"GFXPipieline created\n";
+}
+
 void GraphicsPipeline::bindPipeline(VkCommandBuffer& commandBuffer) 
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
@@ -106,6 +188,7 @@ void GraphicsPipeline::createPiplineLayout()
         throw std::runtime_error("failed to create pipeline layout!");
     }
 }
+
 
 void GraphicsPipeline::initDynamicStates()
 {

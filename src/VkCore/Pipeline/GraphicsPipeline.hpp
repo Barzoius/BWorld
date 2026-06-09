@@ -1,25 +1,45 @@
-#include "VulkanPipeline.hpp"
+#include "Shader.hpp"
 #include "VkContexts/VkSwapChainContext.hpp"
 #include "RenderPass.hpp"
 
 
 #include <memory>
 
-class GraphicsPipeline : public VulkanPipeline
+struct GraphicsPipelineDesc
+{
+    struct VertexLayout
+    {
+        VkVertexInputBindingDescription bindDesc;
+        std::vector<VkVertexInputAttributeDescription> attrDescs;
+    }vertLayout;
+
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+
+    Shader<ShaderType::VERTEX>* vertShader = nullptr;
+    Shader<ShaderType::TCS>* tcsShader = nullptr;  
+    Shader<ShaderType::TES>* tesShader = nullptr;  
+    Shader<ShaderType::GEOMETRY>* geomShader = nullptr;  
+    Shader<ShaderType::FRAGMENT>* fragShader = nullptr;  
+
+    
+};
+
+class GraphicsPipeline
 {
 public:
     GraphicsPipeline(VkContext&, const VkSwapchainContext&);
 
-    ~GraphicsPipeline() override;
+    ~GraphicsPipeline();
 
-    void bindPipeline(VkCommandBuffer&) override;
+    void bindPipeline(VkCommandBuffer&);
 
     void createPipeline(const Shader<ShaderType::VERTEX>&, const Shader<ShaderType::FRAGMENT>&, RenderPass&);
 
     void createPiplineLayout();
 
-	VkPipeline get_handle() const override;
+	VkPipeline get_handle() const;
 
+    void create_pipeline(const GraphicsPipelineDesc&);
 
     void Destroy();
 

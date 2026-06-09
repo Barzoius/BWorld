@@ -11,10 +11,10 @@ namespace DVS
 {
     struct RGBACOLOR
     {
-        unsigned char a;
         unsigned char r;
         unsigned char g;
         unsigned char b;
+        unsigned char a;
     };
 
     struct VKFLOAT2
@@ -111,7 +111,7 @@ namespace DVS
             using SysType = VKFLOAT4;
             static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
             static constexpr const char* semantic = "Color";
-            static constexpr const char* code = "P4";
+            static constexpr const char* code = "C4";
         };
         template<> struct Map<RGBAColor>
         {
@@ -158,16 +158,34 @@ namespace DVS
 
             ElementType get_type() const noexcept { return type; }
 
-            // VkVertexInputBindingDescription get_binding_desc()
-            // {
-
-            // }
-
-            void get_attribute_desc()
+            VkFormat get_format() const noexcept 
             {
+                switch(type)
+                    {
+                        case Position2D:
+                            return Map<Position2D>::vkFormat;
+                        case Position3D:
+                            return Map<Position3D>::vkFormat;
+                        case Texture2D:
+                            return Map<Texture2D>::vkFormat;
+                        case Normal:
+                            return Map<Normal>::vkFormat;
+                        case Tangent:
+                            return Map<Tangent>::vkFormat;          
+                        case Bitangent:
+                            return Map<Bitangent>::vkFormat;
+                        case Float3Color:
+                            return Map<Float3Color>::vkFormat;
+                        case Float4Color:
+                            return Map<Float4Color>::vkFormat;   
+                        case RGBAColor:
+                            return Map<RGBAColor>::vkFormat;               
+                    }
 
+                    
+                assert("Invalid element format" && false);
+                return VK_FORMAT_UNDEFINED;
             }
-
 
             const char* get_code() const noexcept
             {
@@ -198,11 +216,6 @@ namespace DVS
             }
         private:
 
-            // template<ElementType type>
-            // static constexpr VkVertexInputBindingDescription generate_binding_desc(size_t offset) noexcept
-            // {
-                
-            // }
         
         private:
             ElementType type;
@@ -322,7 +335,7 @@ namespace DVS
         void set_attribute_by_index(size_t p_index, First&& first, Rest&&...rest) noexcept
         {
             set_attribute_by_index(p_index, std::forward<First>(first));
-            set_attribute_by_index(p_index, std::forward<Rest>(rest)...);   
+            set_attribute_by_index(p_index + 1, std::forward<Rest>(rest)...);   
         }
 
         template<VertexLayout::ElementType DestLayoutType, typename SrcLayoutType>
@@ -394,6 +407,34 @@ namespace DVS
             return Vertex{ m_buffer.data() + m_layout.get_size() * p_index, m_layout };
         }
 
+
+        // i think i can make these 2 static
+
+        VkVertexInputBindingDescription get_bind_desc() noexcept
+        {
+            VkVertexInputBindingDescription bindDesc{};
+            bindDesc.binding = 0; // modulate this later
+            bindDesc.stride = (uint32_t)this->get_size_in_bytes();
+            bindDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // modulate this later
+
+            return bindDesc;
+        }
+
+
+        std::vector<VkVertexInputAttributeDescription> get_attr_desc()
+        {
+            std::vector<VkVertexInputAttributeDescription> descs;
+            descs.resize(m_layout.get_count());
+            for(int i = 0; i < descs.size(); i++)
+            {
+                descs[i].binding = 0; // modulate this later
+                descs[i].location = i;
+                descs[i].format = this -> get_layout().resolve_by_index((size_t)i).get_format();
+                descs[i].offset = this -> get_layout().resolve_by_index((size_t)i).get_offset();
+            }
+
+            return descs;
+        }
     private:
         std::vector<char> m_buffer;
         VertexLayout m_layout;

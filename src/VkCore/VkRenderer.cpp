@@ -17,9 +17,14 @@ void VkRenderer::Initialize(Context& context)
     vertex = std::make_unique<Shader<ShaderType::VERTEX>>(m_vkContext, vert);
     fragment = std::make_unique<Shader<ShaderType::FRAGMENT>>(m_vkContext, frag);
 
+ 
     create_swapchain();
 
+    construct_vertex_buffer();
+    std::cout << "WAWAWA\n";
+    std::cout<<"COUNT: "<<m_vertexBuffer->get_wrapper_buffer().get_layout().get_count()<<"\n";
     create_GFX_pipeline();
+
 
 
     create_sync_resources();
@@ -27,16 +32,39 @@ void VkRenderer::Initialize(Context& context)
 
 }
 
+void VkRenderer::construct_vertex_buffer()
+{
+    
+    DVS::VertexLayout vl;
+    vl.append(DVS::VertexLayout::Position2D).append(DVS::VertexLayout::Float3Color);
+    DVS::VertexBuffer vb(std::move(vl));
+    vb.emplace_back(DVS::VKFLOAT2{0.0f, -0.5f}, DVS::VKFLOAT3{1.0f, 1.0f, 1.0f});
+    vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
+    vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
+
+    
+    m_vertexBuffer = std::make_unique<VertexBuffer>(m_vkContext, vb);
+
+    m_vertexBuffer -> create_buffer();
+    std::cout<<"COUNT: "<<m_vertexBuffer->get_wrapper_buffer().get_layout().get_count()<<"\n";
+    
+}
+
+
 
 
 void VkRenderer::RenderFrame() 
 {
-    DVS::VertexLayout vl;
-    vl.append(DVS::VertexLayout::Position3D).append(DVS::VertexLayout::Float3Color);
-    DVS::VertexBuffer vb(std::move(vl));
-    vb.emplace_back(DVS::VKFLOAT3{1.0f, 1.0f, 5.0f}, DVS::VKFLOAT3{1.0f, 1.0f, 5.0f});
-    auto pos = vb[0].attribute<DVS::VertexLayout::Position3D>();
-    std::cout<<pos.z;
+    // DVS::VertexLayout vl;
+    // vl.append(DVS::VertexLayout::Position3D).append(DVS::VertexLayout::Normal);
+    // DVS::VertexBuffer vb(std::move(vl));
+    // vb.emplace_back(DVS::VKFLOAT3{1.0f, 1.0f, 5.0f}, DVS::VKFLOAT3{1.0f, 1.0f, 2.0f});
+    // vb.emplace_back(DVS::VKFLOAT3{9.0f, 4.0f, 6.0f}, DVS::VKFLOAT3{2.0f, 15.0f, 0.0f});
+    // auto pos = vb[0].attribute<DVS::VertexLayout::Position3D>();
+    // auto& n = vb[1].attribute<DVS::VertexLayout::Normal>();
+    // vb.back().attribute<DVS::VertexLayout::Normal>().z = 420.0f;
+
+    // std::cout<<n.z;
     render_with_new_sync();
 }
 
@@ -63,6 +91,8 @@ void VkRenderer::Shutdown() {
 		vkDestroySemaphore(m_vkContext.get_device().get(), semaphore, nullptr);
 	}
 	m_renderCompleteSmphs.clear();
+
+    m_vertexBuffer->destroy_buffer();
 
     clean_swapchain_v2();
 
@@ -136,8 +166,19 @@ void VkRenderer::create_renderpass()
 
 void VkRenderer::create_GFX_pipeline()
 {
+    std::cout << "PIPELINE VB PTR: " << m_vertexBuffer.get() << "\n";
+
     gfxPipeline = std::make_unique<GraphicsPipeline>(m_vkContext, swapchainContext);
-    gfxPipeline.get()->createPipeline(*vertex, *fragment, *renderPass);
+
+    GraphicsPipelineDesc desc{};
+    std::cout<<"COUNT: "<<m_vertexBuffer->get_wrapper_buffer().get_layout().get_count()<<"\n";
+    desc.vertLayout.bindDesc = m_vertexBuffer->get_bind_desc();
+
+    desc.vertLayout.attrDescs = m_vertexBuffer->get_attr_desc();
+    desc.vertShader = vertex.get();
+    desc.fragShader = fragment.get();
+    gfxPipeline.get()->create_pipeline(desc);
+    //gfxPipeline.get()->createPipeline(*vertex, *fragment, *renderPass);
 }
 
 void VkRenderer::create_framebuffers()
@@ -522,7 +563,13 @@ void VkRenderer::render_with_new_sync()
 
         vkCmdBindPipeline(data.s_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.get()->get_handle());
 
-        vkCmdDraw(data.s_commandBuffer, 3, 1, 0, 0);
+        VkBuffer vertexBuffers[] = {m_vertexBuffer -> get_handle()};
+        VkDeviceSize offsets[] = {0};
+
+        vkCmdBindVertexBuffers(data.s_commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdDraw(data.s_commandBuffer, static_cast<uint32_t>(m_vertexBuffer->get_size()), 1, 0, 0);
+        //vkCmdDraw(data.s_commandBuffer, 3, 1, 0, 0);
     };
     vkCmdEndRendering(data.s_commandBuffer);
 

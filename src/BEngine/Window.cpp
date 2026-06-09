@@ -42,7 +42,7 @@ void Window::update_resolution(int width, int height)
 {
     specs.wnd_width = width;
     specs.wnd_height = height;
-    std::cout<<"Window Update Resolution\n";
+    //std::cout<<"Window Update Resolution\n";
 }
 
 void Window::set_callbacks()

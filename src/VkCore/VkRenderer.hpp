@@ -17,6 +17,8 @@
 
 #include "VulkanCommandPool.hpp"
 
+#include "Bindables/VertexBuffer.hpp"
+
 class VkRenderer : public Renderer
 {
 public:
@@ -59,8 +61,6 @@ private:
 
     std::unique_ptr<VulkanCommandPool> commandPool;
     
-    std::vector<std::unique_ptr<VulkanPipeline>> gfxPipelines;
-    std::vector<std::unique_ptr<VulkanPipeline>> computePipelines;
     std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;
     std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
 
@@ -68,6 +68,12 @@ private:
     void recordCommandBuffer(VkCommandBuffer&, uint32_t);
 
     bool m_framebufferResized = false;
+
+
+    std::unique_ptr<VertexBuffer> m_vertexBuffer;
+
+    //to be removed
+    void construct_vertex_buffer();
 
 private:
     static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
