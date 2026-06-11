@@ -48,6 +48,15 @@ public:
     void copy_buffer(VkBuffer, VkBuffer, VkDeviceSize);
 
 private:
+
+    //------------------------------------[RENDER HELPER FUNCTIONS]---------------------------------//
+    // uint32_t begin_frame_sync();
+    // uint32_t acquire_swapchain_image(frameData&);
+    // void record_command_buffer(frameData& frame, uint32_t imageIndex);
+    //----------------------------------------------------------------------------------------------//
+
+
+private:
     VkContext& m_vkContext;
     std::unique_ptr<VulkanSwapchain> swapchain;
     std::unique_ptr<RenderPass> renderPass;
@@ -57,7 +66,7 @@ private:
 
     std::unique_ptr<GraphicsPipeline> gfxPipeline;
 
-    std::unique_ptr<VulkanCommandPool> commandPool;
+    // std::unique_ptr<VulkanCommandPool> commandPool;
     
     std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;
     std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
@@ -74,16 +83,9 @@ private:
     void construct_vertex_buffer();
 
 private:
+    //------------------------------------[SYNCHRONIZATION DATA]---------------------------------//
+
     static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-    uint32_t currentFrame = 0;
-
-
-    std::vector<VkCommandBuffer> m_commandBuffer;
-    std::vector<VkSemaphore> m_imgAvailableSmph;
-    std::vector<VkSemaphore> m_renderFinishedSmph;
-    std::vector<VkFence> m_inFlightFence;
-
-    uint64_t frameValue; 
 
     struct frameData
     {
@@ -91,12 +93,17 @@ private:
         VkCommandBuffer s_commandBuffer = nullptr;
         VkSemaphore s_imgAcquiredSmph = nullptr;
     };
-
     std::array<frameData, MAX_FRAMES_IN_FLIGHT> m_frameResources;
-    VkSemaphore timelineSmph = nullptr; // cpu-gpu
-    std::vector<VkSemaphore> m_renderCompleteSmphs; 
 
+    uint32_t currentFrame = 0;
     uint64_t nextSignalValue = MAX_FRAMES_IN_FLIGHT + 1;
+
+
+    VkSemaphore timelineSmph = nullptr; // cpu-gpu
+    std::vector<VkSemaphore> m_renderCompleteSmphs;//should move to swapchain
+    
+    //------------------------------------------------------------------------------------------//
+
 
     bool m_swapchainRecreation = false;
 

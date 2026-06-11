@@ -32,6 +32,8 @@ add_library(VkCore STATIC
             VulkanImage.hpp
             VulkanImage.cpp
 
+            Descriptors/model_desc.hpp
+
             Pipeline/GraphicsPipeline.hpp
             Pipeline/GraphicsPipeline.cpp
 

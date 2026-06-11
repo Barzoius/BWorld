@@ -8,16 +8,15 @@
 namespace vkutil
 {
     struct QueueFamilyIndices {
-        std::optional<uint32_t> graphicsFamily;
-        std::optional<uint32_t> presentFamily;
-        std::optional<uint32_t> computeFamily;
-        
+        std::optional<uint32_t> s_graphics; // graphics + present
+        std::optional<uint32_t> s_compute; // async compute
+        std::optional<uint32_t> s_transfer; 
 
-        bool isComplete() const {
-            return graphicsFamily.has_value() &&
-                   presentFamily.has_value() &&
-                   computeFamily.has_value();
+    
+        bool is_complete() const {
+            return s_graphics.has_value();
         }
+
     };
 
     struct SwapChainSupportDetails 

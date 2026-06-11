@@ -27,16 +27,6 @@ void VulkanDevice::Initialize()
     create_logical_device();
 }
 
-VkDevice VulkanDevice::get() const
-{
-    return handle;
-}
-
-VkPhysicalDevice VulkanDevice::getPhyD() const
-{
-    return phyD;
-}
-
 
 void VulkanDevice::pick_device()
 {
@@ -84,40 +74,94 @@ bool VulkanDevice::is_device_suitable(VkPhysicalDevice device)
 
     }
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate;
+    return indices.is_complete() && extensionsSupported && swapChainAdequate;
 
 }
 
 void VulkanDevice::find_queue_families(VkPhysicalDevice device)
 {
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, nullptr);
 
-    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+    std::vector<VkQueueFamilyProperties2> queueFamilies(queueFamilyCount,{ VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 });
+    vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, queueFamilies.data());
 
-
-    int i = 0;
-    for (const auto& queueFamily : queueFamilies) 
+    //--------------------------------------[TRANSFER DEDICATED]-----------------------------------//
+    for(int i = 0; i < queueFamilies.size(); i++)
     {
-        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            indices.graphicsFamily = i;
+        const auto& queueFamily = queueFamilies[i];
 
-        if (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
-            indices.computeFamily = i;
-         
-        VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, instance.get_surface_handle(), &presentSupport);
-        if (presentSupport) 
-            indices.presentFamily = i;
-            
+        bool compute  = queueFamily.queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT;
+        if(!compute) continue;
 
-        if (indices.isComplete())
-            break; 
+        bool graphics = queueFamily.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT;
+        
+        if(!graphics)
+        {
+            indices.s_compute = (uint32_t)i;
+            break;
+        }
 
-
-        i++;
+        if (!indices.s_compute.has_value())
+            indices.s_compute = i; // best available and most probable
     }
+    //---------------------------------------------------------------------------------------------//
+    //--------------------------------------[COMPUTE DEDICATED]------------------------------------//
+    for (int i = 0; i < queueFamilies.size(); i++)
+    {
+        const auto& queueFamily = queueFamilies[i];
+
+        bool transfer = queueFamily.queueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT;
+        if (!transfer) continue;
+
+        bool graphics = queueFamily.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT;
+        bool compute  = queueFamily.queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT;
+
+        
+        if (!graphics && !compute)
+        {
+            indices.s_transfer = (uint32_t)i;
+            break;
+        }
+
+        if (!indices.s_transfer.has_value())
+            indices.s_transfer = i; // best available and most probable
+
+    }
+    //---------------------------------------------------------------------------------------------//
+    //--------------------------------------[GRAPHICS DEDICATED]-----------------------------------//
+    for (int i = 0; i < queueFamilies.size(); i++)
+    {
+        const auto& queueFamily = queueFamilies[i];
+
+        bool graphics = queueFamily.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT;
+
+        VkBool32 presentSupport = VK_FALSE;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, instance.get_surface_handle(), &presentSupport);
+
+        if(graphics && presentSupport)
+        {
+            indices.s_graphics = (uint32_t)i;
+            break;
+        }
+
+    }
+    //---------------------------------------------------------------------------------------------//
+    //------------------------------------------[FALLBACK]-----------------------------------------//
+    if (indices.s_graphics.has_value())
+    {
+        uint32_t g = indices.s_graphics.value();
+
+        const auto& q = queueFamilies[g].queueFamilyProperties.queueFlags;
+
+        if (!indices.s_compute.has_value())
+            if(q & VK_QUEUE_COMPUTE_BIT)
+                indices.s_compute = g;
+        if (!indices.s_transfer.has_value())
+            if (q & VK_QUEUE_TRANSFER_BIT)
+                indices.s_transfer = g;
+    }
+    //---------------------------------------------------------------------------------------------//
     
 }
 
@@ -143,7 +187,7 @@ void VulkanDevice::create_logical_device()
     //------------------------------------[QUEUE_CREATE_INFO]------------------------------------//
     VkDeviceQueueCreateInfo queueCreateInfo{};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueFamilyIndex = indices.s_graphics.value();
     queueCreateInfo.queueCount = 1;
     float queuePriority = 1.0f;
     queueCreateInfo.pQueuePriorities = &queuePriority;
@@ -205,6 +249,8 @@ void VulkanDevice::create_logical_device()
 	};
 	VkPhysicalDeviceFeatures2 features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features12 };
 
+
+
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pNext = &features;
@@ -223,8 +269,6 @@ void VulkanDevice::create_logical_device()
         createInfo.enabledLayerCount = 0;
     }
 
-
-    
     
     if (vkCreateDevice(phyD, &createInfo, nullptr, &handle) != VK_SUCCESS) 
         throw std::runtime_error("failed to create logical device!");
@@ -233,11 +277,14 @@ void VulkanDevice::create_logical_device()
 
     std::cout << "LogicalDevice created\n";
 
-    vkGetDeviceQueue(handle, indices.graphicsFamily.value(), 0, &graphicsQueue);
-    vkGetDeviceQueue(handle, indices.presentFamily.value(), 0, &presentQueue);
+    vkGetDeviceQueue(handle, indices.s_graphics.value(), 0, &graphicsQueue);
     
     std::cout << "Queues handles created\n";
 
 }
 
 vkutil::QueueFamilyIndices VulkanDevice::get_device_indices() const { return indices; }
+
+VkPhysicalDevice VulkanDevice::getPhyD() const { return phyD; }
+
+VkDevice VulkanDevice::get() const { return handle; }

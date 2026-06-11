@@ -27,11 +27,15 @@ public:
     VkPhysicalDevice getPhyD() const;
     vkutil::QueueFamilyIndices get_device_indices() const;
 
+    VkQueue request_queue();
+
+
 private:
 
     void pick_device();
     void create_logical_device();
     void create_queue();
+    
     
 
     bool is_device_suitable(VkPhysicalDevice);

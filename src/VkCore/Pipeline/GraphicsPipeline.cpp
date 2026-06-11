@@ -13,7 +13,7 @@ GraphicsPipeline::~GraphicsPipeline()
     
 }
 
-void GraphicsPipeline::Destroy()
+void GraphicsPipeline::destroy()
 {
     vkDestroyPipeline(context.get_device().get(), graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(context.get_device().get(), pipelineLayout, nullptr);
@@ -84,7 +84,7 @@ void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc)
     pipelineInfo.pDynamicState = &dynamicState;
 
 
-    createPiplineLayout();
+    create_pipline_layout();
 
     pipelineInfo.layout = pipelineLayout;
 
@@ -101,7 +101,7 @@ void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc)
 
 }
 
-void GraphicsPipeline::bindPipeline(VkCommandBuffer& commandBuffer) 
+void GraphicsPipeline::bind(VkCommandBuffer& commandBuffer) 
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 }
@@ -112,7 +112,7 @@ VkPipeline GraphicsPipeline::get_handle() const
 }
 
 
-void GraphicsPipeline::createPiplineLayout()
+void GraphicsPipeline::create_pipline_layout()
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

@@ -18,8 +18,6 @@ struct GraphicsPipelineDesc
     Shader<ShaderType::TES>* tesShader = nullptr;  
     Shader<ShaderType::GEOMETRY>* geomShader = nullptr;  
     Shader<ShaderType::FRAGMENT>* fragShader = nullptr;  
-
-    
 };
 
 class GraphicsPipeline
@@ -29,17 +27,18 @@ public:
 
     ~GraphicsPipeline();
 
-    void bindPipeline(VkCommandBuffer&);
+    void bind(VkCommandBuffer&);
 
-    
-
-    void createPiplineLayout();
+    void create_pipline_layout();
 
 	VkPipeline get_handle() const;
 
     void create_pipeline(const GraphicsPipelineDesc&);
 
-    void Destroy();
+    void allocate_descriptor_sets();
+    void update_descriptor_sets();
+
+    void destroy();
 
 private:
     void initDynamicStates();

@@ -86,7 +86,7 @@ void VkRenderer::Shutdown() {
 
     if (gfxPipeline)
     {
-        gfxPipeline->Destroy();
+        gfxPipeline->destroy();
         gfxPipeline.reset();
     }
 
@@ -100,12 +100,6 @@ void VkRenderer::Shutdown() {
         fragment->Destroy();
         fragment.reset();
     }
-    if(commandPool)
-    {
-        commandPool->Destroy();
-        commandPool.reset();
-    }
-
 
 }
 
@@ -161,9 +155,9 @@ void VkRenderer::create_GFX_pipeline()
 
 void VkRenderer::create_commandpool()
 {
-    commandPool = std::make_unique<VulkanCommandPool>(m_vkContext, swapchainContext, *renderPass, swapChainFramebuffers);
+    // commandPool = std::make_unique<VulkanCommandPool>(m_vkContext, swapchainContext, *renderPass, swapChainFramebuffers);
 
-    commandPool.get()->Initialize();
+    // commandPool.get()->Initialize();
 }
 
 
@@ -216,9 +210,6 @@ void VkRenderer::recordCommandBuffer(VkCommandBuffer& buffer, uint32_t imageInde
     }
 
 }
-
-
-
 
 
 void VkRenderer::create_sync_resources()
@@ -275,7 +266,7 @@ void VkRenderer::create_frame_data_v2()
         VkCommandPoolCreateInfo poolInfo
         {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-            .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value()
+            .queueFamilyIndex = queueFamilyIndices.s_graphics.value()
         };
 
         if(vkCreateCommandPool(m_vkContext.get_device().get(), &poolInfo, nullptr, &data.s_commandPool) != VK_SUCCESS)
@@ -580,5 +571,43 @@ void VkRenderer::copy_buffer(VkBuffer, VkBuffer, VkDeviceSize)
 }
 
 
+//------------------------------------[RENDER HELPER FUNCTION]---------------------------------//
+
+
+void render()
+{
+    //handel swapchain
+
+    // begin_frame_sync();
+}
+
+// uint32_t VkRenderer::begin_frame_sync()
+// {
+//     const uint32_t frameDataIndex = currentFrame++ % MAX_FRAMES_IN_FLIGHT;
+//     const uint64_t signalValue = nextSignalValue++;
+//     const uint64_t waitValue = signalValue - MAX_FRAMES_IN_FLIGHT;
+
+//     VkSemaphoreWaitInfo waitInfo
+//     {
+//         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
+//         .semaphoreCount = 1,
+//         .pSemaphores = &timelineSmph,
+//         .pValues = &waitValue
+//     };
+//     vkWaitSemaphores(m_vkContext.get_device().get(), &waitInfo, UINT64_MAX);
+
+
+// }
+
+// uint32_t VkRenderer::acquire_swapchain_image(frameData&)
+// {
+
+// }
+
+// void VkRenderer::record_command_buffer(frameData& frame, uint32_t imageIndex)
+// {
+
+// }
+//---------------------------------------------------------------------------------------------//
 
 
