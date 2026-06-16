@@ -19,11 +19,11 @@ class Shader
 public:
     Shader(VkContext&, const std::string&);
     ~Shader();
-    VkShaderModule get() const;
+    [[nodiscard]] VkShaderModule get() const;
 
     void Destroy();
 
-    VkPipelineShaderStageCreateInfo getStageInfo() const;
+    [[nodiscard]] VkPipelineShaderStageCreateInfo getStageInfo() const;
 private:
     void createShaderModule(const std::vector<char>&);
 

@@ -31,7 +31,7 @@ public:
 
     void create_pipline_layout();
 
-	VkPipeline get_handle() const;
+	[[nodiscard]] VkPipeline get_handle() const;
 
     void create_pipeline(const GraphicsPipelineDesc&);
 

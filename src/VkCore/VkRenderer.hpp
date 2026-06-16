@@ -31,7 +31,7 @@ public:
 
     void create_swapchain();
     void create_GFX_pipeline();
-    void create_commandpool();
+
 
     void clean_swapchain();
 

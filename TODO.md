@@ -25,6 +25,8 @@
 - [ ] Integrate ImGUI or QT
 - [ ] Move to 3D
 - [ ] Add Camera 
+
+- [ ] Maybe move to a more data oriented design
 -----
 - [ ] Add other relevant things
     - [ ] ??

@@ -14,7 +14,10 @@ namespace vkutil
 
     
         bool is_complete() const {
-            return s_graphics.has_value();
+            return 
+            s_graphics.has_value() && 
+            s_transfer.has_value() && 
+            s_compute.has_value();
         }
 
     };

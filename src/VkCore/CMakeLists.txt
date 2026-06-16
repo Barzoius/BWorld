@@ -9,7 +9,6 @@ add_library(VkCore STATIC
             VkLog.hpp
             
             VulkanQueue.hpp
-            VulkanQueue.cpp
 
             VulkanDevice.hpp
             VulkanDevice.cpp
@@ -25,12 +24,11 @@ add_library(VkCore STATIC
             VkUtils.hpp
             VkUtils.cpp
 
+            Queue.hpp
+            Queue.cpp
+
             VulkanCommandPool.hpp
             VulkanCommandPool.cpp
-
-
-            VulkanImage.hpp
-            VulkanImage.cpp
 
             Descriptors/model_desc.hpp
 

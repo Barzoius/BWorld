@@ -153,13 +153,6 @@ void VkRenderer::create_GFX_pipeline()
 }
 
 
-void VkRenderer::create_commandpool()
-{
-    // commandPool = std::make_unique<VulkanCommandPool>(m_vkContext, swapchainContext, *renderPass, swapChainFramebuffers);
-
-    // commandPool.get()->Initialize();
-}
-
 
 void VkRenderer::recordCommandBuffer(VkCommandBuffer& buffer, uint32_t imageIndex)
 {
@@ -533,7 +526,10 @@ void VkRenderer::render_with_new_sync()
 		.signalSemaphoreInfoCount = static_cast<uint32_t>(semaphoreSignals.size()),
 		.pSignalSemaphoreInfos = semaphoreSignals.data()
 	};
-	vkQueueSubmit2(m_vkContext.get_device().graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    // queue_data* gfxQ = m_vkContext.get_device().get_graphics_queue();
+    const queue_data* gfx = m_vkContext.get_device().get_graphics_queue();
+    vkQueueSubmit2(gfx->s_handle, 1, &submitInfo, VK_NULL_HANDLE);
+	//vkQueueSubmit2(m_vkContext.get_device().m_graphicsQueue.get()->get_handle(), 1, &submitInfo, VK_NULL_HANDLE);
 
     VkSwapchainKHR swapchainHandle = swapchain.get()->get_handle();
 	// present the image
@@ -547,7 +543,10 @@ void VkRenderer::render_with_new_sync()
 		.pResults = nullptr
 	};
 
-	vkQueuePresentKHR(m_vkContext.get_device().graphicsQueue, &presentInfo);
+
+	//vkQueuePresentKHR(m_vkContext.get_device().m_graphicsQueue.get()->get_handle(), &presentInfo);
+	vkQueuePresentKHR(gfx->s_handle, &presentInfo);
+
 
 }
 

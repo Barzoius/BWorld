@@ -45,9 +45,10 @@ public:
     }
 
 
-    VkSurfaceKHR get_surface_handle() const;
-    Resolution get_resolution() const;
-    VkInstance get_handle() const;
+    [[nodiscard]] VkSurfaceKHR get_surface_handle() const;
+    [[nodiscard]] Resolution get_resolution() const;
+    [[nodiscard]] VkInstance get_handle() const;
+    
     void update_resolution(const Resolution&);
 
 private:

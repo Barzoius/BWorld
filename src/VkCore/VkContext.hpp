@@ -7,6 +7,7 @@
 #include "Instance.hpp"
 #include "VulkanDevice.hpp"
 
+
 class VkContext : public Context
 {
 public:
@@ -17,8 +18,8 @@ public:
     void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&) override;
     void Destroy() override;
 
-    const VulkanDevice& get_device() const { return device; }
-    const Instance& get_instance() const { return instance; }
+    [[nodiscard]] const VulkanDevice& get_device() const { return device; }
+    [[nodiscard]] const Instance& get_instance() const { return instance; }
 
     void update_instance_resolution(const Resolution&);
     

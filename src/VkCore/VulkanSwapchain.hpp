@@ -26,16 +26,16 @@ public:
 
     void recreate_swapchain();
     
-    VkSwapchainKHR get_handle() const;
+    [[nodiscard]] VkSwapchainKHR get_handle() const;
 
-    VkFormat get_image_format() const;
-    VkExtent2D get_extent() const;
+    [[nodiscard]] VkFormat get_image_format() const;
+    [[nodiscard]] VkExtent2D get_extent() const;
 
-    int get_width() const;
-    int get_height() const;
+    [[nodiscard]] int get_width() const;
+    [[nodiscard]] int get_height() const;
 
-    std::vector<VkImageView> get_image_views();
-    std::vector<VkImage> get_images();
+    [[nodiscard]] std::vector<VkImageView> get_image_views();
+    [[nodiscard]] std::vector<VkImage> get_images();
 
 private:
     VkSurfaceFormatKHR choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>&, SwapchainColorMode);

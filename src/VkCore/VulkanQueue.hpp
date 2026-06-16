@@ -1,31 +1,101 @@
 #pragma once
 
-#include "vulkan/vulkan.h"
 #include <vector>
 
-struct QueueSubmitInfo
+struct GraphicsQueueTraits
 {
-    std::vector<VkCommandBuffer> m_cmdBuf;
-    std::vector<VkSemaphore> m_waits;
-    std::vector<VkSemaphore> m_signals;
+    static constexpr bool canPresent = true;
+    static constexpr bool canTransfer = true;
+    static constexpr bool canCompute = true;
 };
 
+struct TransferQueueTraits
+{
+    static constexpr bool canPresent = false;
+    static constexpr bool canTransfer = true;
+    static constexpr bool canCompute = false;
+};
+
+struct ComputeQueueTraits
+{
+    static constexpr bool canPresent = false;
+    static constexpr bool canTransfer = false;
+    static constexpr bool canCompute = true;
+};
+
+template <typename Traits>
 class VulkanQueue
 {
 public:
-    VulkanQueue(VkDevice device, uint32_t familyIndex, uint32_t count, float* priorities);
-    
-    void Submit();
-    void Wait();
+    VulkanQueue(uint32_t);
 
-    VkQueue getHandle() const;
-    void createQueue();
+    void init(VkDevice&);
+    void submit();
+    void wait();
+    void present() requires (Traits::canPresent);
+    void copy_buffer() requires (Traits::canTransfer);
+
+    VkQueue get_handle() const;
+    uint32_t get_index() const;
+    float get_priority() const;
 
 private:
-    VkDevice device;
-    uint32_t familyIndex;
-    VkQueue handle;
+    VkQueue m_handle;
 
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-
+    uint32_t m_index;
+    float m_priority = 1.0;
 };
+
+template <typename Traits>
+VulkanQueue<Traits>::VulkanQueue(uint32_t p_index) : m_index(p_index) {}
+
+
+template <typename Traits>
+VkQueue VulkanQueue<Traits>::get_handle() const
+{
+    return m_handle;
+}
+
+template <typename Traits>
+uint32_t VulkanQueue<Traits>::get_index() const
+{
+    return m_index;
+}
+
+template <typename Traits>
+float VulkanQueue<Traits>::get_priority() const
+{
+    return m_priority;
+}
+
+template <typename Traits>
+void VulkanQueue<Traits>::init(VkDevice& p_device)
+{
+    vkGetDeviceQueue(p_device, m_index, 0, &m_handle);
+}
+template <typename Traits>
+void VulkanQueue<Traits>::submit()
+{
+
+}
+
+template <typename Traits>
+void VulkanQueue<Traits>::wait()
+{
+    vkQueueWaitIdle(m_handle);
+}
+
+
+template <typename Traits>
+void VulkanQueue<Traits>::present() requires (Traits::canPresent)
+{
+
+}
+
+template <typename Traits>
+void VulkanQueue<Traits>::copy_buffer() requires (Traits::canTransfer)
+{
+
+}
+
+
