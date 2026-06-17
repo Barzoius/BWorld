@@ -225,3 +225,8 @@ void Instance::get_instance_version()
     m_instanceVer.patch = VK_API_VERSION_PATCH(instanceVer);
 
 }
+
+VkInstance Instance::get_handle() const
+{
+    return handle;
+}

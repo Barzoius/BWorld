@@ -27,9 +27,6 @@ public:
     [[nodiscard]] VkPhysicalDevice getPhyD() const;
     [[nodiscard]] vkutil::QueueFamilyIndices get_device_indices() const;
 
-    // [[nodiscard]] VkQueue get_gfx_queue() const;
-    // [[nodiscard]] VkQueue get_transfer_queue() const;
-
 
     [[nodiscard]] const queue_data* get_graphics_queue() const;
     [[nodiscard]] const queue_data* get_transfer_queue() const;
@@ -70,11 +67,5 @@ private:
     static constexpr float m_graphicsPriority = 1.0f;
     static constexpr float m_transferPriority = 1.0f;
     static constexpr float m_computePriority = 1.0f;
-
-
-
-public:
-    std::unique_ptr<VulkanQueue<GraphicsQueueTraits>> m_graphicsQueue;
-    std::unique_ptr<VulkanQueue<TransferQueueTraits>> m_transferQueue;
 
 };

@@ -9,6 +9,8 @@
 
 #include "VertexSystem.hpp"
 
+#include "vulkan/vulkan.h"
+
 #include <array>
 
 
@@ -17,7 +19,6 @@ class VertexBuffer
 public:
     VertexBuffer(VkContext&,  DVS::VertexBuffer);
 
-    void bind() noexcept;
 
     void create_buffer();
     void destroy_buffer() noexcept;

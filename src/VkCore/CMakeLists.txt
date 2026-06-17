@@ -1,5 +1,8 @@
 add_library(VkCore STATIC
 
+            VMA/vk_mem_alloc.h
+            VMA/VmaUsage.cpp
+
             VkContext.hpp
             VkContext.cpp
 
@@ -51,8 +54,9 @@ add_library(VkCore STATIC
             Resources/VertexBuffer.hpp
             Resources/VertexBuffer.cpp
 
-            Resources/IndexBuffer.hpp
-            Resources/IndexBuffer.cpp
+            Resources/Buffers.hpp
+            Resources/Buffers.cpp
+
 
             Drawables/Drawable.hpp
 

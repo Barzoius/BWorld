@@ -11,7 +11,6 @@
 #include "VkContext.hpp"
 #include "Pipeline/GraphicsPipeline.hpp"
 
-#include "Pipeline/RenderPass.hpp"
 
 #include "VulkanSwapchain.hpp"
 
@@ -59,20 +58,15 @@ private:
 private:
     VkContext& m_vkContext;
     std::unique_ptr<VulkanSwapchain> swapchain;
-    std::unique_ptr<RenderPass> renderPass;
     std::vector<VkFramebuffer> swapChainFramebuffers;
 
     VkSwapchainContext swapchainContext;
 
     std::unique_ptr<GraphicsPipeline> gfxPipeline;
-
-    // std::unique_ptr<VulkanCommandPool> commandPool;
     
     std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;
     std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
 
-
-    void recordCommandBuffer(VkCommandBuffer&, uint32_t);
 
     bool m_framebufferResized = false;
 

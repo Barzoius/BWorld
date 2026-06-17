@@ -154,56 +154,6 @@ void VkRenderer::create_GFX_pipeline()
 
 
 
-void VkRenderer::recordCommandBuffer(VkCommandBuffer& buffer, uint32_t imageIndex)
-{
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = 0; // Optional
-    beginInfo.pInheritanceInfo = nullptr; // Optional
-
-    if (vkBeginCommandBuffer(buffer, &beginInfo) != VK_SUCCESS) {
-        throw std::runtime_error("failed to begin recording command buffer!");
-    }
-
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderPass.get()->getRenderPass();
-    renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
-
-    renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = swapchainContext.extent;
-
-    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
-
-    vkCmdBeginRenderPass(buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    vkCmdBindPipeline(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,  gfxPipeline.get()->get_handle());
-
-    VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = static_cast<float>(swapchainContext.width);
-    viewport.height = static_cast<float>(swapchainContext.height);
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(buffer, 0, 1, &viewport);
-
-    VkRect2D scissor{};
-    scissor.offset = {0, 0};
-    scissor.extent = swapchainContext.extent;
-    vkCmdSetScissor(buffer, 0, 1, &scissor);
-
-    vkCmdDraw(buffer, 3, 1, 0, 0);
-
-    vkCmdEndRenderPass(buffer);
-    if (vkEndCommandBuffer(buffer) != VK_SUCCESS) {
-        throw std::runtime_error("failed to record command buffer!");
-    }
-
-}
-
 
 void VkRenderer::create_sync_resources()
 {
@@ -459,8 +409,7 @@ void VkRenderer::render_with_new_sync()
     };
     vkCmdEndRendering(data.s_commandBuffer);
 
-    VkImageMemoryBarrier2 presentLayoutBarrier
-	{
+    VkImageMemoryBarrier2 presentLayoutBarrier{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
 		.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
 		.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
@@ -478,8 +427,8 @@ void VkRenderer::render_with_new_sync()
 			.layerCount = 1,
 		}
 	};
-	VkDependencyInfo presentDepInfo
-	{
+	
+    VkDependencyInfo presentDepInfo{
 		.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
 		.imageMemoryBarrierCount = 1,
 		.pImageMemoryBarriers = &presentLayoutBarrier
@@ -490,15 +439,13 @@ void VkRenderer::render_with_new_sync()
 
 	vkEndCommandBuffer(data.s_commandBuffer);
 
-    VkSemaphoreSubmitInfo imageAcquireWaitInfo
-	{
+    VkSemaphoreSubmitInfo imageAcquireWaitInfo{
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 		.semaphore = data.s_imgAcquiredSmph,
 		.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT 
 	};
 	
-	std::vector<VkSemaphoreSubmitInfo> semaphoreSignals
-	{
+	std::vector<VkSemaphoreSubmitInfo> semaphoreSignals{
 		{ // render work completion signal
 			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 			.semaphore = m_renderCompleteSmphs[imageIndex],
@@ -511,13 +458,14 @@ void VkRenderer::render_with_new_sync()
 			.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
 		}
 	};
-	VkCommandBufferSubmitInfo cmdSubmitInfo
-	{
+
+	VkCommandBufferSubmitInfo cmdSubmitInfo{
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
 		.commandBuffer = data.s_commandBuffer,
 	};
-	VkSubmitInfo2 submitInfo
-	{
+
+
+	VkSubmitInfo2 submitInfo{
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
 		.waitSemaphoreInfoCount = 1,
 		.pWaitSemaphoreInfos = &imageAcquireWaitInfo, 
@@ -526,10 +474,10 @@ void VkRenderer::render_with_new_sync()
 		.signalSemaphoreInfoCount = static_cast<uint32_t>(semaphoreSignals.size()),
 		.pSignalSemaphoreInfos = semaphoreSignals.data()
 	};
-    // queue_data* gfxQ = m_vkContext.get_device().get_graphics_queue();
+
     const queue_data* gfx = m_vkContext.get_device().get_graphics_queue();
     vkQueueSubmit2(gfx->s_handle, 1, &submitInfo, VK_NULL_HANDLE);
-	//vkQueueSubmit2(m_vkContext.get_device().m_graphicsQueue.get()->get_handle(), 1, &submitInfo, VK_NULL_HANDLE);
+
 
     VkSwapchainKHR swapchainHandle = swapchain.get()->get_handle();
 	// present the image
@@ -544,9 +492,7 @@ void VkRenderer::render_with_new_sync()
 	};
 
 
-	//vkQueuePresentKHR(m_vkContext.get_device().m_graphicsQueue.get()->get_handle(), &presentInfo);
 	vkQueuePresentKHR(gfx->s_handle, &presentInfo);
-
 
 }
 
