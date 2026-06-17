@@ -13,6 +13,7 @@ VulkanDevice::~VulkanDevice() = default;
 
 void VulkanDevice::Destroy()
 {
+    vkDestroyCommandPool(handle, m_transferCommandPool, nullptr); 
     if(handle != VK_NULL_HANDLE) 
     {
         vkDeviceWaitIdle(handle);
@@ -25,6 +26,8 @@ void VulkanDevice::Initialize()
 {
     pick_device();
     create_logical_device();
+
+    init_tranfer_command_pool();
 }
 
 
@@ -324,6 +327,22 @@ void VulkanDevice::create_logical_device()
     std::cout << "Queues handles created\n";
 
 }
+void VulkanDevice::init_tranfer_command_pool()
+{
+    vkutil::QueueFamilyIndices queueFamilyIndices = indices;
+    VkCommandPoolCreateInfo poolInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .queueFamilyIndex = queueFamilyIndices.s_transfer.value()
+    };
+
+    if(vkCreateCommandPool(handle, &poolInfo, nullptr, &m_transferCommandPool) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create transfer command pool!");
+    }
+}
+
+
 
 vkutil::QueueFamilyIndices VulkanDevice::get_device_indices() const { return indices; }
 

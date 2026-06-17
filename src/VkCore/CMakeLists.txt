@@ -30,9 +30,14 @@ add_library(VkCore STATIC
             Queue.hpp
             Queue.cpp
 
+            Commands.hpp
+
             VulkanCommandPool.hpp
             VulkanCommandPool.cpp
 
+            Systems/System.hpp
+            Systems/System.cpp
+            
             Descriptors/model_desc.hpp
 
             Pipeline/GraphicsPipeline.hpp

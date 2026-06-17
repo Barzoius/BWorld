@@ -17,4 +17,5 @@ bool can_compute(const queue_data&);
 
 void submit(const queue_data&);
 void present(const queue_data&);
-void copy_buffer();
+
+// void copy_buffer(const queue_data&, const VkDevice& device, const VkCommandPool&, const VkBuffer&, const  VkBuffer&, VkDeviceSize);

@@ -41,10 +41,13 @@ void VkRenderer::construct_vertex_buffer()
     vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
     vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
 
-    
-    m_vertexBuffer = std::make_unique<VertexBuffer>(m_vkContext, vb);
+    input_vertex_buffers.push_back(vb);
 
-    m_vertexBuffer -> create_buffer();
+    //vertex_buffer = create_vertex_buffer(vb, m_vkContext.get_allocator());
+
+    vertex_buffer = create_vertex_buffer_with_staging(m_vkContext.transfer_sys, vb, m_vkContext.get_allocator());
+
+    //std::cout<<"VERTEX COUNT: "<<input_vertex_buffers[0].get_size_in_vertices()<<"\n";
     
 }
 
@@ -80,7 +83,8 @@ void VkRenderer::Shutdown() {
 	}
 	m_renderCompleteSmphs.clear();
 
-    m_vertexBuffer->destroy_buffer();
+
+    delete_buffer(vertex_buffer, m_vkContext.get_allocator());
 
     clean_swapchain_v2();
 
@@ -144,9 +148,30 @@ void VkRenderer::create_GFX_pipeline()
     gfxPipeline = std::make_unique<GraphicsPipeline>(m_vkContext, swapchainContext);
 
     GraphicsPipelineDesc desc{};
-    desc.vertLayout.bindDesc = m_vertexBuffer->get_bind_desc();
 
-    desc.vertLayout.attrDescs = m_vertexBuffer->get_attr_desc();
+
+    VkVertexInputBindingDescription bindDesc{};
+    bindDesc.binding = 0; 
+    bindDesc.stride = (uint32_t)input_vertex_buffers[0].get_layout().get_size();
+    bindDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    desc.vertLayout.bindDesc = bindDesc;
+
+
+
+    std::vector<VkVertexInputAttributeDescription> descs;
+    descs.resize(input_vertex_buffers[0].get_layout().get_count());
+    for(int i = 0; i < descs.size(); i++)
+    {
+        descs[i].binding = 0; // modulate this later
+        descs[i].location = i;
+        descs[i].format = input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_format();
+        descs[i].offset = input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_offset();
+        
+    }
+
+    desc.vertLayout.attrDescs = descs;
+
     desc.vertShader = vertex.get();
     desc.fragShader = fragment.get();
     gfxPipeline.get()->create_pipeline(desc);
@@ -400,12 +425,18 @@ void VkRenderer::render_with_new_sync()
 
         vkCmdBindPipeline(data.s_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.get()->get_handle());
 
-        VkBuffer vertexBuffers[] = {m_vertexBuffer -> get_handle()};
+
+        VkBuffer vertexBuffers[] = {vertex_buffer.s_handle};
+
         VkDeviceSize offsets[] = {0};
 
         vkCmdBindVertexBuffers(data.s_commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdDraw(data.s_commandBuffer, static_cast<uint32_t>(m_vertexBuffer->get_size()), 1, 0, 0);
+        vkCmdDraw(data.s_commandBuffer, static_cast<uint32_t>(input_vertex_buffers[0].get_size_in_vertices()), 1, 0, 0);
+
+    
+
+
     };
     vkCmdEndRendering(data.s_commandBuffer);
 

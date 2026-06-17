@@ -18,6 +18,8 @@
 
 #include "Resources/VertexBuffer.hpp"
 
+#include "Resources/Buffers.hpp"
+
 class VkRenderer : public Renderer
 {
 public:
@@ -71,9 +73,10 @@ private:
     bool m_framebufferResized = false;
 
 
-    std::unique_ptr<VertexBuffer> m_vertexBuffer;
 
-    //to be removed
+    buffer vertex_buffer;
+    std::vector<DVS::VertexBuffer> input_vertex_buffers;
+
     void construct_vertex_buffer();
 
 private:

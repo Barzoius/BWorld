@@ -14,6 +14,7 @@
 
 #include <unordered_map>
 
+
 class VulkanDevice
 {
 public:
@@ -32,6 +33,7 @@ public:
     [[nodiscard]] const queue_data* get_transfer_queue() const;
     [[nodiscard]] const queue_data* get_compute_queue() const;
 
+    [[nodiscard]] VkCommandPool get_transfer_pool() const { return m_transferCommandPool; }
 
 private:
 
@@ -47,6 +49,7 @@ private:
 
     void init_queues();
  
+    void init_tranfer_command_pool();
 private:
     const Instance& instance;    
     VkPhysicalDevice phyD{};
@@ -67,5 +70,8 @@ private:
     static constexpr float m_graphicsPriority = 1.0f;
     static constexpr float m_transferPriority = 1.0f;
     static constexpr float m_computePriority = 1.0f;
+
+    VkCommandPool m_transferCommandPool;
+
 
 };
