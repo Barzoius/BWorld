@@ -50,6 +50,36 @@ buffer create_vertex_buffer_with_staging(System& sys, DVS::VertexBuffer& vbuf, V
     return buffer;
 }
 
+buffer create_index_buffer(System& sys, const std::vector<uint16_t>& indices, VmaAllocator allocator)
+{
+    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+    auto stage_buffer = create_buffer(
+        allocator,
+        bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
+
+    upload_to_buffer(
+        allocator,
+        stage_buffer,
+        indices.data(),
+        bufferSize);
+
+    auto buffer = create_buffer(
+        allocator,
+        bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+        0);
+
+    copy_buffer(sys, stage_buffer.s_handle, buffer.s_handle, bufferSize);
+
+    delete_buffer(stage_buffer, allocator);
+    std::cout<<"STAGING\n";
+    return buffer;
+}
 
 buffer create_buffer( VmaAllocator allocator,
                     VkDeviceSize size,

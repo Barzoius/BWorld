@@ -37,9 +37,11 @@ void VkRenderer::construct_vertex_buffer()
     DVS::VertexLayout vl;
     vl.append(DVS::VertexLayout::Position2D).append(DVS::VertexLayout::Float3Color);
     DVS::VertexBuffer vb(std::move(vl));
-    vb.emplace_back(DVS::VKFLOAT2{0.0f, -0.5f}, DVS::VKFLOAT3{1.0f, 1.0f, 1.0f});
-    vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
-    vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
+    vb.emplace_back(DVS::VKFLOAT2{-0.5f, -0.5f}, DVS::VKFLOAT3{1.0f, 1.0f, 1.0f});
+    vb.emplace_back(DVS::VKFLOAT2{0.5f, -0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
+    vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
+    vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 1.0f});
+
 
     input_vertex_buffers.push_back(vb);
 
@@ -48,6 +50,8 @@ void VkRenderer::construct_vertex_buffer()
     vertex_buffer = create_vertex_buffer_with_staging(m_vkContext.transfer_sys, vb, m_vkContext.get_allocator());
 
     //std::cout<<"VERTEX COUNT: "<<input_vertex_buffers[0].get_size_in_vertices()<<"\n";
+
+    index_buffer = create_index_buffer(m_vkContext.transfer_sys, indices, m_vkContext.get_allocator());
     
 }
 
@@ -85,6 +89,8 @@ void VkRenderer::Shutdown() {
 
 
     delete_buffer(vertex_buffer, m_vkContext.get_allocator());
+    delete_buffer(index_buffer, m_vkContext.get_allocator());
+
 
     clean_swapchain_v2();
 
@@ -431,9 +437,11 @@ void VkRenderer::render_with_new_sync()
         VkDeviceSize offsets[] = {0};
 
         vkCmdBindVertexBuffers(data.s_commandBuffer, 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(data.s_commandBuffer, index_buffer.s_handle, 0, VK_INDEX_TYPE_UINT16);
 
-        vkCmdDraw(data.s_commandBuffer, static_cast<uint32_t>(input_vertex_buffers[0].get_size_in_vertices()), 1, 0, 0);
+        // vkCmdDraw(data.s_commandBuffer, static_cast<uint32_t>(input_vertex_buffers[0].get_size_in_vertices()), 1, 0, 0);
 
+        vkCmdDrawIndexed(data.s_commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     
 
 

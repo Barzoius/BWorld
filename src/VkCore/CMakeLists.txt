@@ -32,8 +32,7 @@ add_library(VkCore STATIC
 
             Commands.hpp
 
-            VulkanCommandPool.hpp
-            VulkanCommandPool.cpp
+
 
             Systems/System.hpp
             Systems/System.cpp

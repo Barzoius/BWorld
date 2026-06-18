@@ -39,7 +39,7 @@ struct uniform_buffer_data
 
 buffer create_vertex_buffer(DVS::VertexBuffer&, VmaAllocator);
 buffer create_vertex_buffer_with_staging(System&, DVS::VertexBuffer&, VmaAllocator);
-void create_index_buffer();
+buffer create_index_buffer(System&, const std::vector<uint16_t>&, VmaAllocator);
 void create_uniform_buffer();
 
 void delete_buffer(buffer&, VmaAllocator allocator);

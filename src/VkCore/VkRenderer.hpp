@@ -14,7 +14,7 @@
 
 #include "VulkanSwapchain.hpp"
 
-#include "VulkanCommandPool.hpp"
+
 
 #include "Resources/VertexBuffer.hpp"
 
@@ -77,6 +77,10 @@ private:
     buffer vertex_buffer;
     std::vector<DVS::VertexBuffer> input_vertex_buffers;
 
+    buffer index_buffer;
+    const std::vector<uint16_t> indices = {
+        0, 1, 2, 2, 3, 0
+    };
     void construct_vertex_buffer();
 
 private:
