@@ -11,7 +11,7 @@
 
 #include "VMA/vk_mem_alloc.h"
 
-#include "Queue.hpp"
+
 
 #include "Systems/System.hpp"
 
@@ -35,8 +35,5 @@ public:
 private:
     Instance instance;
     VulkanDevice device;
-    VmaAllocator vmaAllocator;
-
-
-    
+    VmaAllocator vmaAllocator;   
 };

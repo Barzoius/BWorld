@@ -10,6 +10,9 @@
 
 #include "Systems/System.hpp"
 
+#include <glm/glm.hpp>
+
+
 struct buffer
 {
     VkBuffer s_handle = VK_NULL_HANDLE;
@@ -36,11 +39,19 @@ struct uniform_buffer_data
 
 };
 
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
+
+VkFormat get_vertex_buffer_format(DVS::VertexLayout::ElementType type) noexcept;
 
 buffer create_vertex_buffer(DVS::VertexBuffer&, VmaAllocator);
 buffer create_vertex_buffer_with_staging(System&, DVS::VertexBuffer&, VmaAllocator);
 buffer create_index_buffer(System&, const std::vector<uint16_t>&, VmaAllocator);
-void create_uniform_buffer();
+buffer create_uniform_buffer(UniformBufferObject, VmaAllocator);
 
 void delete_buffer(buffer&, VmaAllocator allocator);
 

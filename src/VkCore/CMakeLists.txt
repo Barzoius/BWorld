@@ -49,20 +49,17 @@ add_library(VkCore STATIC
 
             Pipeline/ShaderType.hpp
 
-            Pipeline/RenderPass.hpp
-            Pipeline/RenderPass.cpp
 
 
-            Resources/VertexSystem.hpp
 
-            Resources/VertexBuffer.hpp
-            Resources/VertexBuffer.cpp
+            # Resources/VertexSystem.hpp
+            Resources/UniformSystem.hpp
+
+
 
             Resources/Buffers.hpp
             Resources/Buffers.cpp
 
-
-            Drawables/Drawable.hpp
 
 
             )

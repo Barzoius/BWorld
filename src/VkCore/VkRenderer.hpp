@@ -16,9 +16,12 @@
 
 
 
-#include "Resources/VertexBuffer.hpp"
-
 #include "Resources/Buffers.hpp"
+
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 
 class VkRenderer : public Renderer
 {
@@ -34,8 +37,6 @@ public:
     void create_GFX_pipeline();
 
 
-    void clean_swapchain();
-
     // things to move from here
 
     void create_frame_data_v2();
@@ -45,8 +46,6 @@ public:
 
     void clean_swapchain_v2();
     void recreate_swapchain_v2();
-
-    void copy_buffer(VkBuffer, VkBuffer, VkDeviceSize);
 
 private:
 
@@ -60,7 +59,6 @@ private:
 private:
     VkContext& m_vkContext;
     std::unique_ptr<VulkanSwapchain> swapchain;
-    std::vector<VkFramebuffer> swapChainFramebuffers;
 
     VkSwapchainContext swapchainContext;
 
@@ -82,6 +80,12 @@ private:
         0, 1, 2, 2, 3, 0
     };
     void construct_vertex_buffer();
+
+    std::vector<buffer> uniform_buffers;
+
+    void update_uniform_buffer(uint32_t currentImage);
+
+
 
 private:
     //------------------------------------[SYNCHRONIZATION DATA]---------------------------------//
@@ -110,5 +114,16 @@ private:
 
     VkImage depthImage = nullptr;
     VkImageView depthImageView = nullptr;
+
+
+    //de sters
+    struct UniformBufferObject {
+        glm::mat4 model;
+        glm::mat4 view;
+        glm::mat4 proj;
+    };
+    
+    VkDescriptorSetLayout descriptorSetLayout;
+
 
 };

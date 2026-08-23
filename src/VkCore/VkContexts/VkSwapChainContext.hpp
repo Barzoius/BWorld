@@ -12,4 +12,6 @@ struct VkSwapchainContext {
 
     int width;
     int height;
+
+    int images;
 };

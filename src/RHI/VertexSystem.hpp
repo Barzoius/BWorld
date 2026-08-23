@@ -2,10 +2,8 @@
 
 #include <vector>
 #include <type_traits>
-#include "vulkan/vulkan.h"
 #include <assert.h>
 #include <string>
-
 
 namespace DVS
 {
@@ -55,68 +53,68 @@ namespace DVS
         };
 
         template<ElementType> struct Map;
+        
         template<> struct Map<Position2D>
         {
             using SysType = VKFLOAT2;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R32G32_SFLOAT;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R32G32_SFLOAT;
             static constexpr const char* semantic = "Position";
             static constexpr const char* code = "P2";
         };
-
         template<ElementType> struct Map;
         template<> struct Map<Position3D>
         {
             using SysType = VKFLOAT3;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
             static constexpr const char* semantic = "Position";
             static constexpr const char* code = "P3";
         };
         template<> struct Map<Texture2D>
         {
             using SysType = VKFLOAT2;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R32G32_SFLOAT;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R32G32_SFLOAT;
             static constexpr const char* semantic = "Texcoord";
             static constexpr const char* code = "TEX";
         };
         template<> struct Map<Normal>
         {
             using SysType = VKFLOAT3;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
             static constexpr const char* semantic = "Normal";
             static constexpr const char* code = "N";
         };
         template<> struct Map<Tangent>
         {
             using SysType = VKFLOAT3;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
             static constexpr const char* semantic = "Tangent";
             static constexpr const char* code = "NT";
         };
         template<> struct Map<Bitangent>
         {
             using SysType = VKFLOAT3;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
             static constexpr const char* semantic = "Bitangent";
             static constexpr const char* code = "NB";
         };
         template<> struct Map<Float3Color>
         {
             using SysType = VKFLOAT3;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32_SFLOAT;
             static constexpr const char* semantic = "Color";
             static constexpr const char* code = "C3";
         };
         template<> struct Map<Float4Color>
         {
             using SysType = VKFLOAT4;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
             static constexpr const char* semantic = "Color";
             static constexpr const char* code = "C4";
         };
         template<> struct Map<RGBAColor>
         {
             using SysType = DVS::RGBACOLOR;
-            static constexpr VkFormat vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            //static constexpr VkFormat vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
             static constexpr const char* semantic = "Color";
             static constexpr const char* code = "P8";
         };
@@ -158,34 +156,6 @@ namespace DVS
 
             ElementType get_type() const noexcept { return type; }
 
-            VkFormat get_format() const noexcept 
-            {
-                switch(type)
-                    {
-                        case Position2D:
-                            return Map<Position2D>::vkFormat;
-                        case Position3D:
-                            return Map<Position3D>::vkFormat;
-                        case Texture2D:
-                            return Map<Texture2D>::vkFormat;
-                        case Normal:
-                            return Map<Normal>::vkFormat;
-                        case Tangent:
-                            return Map<Tangent>::vkFormat;          
-                        case Bitangent:
-                            return Map<Bitangent>::vkFormat;
-                        case Float3Color:
-                            return Map<Float3Color>::vkFormat;
-                        case Float4Color:
-                            return Map<Float4Color>::vkFormat;   
-                        case RGBAColor:
-                            return Map<RGBAColor>::vkFormat;               
-                    }
-
-                    
-                assert("Invalid element format" && false);
-                return VK_FORMAT_UNDEFINED;
-            }
 
             const char* get_code() const noexcept
             {

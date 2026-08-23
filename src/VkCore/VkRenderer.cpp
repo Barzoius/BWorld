@@ -2,9 +2,15 @@
 #include <memory>
 
 
-#include "Resources/VertexSystem.hpp"
+// #include "Resources/VertexSystem.hpp"
 
+#include "VertexSystem.hpp"
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <chrono>
 
 void VkRenderer::Initialize(Context& context) 
 {
@@ -45,13 +51,40 @@ void VkRenderer::construct_vertex_buffer()
 
     input_vertex_buffers.push_back(vb);
 
-    //vertex_buffer = create_vertex_buffer(vb, m_vkContext.get_allocator());
 
     vertex_buffer = create_vertex_buffer_with_staging(m_vkContext.transfer_sys, vb, m_vkContext.get_allocator());
 
     //std::cout<<"VERTEX COUNT: "<<input_vertex_buffers[0].get_size_in_vertices()<<"\n";
 
     index_buffer = create_index_buffer(m_vkContext.transfer_sys, indices, m_vkContext.get_allocator());
+    
+    // uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+    // for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    // {
+    //     buffer uniform = create_uniform_buffer(m_vkContext.get_allocator());
+    //     uniform_buffers.push_back(uniform);
+    // }
+}
+
+void VkRenderer::update_uniform_buffer(uint32_t currentImage)
+{
+    // static auto startTime = std::chrono::high_resolution_clock::now();
+
+    // auto currentTime = std::chrono::high_resolution_clock::now();
+    // float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+    // UniformBufferObject ubo{};
+    // ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    // ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    // ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+    // ubo.proj[1][1] *= -1;
+
+    // upload_to_buffer(
+    //     m_vkContext.get_allocator(),
+    //     uniform_buffers[currentImage],
+    //     &ubo,
+    //     sizeof(ubo)
+    // );
     
 }
 
@@ -90,9 +123,16 @@ void VkRenderer::Shutdown() {
 
     delete_buffer(vertex_buffer, m_vkContext.get_allocator());
     delete_buffer(index_buffer, m_vkContext.get_allocator());
+    // for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    // {
+    //     delete_buffer(uniform_buffers[i], m_vkContext.get_allocator());
+    // }
 
 
     clean_swapchain_v2();
+
+    //sterge
+    vkDestroyDescriptorSetLayout(m_vkContext.get_device().get(), descriptorSetLayout, nullptr);
 
     if (gfxPipeline)
     {
@@ -132,20 +172,10 @@ void VkRenderer::create_swapchain()
     swapchainContext.imageFormat = swapchain -> get_image_format();
     swapchainContext.width = swapchain -> get_width();
     swapchainContext.height = swapchain -> get_height();
+    swapchainContext.images = swapchain -> get_images().size();
 
 }
 
-
-void VkRenderer::clean_swapchain()
-{
-    for (auto framebuffer : swapChainFramebuffers) {
-        vkDestroyFramebuffer(m_vkContext.get_device().get(), framebuffer, nullptr);
-    }
-    swapChainFramebuffers.clear();
-
-    swapchain.get()->Destroy();
-
-}
 
 
 
@@ -171,7 +201,7 @@ void VkRenderer::create_GFX_pipeline()
     {
         descs[i].binding = 0; // modulate this later
         descs[i].location = i;
-        descs[i].format = input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_format();
+        descs[i].format = get_vertex_buffer_format(input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_type());
         descs[i].offset = input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_offset();
         
     }
@@ -180,7 +210,23 @@ void VkRenderer::create_GFX_pipeline()
 
     desc.vertShader = vertex.get();
     desc.fragShader = fragment.get();
-    gfxPipeline.get()->create_pipeline(desc);
+
+    VkDescriptorSetLayoutBinding uboLayoutBinding{};
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    if (vkCreateDescriptorSetLayout(m_vkContext.get_device().get(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor set layout!");
+    }
+
+    gfxPipeline.get()->create_pipeline(desc, descriptorSetLayout);
 }
 
 
@@ -439,7 +485,6 @@ void VkRenderer::render_with_new_sync()
         vkCmdBindVertexBuffers(data.s_commandBuffer, 0, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(data.s_commandBuffer, index_buffer.s_handle, 0, VK_INDEX_TYPE_UINT16);
 
-        // vkCmdDraw(data.s_commandBuffer, static_cast<uint32_t>(input_vertex_buffers[0].get_size_in_vertices()), 1, 0, 0);
 
         vkCmdDrawIndexed(data.s_commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     
@@ -545,53 +590,9 @@ void VkRenderer::recreate_swapchain_v2()
 
 }
 
-void VkRenderer::copy_buffer(VkBuffer, VkBuffer, VkDeviceSize)
-{
-    // VkCommandBufferAllocateInfo allocInfo{};
-    // allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    // allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    // allocInfo.commandPool = ;
-    // allocInfo.commandBufferCount = 1;
-}
 
 
 //------------------------------------[RENDER HELPER FUNCTION]---------------------------------//
 
-
-void render()
-{
-    //handel swapchain
-
-    // begin_frame_sync();
-}
-
-// uint32_t VkRenderer::begin_frame_sync()
-// {
-//     const uint32_t frameDataIndex = currentFrame++ % MAX_FRAMES_IN_FLIGHT;
-//     const uint64_t signalValue = nextSignalValue++;
-//     const uint64_t waitValue = signalValue - MAX_FRAMES_IN_FLIGHT;
-
-//     VkSemaphoreWaitInfo waitInfo
-//     {
-//         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
-//         .semaphoreCount = 1,
-//         .pSemaphores = &timelineSmph,
-//         .pValues = &waitValue
-//     };
-//     vkWaitSemaphores(m_vkContext.get_device().get(), &waitInfo, UINT64_MAX);
-
-
-// }
-
-// uint32_t VkRenderer::acquire_swapchain_image(frameData&)
-// {
-
-// }
-
-// void VkRenderer::record_command_buffer(frameData& frame, uint32_t imageIndex)
-// {
-
-// }
-//---------------------------------------------------------------------------------------------//
 
 

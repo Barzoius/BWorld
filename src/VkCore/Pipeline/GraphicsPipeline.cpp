@@ -20,7 +20,7 @@ void GraphicsPipeline::destroy()
 }
 
 
-void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc)
+void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc , VkDescriptorSetLayout descSet)
 {
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -84,7 +84,7 @@ void GraphicsPipeline::create_pipeline(const GraphicsPipelineDesc& desc)
     pipelineInfo.pDynamicState = &dynamicState;
 
 
-    create_pipline_layout();
+    create_pipline_layout(descSet);
 
     pipelineInfo.layout = pipelineLayout;
 
@@ -112,12 +112,12 @@ VkPipeline GraphicsPipeline::get_handle() const
 }
 
 
-void GraphicsPipeline::create_pipline_layout()
+void GraphicsPipeline::create_pipline_layout(VkDescriptorSetLayout descSet)
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0; // Optional
-    pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+    pipelineLayoutInfo.setLayoutCount = 1; // Optional
+    pipelineLayoutInfo.pSetLayouts = &descSet; // Optional
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
     pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 

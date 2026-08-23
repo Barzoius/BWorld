@@ -29,12 +29,15 @@ public:
 
     void bind(VkCommandBuffer&);
 
-    void create_pipline_layout();
+    void create_pipline_layout(VkDescriptorSetLayout);
 
 	[[nodiscard]] VkPipeline get_handle() const;
 
-    void create_pipeline(const GraphicsPipelineDesc&);
+    void create_pipeline(const GraphicsPipelineDesc&, VkDescriptorSetLayout);
 
+    void create_descriptor_pool();
+    void create_descriptor_sets();
+    void create_descriptor_set_layout();
     void allocate_descriptor_sets();
     void update_descriptor_sets();
 
@@ -62,10 +65,6 @@ private:
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-
-
-    // VkViewport viewport{};
-    // VkRect2D scissor{};
     
 private:
     VkContext& context;
@@ -77,7 +76,14 @@ private:
         VK_DYNAMIC_STATE_SCISSOR
     };
 
+
     VkPipelineLayout pipelineLayout{};
     VkPipeline graphicsPipeline;
+
+
+    VkDescriptorPool m_descPool;
+    VkDescriptorSetLayout m_descSetLayout;
+    std::vector<VkDescriptorSet> m_descSets;
+
 
 };

@@ -2,6 +2,37 @@
 
 #include <iostream>
 
+
+VkFormat get_vertex_buffer_format(DVS::VertexLayout::ElementType type) noexcept
+{
+
+    switch(type)
+    {
+        case DVS::VertexLayout::ElementType::Position2D:
+            return VK_FORMAT_R32G32_SFLOAT;
+        case DVS::VertexLayout::ElementType::Position3D:
+            return VK_FORMAT_R32G32B32_SFLOAT;
+        case DVS::VertexLayout::ElementType::Texture2D:
+            return VK_FORMAT_R32G32_SFLOAT;
+        case DVS::VertexLayout::ElementType::Normal:
+            return VK_FORMAT_R32G32B32_SFLOAT;;
+        case DVS::VertexLayout::ElementType::Tangent:
+            return VK_FORMAT_R32G32B32_SFLOAT;          
+        case DVS::VertexLayout::ElementType::Bitangent:
+            return VK_FORMAT_R32G32B32_SFLOAT;
+        case DVS::VertexLayout::ElementType::Float3Color:
+            return VK_FORMAT_R32G32B32_SFLOAT;
+        case DVS::VertexLayout::ElementType::Float4Color:
+            return VK_FORMAT_R32G32B32A32_SFLOAT;   
+        case DVS::VertexLayout::ElementType::RGBAColor:
+            return VK_FORMAT_R8G8B8A8_UNORM;               
+    }
+
+                    
+    assert("Invalid element format" && false); return VK_FORMAT_UNDEFINED;
+    
+}
+
 buffer create_vertex_buffer(DVS::VertexBuffer& vbuf, VmaAllocator allocator)
 {
     auto buffer = create_buffer(
@@ -110,6 +141,7 @@ buffer create_buffer( VmaAllocator allocator,
     return out;
 }
 
+
 void upload_to_buffer(  VmaAllocator allocator,
                         const buffer& buffer,
                         const void* data,
@@ -123,7 +155,30 @@ void upload_to_buffer(  VmaAllocator allocator,
     vmaUnmapMemory(allocator, buffer.s_allocation);
 }
 
+
+buffer create_uniform_buffer(UniformBufferObject ubo, VmaAllocator allocator)
+{
+    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+    auto buffer = create_buffer(
+        allocator,
+        bufferSize,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |    
+        VMA_ALLOCATION_CREATE_MAPPED_BIT // check again these flags
+    );
+    upload_to_buffer(allocator, buffer, &ubo, bufferSize);
+
+
+
+
+    buffer.s_size = bufferSize;
+    return buffer;
+}
+
 void delete_buffer(buffer& buffer, VmaAllocator allocator)
 {
     vmaDestroyBuffer(allocator, buffer.s_handle, buffer.s_allocation);
 }
+
+
