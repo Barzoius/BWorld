@@ -3,6 +3,7 @@
 #include <iostream>
 
 
+// rename this one 
 VkFormat get_vertex_buffer_format(DVS::VertexLayout::ElementType type) noexcept
 {
 
@@ -77,7 +78,7 @@ buffer create_vertex_buffer_with_staging(System& sys, DVS::VertexBuffer& vbuf, V
     copy_buffer(sys, stage_buffer.s_handle, buffer.s_handle, vbuf.get_size_in_bytes());
 
     delete_buffer(stage_buffer, allocator);
-    std::cout<<"STAGING\n";
+    //std::cout<<"STAGING\n";
     return buffer;
 }
 
@@ -108,7 +109,7 @@ buffer create_index_buffer(System& sys, const std::vector<uint16_t>& indices, Vm
     copy_buffer(sys, stage_buffer.s_handle, buffer.s_handle, bufferSize);
 
     delete_buffer(stage_buffer, allocator);
-    std::cout<<"STAGING\n";
+    //std::cout<<"STAGING\n";
     return buffer;
 }
 

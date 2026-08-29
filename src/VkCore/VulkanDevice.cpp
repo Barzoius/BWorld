@@ -6,7 +6,7 @@
 
 VulkanDevice::VulkanDevice(const Instance& i) : instance(i)
 {
-    std::cout << "VulkanDevice constructor\n";
+    //std::cout << "VulkanDevice constructor\n";
 }
 
 VulkanDevice::~VulkanDevice() = default;
@@ -18,13 +18,14 @@ void VulkanDevice::Destroy()
     {
         vkDeviceWaitIdle(handle);
         vkDestroyDevice(handle, nullptr);
-        std::cout << "LogicalDevice detroyed\n";
     }
 }
 
 void VulkanDevice::Initialize()
 {
     pick_device();
+    retrive_device_info();
+    log_device_info();
     create_logical_device();
 
     init_tranfer_command_pool();
@@ -33,8 +34,8 @@ void VulkanDevice::Initialize()
 
 void VulkanDevice::pick_device()
 {
-        std::cout << "Instance handle at pickDevice = "
-              << instance.handle << "\n";
+        // std::cout << "Instance handle at pickDevice = "
+        //       << instance.handle << "\n";
 
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance.handle, &deviceCount, nullptr);
@@ -60,7 +61,7 @@ void VulkanDevice::pick_device()
     }
         
 
-    std::cout << "PhysicalDevice picked\n";
+    //LLOGI("Physical Device Picked: SUCCESS");
 }
 
 bool VulkanDevice::is_device_suitable(VkPhysicalDevice device)
@@ -210,6 +211,126 @@ void VulkanDevice::init_queues()
     if (indices.s_transfer) create_queue(*indices.s_transfer);
 }
 
+
+void VulkanDevice::query_features() 
+{
+
+    m_features.supportedShaderObject = {
+        .sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT
+    };
+
+    m_features.supported14 = {
+        .sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
+        .pNext = &m_features.supportedShaderObject
+    };
+
+    m_features.supported13 = {
+        .sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        .pNext = &m_features.supported14
+    };
+
+    m_features.supported12 = {
+        .sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+        .pNext = &m_features.supported13
+    };
+
+    m_features.supported = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = &m_features.supported12
+    };
+
+    vkGetPhysicalDeviceFeatures2(
+        phyD,
+        &m_features.supported
+    );
+}
+
+
+void VulkanDevice::enable_features()
+{
+    m_features.enabledShaderObject = {
+        .sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT,
+        .shaderObject = VK_TRUE
+    };
+
+    m_features.enabled14 = {
+        .sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
+        .pNext = &m_features.enabledShaderObject
+    };
+
+    m_features.enabled13 = {
+        .sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        .pNext = &m_features.enabled14,
+        .synchronization2 = VK_TRUE,
+        .dynamicRendering = VK_TRUE
+    };
+
+    m_features.enabled12 = {
+        .sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+        .pNext = &m_features.enabled13,
+        .timelineSemaphore = VK_TRUE
+    };
+
+    m_features.enabled = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = &m_features.enabled12
+    };
+
+    m_features.enabled.features.geometryShader = VK_TRUE;
+    m_features.enabled.features.tessellationShader = VK_TRUE;
+}
+
+bool VulkanDevice::supports_required_features() const
+{
+    bool valid = true;
+
+    if (!m_features.supported12.timelineSemaphore)
+    {
+        LLOGE("Required feature not supported: timelineSemaphore");
+        valid = false;
+    }
+
+    if (!m_features.supported13.dynamicRendering)
+    {
+        LLOGE("Required feature not supported: dynamicRendering");
+        valid = false;
+    }
+
+    if (!m_features.supported13.synchronization2)
+    {
+        LLOGE("Required feature not supported: synchronization2");
+        valid = false;
+    }
+
+    if (!m_features.supportedShaderObject.shaderObject)
+    {
+        LLOGE("Required feature not supported: shaderObject");
+        valid = false;
+    }
+
+    if (!m_features.supported.features.geometryShader)
+    {
+        LLOGE("Required feature not supported: geometryShader");
+        valid = false;
+    }
+
+    if (!m_features.supported.features.tessellationShader)
+    {
+        LLOGE("Required feature not supported: tessellationShader");
+        valid = false;
+    }
+
+    return valid;
+}
+
 void VulkanDevice::create_logical_device()
 {
     //------------------------------------[QUEUE_CREATE_INFO]------------------------------------//
@@ -237,69 +358,14 @@ void VulkanDevice::create_logical_device()
     }
 
 
-    //-------------------------------------------------------------------------------------------//
-
-    //------------------------------------[DYNAMIC_RENDERING]------------------------------------//
-    VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeatures = {
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-        .pNext = nullptr,
-        .dynamicRendering = VK_TRUE
-    };
-    //-------------------------------------------------------------------------------------------//
-    
-    //------------------------------------[TIMELINE_FEATURES]------------------------------------//
-    VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeatures{};
-    timelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES;
-    timelineFeatures.timelineSemaphore = VK_TRUE;
-    timelineFeatures.pNext = &dynamicRenderingFeatures;
-    //-------------------------------------------------------------------------------------------//
-
-    //------------------------------------[CORE DEVICE FEATURES]---------------------------------//
-    VkPhysicalDeviceFeatures2 deviceFeatures2{};
-    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    deviceFeatures2.features.geometryShader = VK_TRUE;
-    deviceFeatures2.features.tessellationShader = VK_TRUE;
-    deviceFeatures2.pNext = &timelineFeatures;
-    //-------------------------------------------------------------------------------------------//
-
-    VkPhysicalDeviceVulkan14Features supportedFeatures14{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES, .pNext = nullptr };
-	VkPhysicalDeviceVulkan13Features supportedFeatures13{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = &supportedFeatures14 };
-	VkPhysicalDeviceVulkan12Features supportedFeatures12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = &supportedFeatures13 };
-	VkPhysicalDeviceFeatures2 supportedFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &supportedFeatures12 };
-	vkGetPhysicalDeviceFeatures2(phyD, &supportedFeatures);
-
-    if (!supportedFeatures13.dynamicRendering || !supportedFeatures13.synchronization2 ||
-		!supportedFeatures12.timelineSemaphore)
-	{
-		std::cout<<"Physical device doesn't meet the feature requirements\n";
-	
-	}
-
-    VkPhysicalDeviceVulkan14Features features14
-	{
-		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
-		.pNext = nullptr,
-	};
-	VkPhysicalDeviceVulkan13Features features13
-	{
-		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
-		.pNext = &features14,
-		.synchronization2 = VK_TRUE,
-		.dynamicRendering = VK_TRUE,
-	};
-	VkPhysicalDeviceVulkan12Features features12
-	{
-		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-		.pNext = &features13,
-		.timelineSemaphore = VK_TRUE
-	};
-	VkPhysicalDeviceFeatures2 features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features12 };
-
+    query_features();
+    bool a = supports_required_features();
+    enable_features();
 
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pNext = &features;
+    createInfo.pNext = &m_features.enabled;
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size(); 
     createInfo.enabledLayerCount = 0;
@@ -319,12 +385,10 @@ void VulkanDevice::create_logical_device()
     if (vkCreateDevice(phyD, &createInfo, nullptr, &handle) != VK_SUCCESS) 
         throw std::runtime_error("failed to create logical device!");
 
-    
 
-    std::cout << "LogicalDevice created\n";
+    //LLOGI("Logical Device Created: SUCCESS");
 
     init_queues();
-    std::cout << "Queues handles created\n";
 
 }
 void VulkanDevice::init_tranfer_command_pool()
@@ -377,4 +441,131 @@ const queue_data* VulkanDevice::get_compute_queue() const
             return &q;
     }
     return nullptr;
+}
+
+
+void VulkanDevice::retrive_device_info()
+{
+
+    vkGetPhysicalDeviceProperties(
+        phyD,
+        &m_properties
+    );
+}
+
+VkPhysicalDeviceProperties VulkanDevice::get_device_info() const
+{
+    return m_properties;
+}
+
+void VulkanDevice::log_device_info() const
+{
+     const char* deviceType = "Unknown";
+
+    switch (m_properties.deviceType)
+    {
+        case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+            deviceType = "Other";
+            break;
+
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+            deviceType = "Integrated GPU";
+            break;
+
+        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+            deviceType = "Discrete GPU";
+            break;
+
+        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+            deviceType = "Virtual GPU";
+            break;
+
+        case VK_PHYSICAL_DEVICE_TYPE_CPU:
+            deviceType = "CPU";
+            break;
+
+        default:
+            break;
+    }
+
+    LLOGI("========== Vulkan Device ==========");
+    LLOGI("GPU: %s", m_properties.deviceName);
+    LLOGI("Device Type: %s", deviceType);
+    LLOGI("Vendor ID: 0x%X", m_properties.vendorID);
+    LLOGI("Device ID: 0x%X", m_properties.deviceID);
+
+    LLOGI(
+        "Vulkan API: %u.%u.%u",
+        VK_VERSION_MAJOR(m_properties.apiVersion),
+        VK_VERSION_MINOR(m_properties.apiVersion),
+        VK_VERSION_PATCH(m_properties.apiVersion)
+    );
+
+    LLOGI("Driver version: %u", m_properties.driverVersion);
+
+    // {
+    // LLOGI("---------- Limits ----------");
+
+    // LLOGI(
+    //     "Max 2D Image Dimension: %u",
+    //     m_properties.limits.maxImageDimension2D
+    // );
+
+    // LLOGI(
+    //     "Max Uniform Buffer Range: %u bytes",
+    //     m_properties.limits.maxUniformBufferRange
+    // );
+
+    // LLOGI(
+    //     "Max Storage Buffer Range: %u bytes",
+    //     m_properties.limits.maxStorageBufferRange
+    // );
+
+    // LLOGI(
+    //     "Max Push Constants Size: %u bytes",
+    //     m_properties.limits.maxPushConstantsSize
+    // );
+
+    // LLOGI(
+    //     "Max Bound Descriptor Sets: %u",
+    //     m_properties.limits.maxBoundDescriptorSets
+    // );
+
+    // LLOGI(
+    //     "Max Vertex Input Attributes: %u",
+    //     m_properties.limits.maxVertexInputAttributes
+    // );
+
+    // LLOGI(
+    //     "Max Vertex Input Bindings: %u",
+    //     m_properties.limits.maxVertexInputBindings
+    // );
+
+    // LLOGI(
+    //     "Max Viewports: %u",
+    //     m_properties.limits.maxViewports
+    // );
+
+    // LLOGI(
+    //     "Max Color Attachments: %u",
+    //     m_properties.limits.maxColorAttachments
+    // );
+
+    // LLOGI(
+    //     "Max Compute Work Group Count: [%u, %u, %u]",
+    //     m_properties.limits.maxComputeWorkGroupCount[0],
+    //     m_properties.limits.maxComputeWorkGroupCount[1],
+    //     m_properties.limits.maxComputeWorkGroupCount[2]
+    // );
+
+    // LLOGI(
+    //     "Max Compute Work Group Size: [%u, %u, %u]",
+    //     m_properties.limits.maxComputeWorkGroupSize[0],
+    //     m_properties.limits.maxComputeWorkGroupSize[1],
+    //     m_properties.limits.maxComputeWorkGroupSize[2]
+    // );
+    // }
+
+    LLOGI("===================================");
+
 }

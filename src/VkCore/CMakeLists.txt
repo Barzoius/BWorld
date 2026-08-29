@@ -32,8 +32,6 @@ add_library(VkCore STATIC
 
             Commands.hpp
 
-
-
             Systems/System.hpp
             Systems/System.cpp
             
@@ -59,6 +57,10 @@ add_library(VkCore STATIC
 
             Resources/Buffers.hpp
             Resources/Buffers.cpp
+
+
+            VkModel.hpp
+            
 
 
 

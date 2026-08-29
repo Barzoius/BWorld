@@ -11,7 +11,7 @@ void Instance::initialize(const std::vector<const char*>& exts,
                           const SurfaceInfo& si, 
                           const Resolution& res)
 {
-    std::cout << "Instance Initialized\n";
+    //std::cout << "Instance Initialized\n";
 
     requiered_extensions = exts;
     surfaceInfo = si;
@@ -27,7 +27,7 @@ void Instance::initialize(const std::vector<const char*>& exts,
 
 void Instance::destroy()
 {
-    std::cout << "Instance destroyed\n";
+    //std::cout << "Instance destroyed\n";
 
     if (enableValidationLayers) 
         DestroyDebugUtilsMessengerEXT(handle, debugMessenger, nullptr);
@@ -76,8 +76,8 @@ void Instance::create_instance()
 
     if (vkCreateInstance(&createInfo, nullptr, &handle) != VK_SUCCESS) 
         throw std::runtime_error("failed to create instance!");
-    else
-        std::cout << "Instance created\n";
+    //else
+        //std::cout << "Instance created\n";
 
 }
 
@@ -92,7 +92,7 @@ void Instance::create_surface()
     if (vkCreateWin32SurfaceKHR(handle, &createInfo, nullptr, &surface) != VK_SUCCESS)
         throw std::runtime_error("Failed to create Win32 surface!");
     
-    std::cout << "Win32 surface created\n";
+    //std::cout << "Win32 surface created\n";
 
 #elif defined(__linux__)
 #ifdef USE_X11

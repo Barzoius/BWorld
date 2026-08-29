@@ -79,7 +79,7 @@ void Shader<Stage>::createShaderModule(const std::vector<char>& code)
     if (vkCreateShaderModule(context.get_device().get(), &createInfo, nullptr, &handle) != VK_SUCCESS) 
         throw std::runtime_error("failed to create shader module!");
 
-    std::cout<<"Create Shader Module"<<std::endl;
+    //std::cout<<"Create Shader Module"<<std::endl;
 }
 
 template <ShaderType Stage>

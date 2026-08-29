@@ -94,15 +94,15 @@ void Scene::Update()
 void Scene::Exit()
 {
 
-    DVS::VertexLayout vl;
-    vl.append(DVS::VertexLayout::Position2D).append(DVS::VertexLayout::Float3Color);
-    DVS::VertexBuffer vb(std::move(vl));
-    vb.emplace_back(DVS::VKFLOAT2{-0.5f, -0.5f}, DVS::VKFLOAT3{1.0f, 1.0f, 1.0f});
-    vb.emplace_back(DVS::VKFLOAT2{0.5f, -0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
-    vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
-    vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 1.0f});
+    // DVS::VertexLayout vl;
+    // vl.append(DVS::VertexLayout::Position2D).append(DVS::VertexLayout::Float3Color);
+    // DVS::VertexBuffer vb(std::move(vl));
+    // vb.emplace_back(DVS::VKFLOAT2{-0.5f, -0.5f}, DVS::VKFLOAT3{1.0f, 1.0f, 1.0f});
+    // vb.emplace_back(DVS::VKFLOAT2{0.5f, -0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
+    // vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
+    // vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 1.0f});
 
-    std::cout<<"CODE\n";
-    std::cout<<vb.get_layout().get_code()<<std::endl;
+    // std::cout<<"CODE\n";
+    // std::cout<<vb.get_layout().get_code()<<std::endl;
 
 }

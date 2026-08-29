@@ -10,7 +10,7 @@ VulkanSwapchain::VulkanSwapchain(VkDevice d,
                                 VkSurfaceKHR s, int w, int h) : 
                                  device(d), phyD(pd), surface(s), width(w), height(h)
 {
-    std::cout << "Device handle: " << device << "\n";
+    //std::cout << "Device handle: " << device << "\n";
 }
 
 VulkanSwapchain::~VulkanSwapchain() = default;
@@ -27,7 +27,7 @@ void VulkanSwapchain::Destroy()
     }
     
 
-    std::cout << "Swapchain Destroyed\n";
+    //std::cout << "Swapchain Destroyed\n";
 }
 
 VkSurfaceFormatKHR VulkanSwapchain::choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& formats, SwapchainColorMode colorMode )
@@ -214,7 +214,7 @@ void VulkanSwapchain::createSwapChain()
     if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &handle) != VK_SUCCESS)   
         throw std::runtime_error("failed to create swap chain!");
 
-    std::cout << "Swapchain created\n";
+    //std::cout << "Swapchain created\n";
 
     vkGetSwapchainImagesKHR(device, handle, &imageCount, nullptr);
     swapChainImages.resize(imageCount);
@@ -260,7 +260,7 @@ void VulkanSwapchain::destroy_swapchain_image_views()
         
     }
     swapChainImageViews.clear();
-    std::cout << "SwapChainImageViews Destroyed \n";
+    //std::cout << "SwapChainImageViews Destroyed \n";
 
 }
 

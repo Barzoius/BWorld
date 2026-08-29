@@ -14,7 +14,7 @@
 
 void VkRenderer::Initialize(Context& context) 
 {
-    std::cout << "VkRenderer initialized\n";
+    //std::cout << "VkRenderer initialized\n";
 
     std::string frag = "Shaders/base1.frag.spv";
     std::string vert = "Shaders/base1.vert.spv";
@@ -47,7 +47,7 @@ void VkRenderer::construct_vertex_buffer()
     vb.emplace_back(DVS::VKFLOAT2{0.5f, -0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
     vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
     vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 1.0f});
-
+    
 
     input_vertex_buffers.push_back(vb);
 
@@ -97,7 +97,7 @@ void VkRenderer::RenderFrame()
 }
 
 void VkRenderer::Shutdown() {
-    std::cout << "VkRenderer shutdown\n";
+    //std::cout << "VkRenderer shutdown\n";
     
     vkDeviceWaitIdle(m_vkContext.get_device().get());
 
@@ -156,7 +156,10 @@ void VkRenderer::Shutdown() {
  void VkRenderer::UpdateResolution(const Resolution& res)
  {
     swapchain.get()->update_resolution(res.width, res.height);
+    
     m_vkContext.update_instance_resolution(res);
+
+    LLOGI("Resolution updated: %d x %d", res.width, res.height);
  }
 
 void VkRenderer::create_swapchain()
