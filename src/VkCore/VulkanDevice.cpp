@@ -77,6 +77,10 @@ bool VulkanDevice::is_device_suitable(VkPhysicalDevice device)
                             !vkutil::QuerySwapChainSupport(device, instance.get_surface_handle()).presentModes.empty();
 
     }
+    else
+    {
+        std::cout<<"WAMP WAMP NO EXTENSIONS\n";
+    }
 
     return indices.is_complete() && extensionsSupported && swapChainAdequate;
 

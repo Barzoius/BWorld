@@ -12,9 +12,18 @@
 
 #include <chrono>
 
+
+
 void VkRenderer::Initialize(Context& context) 
 {
     //std::cout << "VkRenderer initialized\n";
+
+    ShaderOBJ::Shader<ShaderType::VERTEX> verte;
+    ShaderOBJ::Shader<ShaderType::GEOMETRY> geom;
+    ShaderOBJ::Shader<ShaderType::FRAGMENT> frage;
+
+    ShaderOBJ::ShaderSuite suite(verte, geom, frage);
+
 
     std::string frag = "Shaders/base1.frag.spv";
     std::string vert = "Shaders/base1.vert.spv";

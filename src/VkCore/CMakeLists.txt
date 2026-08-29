@@ -32,6 +32,8 @@ add_library(VkCore STATIC
 
             Commands.hpp
 
+            ShaderOBJ.hpp
+
             Systems/System.hpp
             Systems/System.cpp
             

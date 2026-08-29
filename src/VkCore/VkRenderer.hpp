@@ -23,6 +23,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
+#include "ShaderOBJ.hpp"
+
 class VkRenderer : public Renderer
 {
 public:
@@ -66,6 +68,9 @@ private:
     
     std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;
     std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
+
+    // std::unique_ptr<ShaderOBJ::Shader> vert;
+    // std::unique_ptr<ShaderOBJ::Shader> frag;
 
 
     bool m_framebufferResized = false;

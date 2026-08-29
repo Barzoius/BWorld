@@ -1,19 +1,6 @@
 #include "vulkan/vulkan.h"
 
-enum class ShaderType
-{
-    VERTEX,
-    TCS,
-    TES,
-    GEOMETRY,
-    FRAGMENT,
-    COMPUTE,
-
-};
-
-/** struct used for trait mapping the shader flag bits **/
-
-// i should move this directly to Shader.hpp
+#include "ShaderTypes.hpp"
 
 template<ShaderType>
 struct ShaderStageTraits;
