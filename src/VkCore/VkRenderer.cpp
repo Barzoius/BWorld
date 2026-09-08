@@ -16,6 +16,12 @@
 
 void VkRenderer::Initialize(Context& context) 
 {
+    
+
+    std::cout << "GRAPHICS FAMILY = "
+          << m_vkContext.get_device().get_device_indices().s_graphics.value()
+          << '\n';
+
     //std::cout << "VkRenderer initialized\n";
 
     ShaderOBJ::Shader<ShaderType::VERTEX> verte;
@@ -33,13 +39,19 @@ void VkRenderer::Initialize(Context& context)
     fragment = std::make_unique<Shader<ShaderType::FRAGMENT>>(m_vkContext, frag);
 
  
+   
     create_swapchain();
+    
 
     construct_vertex_buffer();
+
+    
 
     create_GFX_pipeline();
 
 
+    
+    
 
     create_sync_resources();
     create_frame_data_v2();
@@ -63,16 +75,10 @@ void VkRenderer::construct_vertex_buffer()
 
     vertex_buffer = create_vertex_buffer_with_staging(m_vkContext.transfer_sys, vb, m_vkContext.get_allocator());
 
-    //std::cout<<"VERTEX COUNT: "<<input_vertex_buffers[0].get_size_in_vertices()<<"\n";
 
     index_buffer = create_index_buffer(m_vkContext.transfer_sys, indices, m_vkContext.get_allocator());
     
-    // uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
-    // for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-    // {
-    //     buffer uniform = create_uniform_buffer(m_vkContext.get_allocator());
-    //     uniform_buffers.push_back(uniform);
-    // }
+
 }
 
 void VkRenderer::update_uniform_buffer(uint32_t currentImage)
@@ -292,6 +298,7 @@ void VkRenderer::create_sync_resources()
 
 void VkRenderer::create_frame_data_v2()
 {
+  
     for(frameData &data : m_frameResources)
     {
         vkutil::QueueFamilyIndices queueFamilyIndices = m_vkContext.get_device().get_device_indices();
@@ -571,6 +578,7 @@ void VkRenderer::render_with_new_sync()
 		.pSignalSemaphoreInfos = semaphoreSignals.data()
 	};
 
+   
     const queue_data* gfx = m_vkContext.get_device().get_graphics_queue();
     vkQueueSubmit2(gfx->s_handle, 1, &submitInfo, VK_NULL_HANDLE);
 

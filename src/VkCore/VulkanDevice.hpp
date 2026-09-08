@@ -95,8 +95,9 @@ private:
     const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
-        /*VK_EXT_SHADER_OBJECT_EXTENSION_NAME*/ };
+        VK_EXT_SHADER_OBJECT_EXTENSION_NAME };
 
+        
     static constexpr float m_queuePriority = 1.0f;
     static constexpr float m_graphicsPriority = 1.0f;
     static constexpr float m_transferPriority = 1.0f;

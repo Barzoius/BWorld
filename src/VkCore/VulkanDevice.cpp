@@ -71,23 +71,39 @@ bool VulkanDevice::is_device_suitable(VkPhysicalDevice device)
     bool swapChainAdequate = false;
     bool extensionsSupported = check_device_extension_support(device);
 
+    VkPhysicalDeviceProperties properties{};
+    vkGetPhysicalDeviceProperties(device, &properties);
+
+
+
     if(extensionsSupported)
     {
         swapChainAdequate = !vkutil::QuerySwapChainSupport(device, instance.get_surface_handle()).formats.empty() &&
                             !vkutil::QuerySwapChainSupport(device, instance.get_surface_handle()).presentModes.empty();
 
+        std::cout << "SELECTED GPU: "
+          << properties.deviceName
+          << '\n';
+
     }
     else
     {
         std::cout<<"WAMP WAMP NO EXTENSIONS\n";
+        std::cout << "NOT SELECTED GPU: "
+          << properties.deviceName
+          << '\n';
+
     }
 
     return indices.is_complete() && extensionsSupported && swapChainAdequate;
+
 
 }
 
 void VulkanDevice::find_queue_families(VkPhysicalDevice device)
 {
+    indices = {};
+
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties2(device, &queueFamilyCount, nullptr);
      m_queueFamilies.resize(queueFamilyCount);
@@ -185,7 +201,10 @@ bool VulkanDevice::check_device_extension_support(VkPhysicalDevice device)
 
     std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
+    
+
     for (const auto& extension : availableExtensions) {
+        // std::cout << extension.extensionName << '\n';
         requiredExtensions.erase(extension.extensionName);
     }
 
@@ -368,13 +387,13 @@ void VulkanDevice::create_logical_device()
 
 
     VkDeviceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pNext = &m_features.enabled;
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size(); 
-    createInfo.enabledLayerCount = 0;
-    createInfo.ppEnabledLayerNames = NULL;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+    createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pNext                   = &m_features.enabled;
+    createInfo.pQueueCreateInfos       = queueCreateInfos.data();
+    createInfo.queueCreateInfoCount    = (uint32_t)queueCreateInfos.size(); 
+    createInfo.enabledLayerCount       = 0;
+    createInfo.ppEnabledLayerNames     = NULL;
+    createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
     
 
@@ -428,13 +447,29 @@ const queue_data* VulkanDevice::get_graphics_queue() const
     }
     return nullptr;
 }
+
+//here was a bug  we selected teh first queue that had transfer 
 const queue_data* VulkanDevice::get_transfer_queue() const
 {
-    for (auto& q : m_queues)
+    for (const auto& q : m_queues)
+    {
+        const auto flags = q.s_flags;
+
+        const bool transfer = flags & VK_QUEUE_TRANSFER_BIT;
+        const bool graphics = flags & VK_QUEUE_GRAPHICS_BIT;
+        const bool compute  = flags & VK_QUEUE_COMPUTE_BIT;
+
+        if (transfer && !graphics && !compute)
+            return &q;
+    }
+
+    // Fallback: any transfer-capable queue
+    for (const auto& q : m_queues)
     {
         if (q.s_flags & VK_QUEUE_TRANSFER_BIT)
             return &q;
     }
+
     return nullptr;
 }
 const queue_data* VulkanDevice::get_compute_queue() const
