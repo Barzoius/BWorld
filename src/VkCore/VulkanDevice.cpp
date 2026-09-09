@@ -387,6 +387,28 @@ void VulkanDevice::create_logical_device()
     
     VK_ASSERT(vkCreateDevice(phyD, &createInfo, nullptr, &handle));
 
+    m_vkCreateShadersEXT =
+    reinterpret_cast<PFN_vkCreateShadersEXT>(vkGetDeviceProcAddr(handle, "vkCreateShadersEXT")); 
+    m_vkCmdBindShadersEXT =
+    reinterpret_cast<PFN_vkCmdBindShadersEXT>(
+        vkGetDeviceProcAddr(handle, "vkCmdBindShadersEXT")
+    );
+
+    m_vkCmdSetVertexInputEXT =
+        reinterpret_cast<PFN_vkCmdSetVertexInputEXT>(
+            vkGetDeviceProcAddr(handle, "vkCmdSetVertexInputEXT")
+        );
+
+    if (m_vkCmdBindShadersEXT == nullptr)
+    {
+        LLOGE("Failed to load vkCmdBindShadersEXT");
+    }
+
+    if (m_vkCmdSetVertexInputEXT == nullptr)
+    {
+        LLOGE("Failed to load vkCmdSetVertexInputEXT");
+    }
+
     init_queues();
 
 }

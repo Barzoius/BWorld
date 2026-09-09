@@ -31,12 +31,15 @@ void VkRenderer::Initialize(Context& context)
 
     fragment_obj = std::make_unique<ShaderOBJ::Shader<ShaderType::FRAGMENT>>(
         m_vkContext.get_device().get(), 
-        0, 
+        0, \
         "fragment_1", 
         "Shaders/base1.frag.spv");  
 
-
-
+    suite = std::make_unique<ShaderOBJ::ShaderSuite<
+            ShaderType::VERTEX,
+            ShaderType::FRAGMENT
+        >>(m_vkContext.get_device(), *vertex_obj, *fragment_obj);
+    suite->link();
 
     std::string frag = "Shaders/base1.frag.spv";
     std::string vert = "Shaders/base1.vert.spv";
@@ -115,8 +118,8 @@ void VkRenderer::update_uniform_buffer(uint32_t currentImage)
 
 void VkRenderer::RenderFrame() 
 {
-    render_with_new_sync();
-    //render_with_shader_objects();
+    //render_with_new_sync();
+    render_with_shader_objects();
 }
 
 void VkRenderer::Shutdown() {
@@ -735,9 +738,10 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
 {
     VkCommandBuffer cmd = data.s_commandBuffer;
 
-    vertex_obj->bind_shader(data.s_commandBuffer);
-    fragment_obj->bind_shader(data.s_commandBuffer);
+    // vertex_obj->bind_shader(data.s_commandBuffer);
+    // fragment_obj->bind_shader(data.s_commandBuffer);
 
+    suite -> bind(data.s_commandBuffer);
 
     VkVertexInputBindingDescription2EXT binding{
         .sType =
@@ -762,8 +766,8 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
     }
 
 
-    vkCmdSetVertexInputEXT(
-        cmd,
+    m_vkContext.get_device().get_cmd_set_vertex_input_ext()(
+        data.s_commandBuffer,
         1,
         &binding,
         2,

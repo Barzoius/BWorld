@@ -6,6 +6,8 @@
 
 #include "ShaderTypes.hpp"
 
+#include "VulkanDevice.hpp"
+
 
 /// TO DO
 /// add unbinding for shader - !!!!! -- might be better to not be isndie the classes
@@ -158,14 +160,17 @@ namespace ShaderOBJ
     class ShaderSuite
     {
     public:
-        ShaderSuite(Shader<Stages>&... shaders) : m_shaders(&shaders...) {}
+        ShaderSuite( const VulkanDevice& device, Shader<Stages>&... shaders )
+        : m_device(&device),
+          m_shaders(&shaders...)
+    {}
 
 
         void link();
         void bind(VkCommandBuffer cmd_buf);
 
     private:
-        VkDevice                                             m_device;
+        const VulkanDevice*                                  m_device = nullptr;
         std::tuple<Shader<Stages>*...>                       m_shaders;
         std::array<VkShaderEXT, sizeof...(Stages)>           m_shaderEXTs{};
         std::array<VkShaderStageFlagBits, sizeof...(Stages)> m_stages { ShaderStageTraits<Stages>::flag...};
@@ -174,7 +179,8 @@ namespace ShaderOBJ
 
     // Glorious CTAD
     template<ShaderType... Stages>
-    ShaderSuite(Shader<Stages>&...) -> ShaderSuite<Stages...>;
+    ShaderSuite(const VulkanDevice&, Shader<Stages>&...)
+        -> ShaderSuite<Stages...>;
 
 
     template<ShaderType... Stages>
@@ -204,11 +210,19 @@ namespace ShaderOBJ
         for(auto& shader_create : shader_create_infos)
             shader_create.flags |= VK_SHADER_CREATE_LINK_STAGE_BIT_EXT;
 
-        VK_ASSERT_MSG(vkCreateShadersEXT(m_device, 
-                                        static_cast<uint32_t>(shader_create_infos.size()), 
-                                        shader_create_infos.data(),
-                                        nullptr,
-                                        m_shaderEXTs.data()), "failed to create shader objects");
+        m_device->get_cmd_create_shaders_ext()
+        (
+            m_device->get(),
+            static_cast<uint32_t>(shader_create_infos.size()), 
+            shader_create_infos.data(),
+            nullptr,
+            m_shaderEXTs.data()
+        );
+        // VK_ASSERT_MSG(vkCreateShadersEXT(m_device->get(), 
+        //                                 static_cast<uint32_t>(shader_create_infos.size()), 
+        //                                 shader_create_infos.data(),
+        //                                 nullptr,
+        //                                 m_shaderEXTs.data()), "failed to create shader objects");
 
         
         std::apply
@@ -226,7 +240,7 @@ namespace ShaderOBJ
     requires LinkedShaders<Stages...> ::value
     void ShaderSuite<Stages...>::bind(VkCommandBuffer cmd_buf)
     {
-        vkCmdBindShadersEXT(
+        m_device->get_cmd_bind_shaders_ext()(
             cmd_buf,
             static_cast<uint32_t>(m_stages.size()),
             m_stages.data(),
@@ -281,7 +295,8 @@ namespace ShaderOBJ
     template<ShaderType Type>
     void Shader<Type>::bind_shader(VkCommandBuffer cmd_buf)
     {
-        vkCmdBindShadersEXT(cmd_buf, 1, &stage, &shader);
+        
+        // vkCmdBindShadersEXT(cmd_buf, 1, &stage, &shader);
     }
 }
 

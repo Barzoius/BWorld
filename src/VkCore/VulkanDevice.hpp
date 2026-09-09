@@ -35,6 +35,22 @@ public:
 
     [[nodiscard]] VkCommandPool get_transfer_pool() const { return m_transferCommandPool; }
 
+
+    PFN_vkCmdBindShadersEXT get_cmd_bind_shaders_ext() const
+    {
+        return m_vkCmdBindShadersEXT;
+    }
+
+    PFN_vkCmdSetVertexInputEXT get_cmd_set_vertex_input_ext() const
+    {
+        return m_vkCmdSetVertexInputEXT;
+    }
+
+    PFN_vkCreateShadersEXT get_cmd_create_shaders_ext() const
+    {
+        return m_vkCreateShadersEXT;
+    }    
+
 private:
 
     VkPhysicalDeviceProperties m_properties{};
@@ -106,5 +122,9 @@ private:
     VkCommandPool m_transferCommandPool;
 
 
+private:
+    PFN_vkCmdBindShadersEXT    m_vkCmdBindShadersEXT    = nullptr;
+    PFN_vkCmdSetVertexInputEXT m_vkCmdSetVertexInputEXT = nullptr;
+    PFN_vkCreateShadersEXT     m_vkCreateShadersEXT     = nullptr;
 
 };

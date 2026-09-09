@@ -70,6 +70,12 @@ private:
 
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> > vertex_obj;
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
+    std::unique_ptr<
+        ShaderOBJ::ShaderSuite<
+            ShaderType::VERTEX,
+            ShaderType::FRAGMENT
+        >
+    > suite;
 
 
     bool m_framebufferResized = false;
