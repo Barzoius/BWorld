@@ -9,6 +9,7 @@ struct GraphicsPipelineDesc
     struct VertexLayout
     {
         VkVertexInputBindingDescription bindDesc;
+        //VkVertexInputAttributeDescription2EXT
         std::vector<VkVertexInputAttributeDescription> attrDescs;
     }vertLayout;
 

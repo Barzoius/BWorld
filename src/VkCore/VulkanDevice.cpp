@@ -23,6 +23,7 @@ void VulkanDevice::Destroy()
 
 void VulkanDevice::Initialize()
 {
+
     pick_device();
     retrive_device_info();
     log_device_info();
@@ -40,8 +41,7 @@ void VulkanDevice::pick_device()
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance.handle, &deviceCount, nullptr);
 
-    if (deviceCount == 0) 
-        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    if (deviceCount == 0) LLOGE("Failed to find a device with Vulkan support!");
     
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance.handle, &deviceCount, devices.data());
@@ -55,13 +55,7 @@ void VulkanDevice::pick_device()
         }
     }
 
-    if (phyD == VK_NULL_HANDLE) 
-    {
-        throw std::runtime_error("failed to find a suitable GPU!");
-    }
-        
-
-    //LLOGI("Physical Device Picked: SUCCESS");
+    if (phyD == VK_NULL_HANDLE) LLOGE("Failed to find a suitable device!");
 }
 
 bool VulkanDevice::is_device_suitable(VkPhysicalDevice device)
@@ -71,29 +65,15 @@ bool VulkanDevice::is_device_suitable(VkPhysicalDevice device)
     bool swapChainAdequate = false;
     bool extensionsSupported = check_device_extension_support(device);
 
-    VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(device, &properties);
-
-
 
     if(extensionsSupported)
     {
         swapChainAdequate = !vkutil::QuerySwapChainSupport(device, instance.get_surface_handle()).formats.empty() &&
                             !vkutil::QuerySwapChainSupport(device, instance.get_surface_handle()).presentModes.empty();
 
-        std::cout << "SELECTED GPU: "
-          << properties.deviceName
-          << '\n';
 
     }
-    else
-    {
-        std::cout<<"WAMP WAMP NO EXTENSIONS\n";
-        std::cout << "NOT SELECTED GPU: "
-          << properties.deviceName
-          << '\n';
 
-    }
 
     return indices.is_complete() && extensionsSupported && swapChainAdequate;
 
@@ -405,17 +385,14 @@ void VulkanDevice::create_logical_device()
     }
 
     
-    if (vkCreateDevice(phyD, &createInfo, nullptr, &handle) != VK_SUCCESS) 
-        throw std::runtime_error("failed to create logical device!");
-
-
-    //LLOGI("Logical Device Created: SUCCESS");
+    VK_ASSERT(vkCreateDevice(phyD, &createInfo, nullptr, &handle));
 
     init_queues();
 
 }
 void VulkanDevice::init_tranfer_command_pool()
 {
+    //i think is a problem here 
     vkutil::QueueFamilyIndices queueFamilyIndices = indices;
     VkCommandPoolCreateInfo poolInfo
     {
@@ -423,10 +400,8 @@ void VulkanDevice::init_tranfer_command_pool()
         .queueFamilyIndex = queueFamilyIndices.s_transfer.value()
     };
 
-    if(vkCreateCommandPool(handle, &poolInfo, nullptr, &m_transferCommandPool) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create transfer command pool!");
-    }
+    VK_ASSERT_MSG(vkCreateCommandPool(handle, &poolInfo, nullptr, &m_transferCommandPool),
+    "failed to create command pool for transfer operations!");
 }
 
 
@@ -448,7 +423,7 @@ const queue_data* VulkanDevice::get_graphics_queue() const
     return nullptr;
 }
 
-//here was a bug  we selected teh first queue that had transfer 
+//here was a bug we selected teh first queue that had transfer 
 const queue_data* VulkanDevice::get_transfer_queue() const
 {
     for (const auto& q : m_queues)

@@ -1,4 +1,5 @@
 #include "VulkanSwapchain.hpp"
+#include "VkLog.hpp"
 #include <iostream>
 
 #include <cstdint>
@@ -25,9 +26,6 @@ void VulkanSwapchain::Destroy()
         vkDestroySwapchainKHR(device, handle, nullptr);
         handle = VK_NULL_HANDLE;
     }
-    
-
-    //std::cout << "Swapchain Destroyed\n";
 }
 
 VkSurfaceFormatKHR VulkanSwapchain::choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& formats, SwapchainColorMode colorMode )
@@ -211,10 +209,10 @@ void VulkanSwapchain::createSwapChain()
 
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &handle) != VK_SUCCESS)   
-        throw std::runtime_error("failed to create swap chain!");
+    VK_ASSERT_MSG(vkCreateSwapchainKHR(device, &createInfo, nullptr, &handle),
+    "failed to create swap chain!");   
 
-    //std::cout << "Swapchain created\n";
+
 
     vkGetSwapchainImagesKHR(device, handle, &imageCount, nullptr);
     swapChainImages.resize(imageCount);
@@ -245,8 +243,7 @@ void VulkanSwapchain::create_swapchain_image_views()
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount     = 1;
 
-        if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) 
-            throw std::runtime_error("failed to create image views!");
+        VK_ASSERT_MSG(vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]),"failed to create image views!"); 
 
     }
 }
@@ -260,8 +257,6 @@ void VulkanSwapchain::destroy_swapchain_image_views()
         
     }
     swapChainImageViews.clear();
-    //std::cout << "SwapChainImageViews Destroyed \n";
-
 }
 
 VkSwapchainKHR VulkanSwapchain::get_handle() const{ return handle; }

@@ -46,8 +46,8 @@ public:
 
 
     [[nodiscard]] VkSurfaceKHR get_surface_handle() const;
-    [[nodiscard]] Resolution get_resolution() const;
-    [[nodiscard]] VkInstance get_handle() const;
+    [[nodiscard]] Resolution   get_resolution() const;
+    [[nodiscard]] VkInstance   get_handle() const;
     
     void update_resolution(const Resolution&);
 
@@ -62,13 +62,12 @@ private:
     bool check_extensions();
     bool check_validation_layer_support();
 public:
-    VkInstance handle{};
+    VkInstance               handle{};
     VkDebugUtilsMessengerEXT debugMessenger{};
-
     std::vector<const char*> requiered_extensions;
-    SurfaceInfo surfaceInfo;
-    Resolution resolution;
-    VkSurfaceKHR surface;
+    SurfaceInfo              surfaceInfo;
+    Resolution               resolution;
+    VkSurfaceKHR             surface;
 private:
     struct {
         uint32_t major = 0;

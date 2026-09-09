@@ -21,38 +21,34 @@ public:
     void Destroy();
     void create_swapchain_image_views();
     void destroy_swapchain_image_views();
-
     void update_resolution(int, int);
-
     void recreate_swapchain();
     
     [[nodiscard]] VkSwapchainKHR get_handle() const;
 
-    [[nodiscard]] VkFormat get_image_format() const;
+    [[nodiscard]] VkFormat   get_image_format() const;
     [[nodiscard]] VkExtent2D get_extent() const;
 
     [[nodiscard]] int get_width() const;
     [[nodiscard]] int get_height() const;
 
     [[nodiscard]] std::vector<VkImageView> get_image_views();
-    [[nodiscard]] std::vector<VkImage> get_images();
+    [[nodiscard]] std::vector<VkImage>     get_images();
 
 private:
-    VkSurfaceFormatKHR choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>&, SwapchainColorMode);
-    VkPresentModeKHR choose_swap_present_mode(const std::vector<VkPresentModeKHR>&);
-    VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR&) ;
+    VkPresentModeKHR   choose_swap_present_mode(const std::vector<VkPresentModeKHR>&);
+    VkExtent2D         choose_swap_extent(const VkSurfaceCapabilitiesKHR&) ;
+    VkSurfaceFormatKHR choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>&, 
+                                                        SwapchainColorMode);
 private:
-    VkDevice device;
-    VkPhysicalDevice phyD;
-    VkSurfaceKHR surface;
-    VkSwapchainKHR handle{};  
-
-    int width;
-    int height;
-
-    std::vector<VkImage> swapChainImages;
+    VkDevice                 device;
+    VkPhysicalDevice         phyD;
+    VkSurfaceKHR             surface;
+    VkSwapchainKHR           handle{};  
+    int                      width;
+    int                      height;
+    std::vector<VkImage>     swapChainImages;
     std::vector<VkImageView> swapChainImageViews;
-
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
+    VkFormat                 swapChainImageFormat;
+    VkExtent2D               swapChainExtent;
 };

@@ -31,9 +31,9 @@ public:
 
     void update_instance_resolution(const Resolution&);
 
-    System transfer_sys{};
+    System       transfer_sys{};
 private:
-    Instance instance;
+    Instance     instance;
     VulkanDevice device;
     VmaAllocator vmaAllocator;   
 };

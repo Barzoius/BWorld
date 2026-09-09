@@ -138,7 +138,7 @@ inline const char* ivkGetVulkanResultString(VkResult result) {
 #define VK_ASSERT(func) do { \
     VkResult vk_assert_result = (func); \
     if (vk_assert_result != VK_SUCCESS) { \
-        LLOGW("Vulkan API call failed: %s:%d\n  %s\n  %s", \
+        LLOGE("Vulkan API call failed: %s:%d\n  %s\n  %s", \
             __FILE__, __LINE__, \
             #func, \
             ivkGetVulkanResultString(vk_assert_result)); \
@@ -146,10 +146,22 @@ inline const char* ivkGetVulkanResultString(VkResult result) {
     } \
 } while (0)
 
+#define VK_ASSERT_MSG(func, msg) do { \
+    VkResult vk_assert_result = (func); \
+    if (vk_assert_result != VK_SUCCESS) { \
+        LLOGE("Vulkan API call failed: %s:%d\n  %s\n  %s\n  %s", \
+            __FILE__, __LINE__, \
+            #func, \
+            ivkGetVulkanResultString(vk_assert_result), \
+            msg); \
+        assert(false); \
+    } \
+} while (0)
+
 #define VK_ASSERT_RETURN(func, failValue) do { \
     VkResult vk_assert_result = (func); \
     if (vk_assert_result != VK_SUCCESS) { \
-        LLOGW("Vulkan API call failed: %s:%d\n  %s\n  %s", \
+        LLOGE("Vulkan API call failed: %s:%d\n  %s\n  %s", \
             __FILE__, __LINE__, \
             #func, \
             ivkGetVulkanResultString(vk_assert_result)); \

@@ -45,6 +45,7 @@ public:
     void create_sync_resources();
     void clean_new_sync();
     void render_with_new_sync();
+    void render_with_shader_objects(); // test;
 
     void clean_swapchain_v2();
     void recreate_swapchain_v2();
@@ -59,18 +60,16 @@ private:
 
 
 private:
-    VkContext& m_vkContext;
-    std::unique_ptr<VulkanSwapchain> swapchain;
-
-    VkSwapchainContext swapchainContext;
-
+    VkContext&                        m_vkContext;
+    std::unique_ptr<VulkanSwapchain>  swapchain;
+    VkSwapchainContext                swapchainContext;
     std::unique_ptr<GraphicsPipeline> gfxPipeline;
     
-    std::unique_ptr<Shader<ShaderType::VERTEX>> vertex;
+    std::unique_ptr<Shader<ShaderType::VERTEX>>   vertex;
     std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
 
-    // std::unique_ptr<ShaderOBJ::Shader> vert;
-    // std::unique_ptr<ShaderOBJ::Shader> frag;
+    std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> > vertex_obj;
+    std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
 
 
     bool m_framebufferResized = false;

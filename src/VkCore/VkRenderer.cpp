@@ -16,19 +16,26 @@
 
 void VkRenderer::Initialize(Context& context) 
 {
-    
 
-    std::cout << "GRAPHICS FAMILY = "
-          << m_vkContext.get_device().get_device_indices().s_graphics.value()
-          << '\n';
 
-    //std::cout << "VkRenderer initialized\n";
+    // ShaderOBJ::Shader<ShaderType::VERTEX> verte;
+    // ShaderOBJ::Shader<ShaderType::GEOMETRY> geom;
+    // ShaderOBJ::Shader<ShaderType::FRAGMENT> frage;
+    // ShaderOBJ::ShaderSuite suite(verte, geom, frage);
 
-    ShaderOBJ::Shader<ShaderType::VERTEX> verte;
-    ShaderOBJ::Shader<ShaderType::GEOMETRY> geom;
-    ShaderOBJ::Shader<ShaderType::FRAGMENT> frage;
+    vertex_obj = std::make_unique<ShaderOBJ::Shader<ShaderType::VERTEX>>(
+        m_vkContext.get_device().get(), 
+        VK_SHADER_STAGE_FRAGMENT_BIT, 
+        "vertex_1", 
+        "Shaders/base1.vert.spv");
 
-    ShaderOBJ::ShaderSuite suite(verte, geom, frage);
+    fragment_obj = std::make_unique<ShaderOBJ::Shader<ShaderType::FRAGMENT>>(
+        m_vkContext.get_device().get(), 
+        0, 
+        "fragment_1", 
+        "Shaders/base1.frag.spv");  
+
+
 
 
     std::string frag = "Shaders/base1.frag.spv";
@@ -109,6 +116,7 @@ void VkRenderer::update_uniform_buffer(uint32_t currentImage)
 void VkRenderer::RenderFrame() 
 {
     render_with_new_sync();
+    //render_with_shader_objects();
 }
 
 void VkRenderer::Shutdown() {
@@ -240,9 +248,7 @@ void VkRenderer::create_GFX_pipeline()
     layoutInfo.bindingCount = 1;
     layoutInfo.pBindings = &uboLayoutBinding;
 
-    if (vkCreateDescriptorSetLayout(m_vkContext.get_device().get(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor set layout!");
-    }
+    VK_ASSERT_MSG(vkCreateDescriptorSetLayout(m_vkContext.get_device().get(), &layoutInfo, nullptr, &descriptorSetLayout), "Failed to create descriptor set layout!");
 
     gfxPipeline.get()->create_pipeline(desc, descriptorSetLayout);
 }
@@ -265,10 +271,8 @@ void VkRenderer::create_sync_resources()
         .pNext = &smphTypeInfo
     };
 
-    if(vkCreateSemaphore(m_vkContext.get_device().get(), &smphInfo, nullptr, &timelineSmph) != VK_SUCCESS)
-    {
-            throw std::runtime_error("failed to create timeline semaphore!");
-    }
+    VK_ASSERT_MSG(vkCreateSemaphore(m_vkContext.get_device().get(), &smphInfo, nullptr, &timelineSmph), "Failed to create timeline semaphore!");
+
 
     for(frameData &data : m_frameResources)
     {
@@ -276,22 +280,19 @@ void VkRenderer::create_sync_resources()
         {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
         };
-        if(vkCreateSemaphore(m_vkContext.get_device().get(), &smphInfo, nullptr, &data.s_imgAcquiredSmph) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create semaphore for image acquisition!");
-
-        }
+        
+        VK_ASSERT_MSG(
+            vkCreateSemaphore(m_vkContext.get_device().get(), 
+                              &smphInfo, nullptr, 
+                              &data.s_imgAcquiredSmph), 
+                              "failed to create semaphore for image acquisition!");
     }
 
     m_renderCompleteSmphs.resize(swapchain.get()->get_images().size());
     for(VkSemaphore& smph : m_renderCompleteSmphs)
     {
         VkSemaphoreCreateInfo smphInfo{ .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-                if(vkCreateSemaphore(m_vkContext.get_device().get(), &smphInfo, nullptr, &smph) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create semaphore for render completion!");
-
-        }
+        VK_ASSERT_MSG(vkCreateSemaphore(m_vkContext.get_device().get(), &smphInfo, nullptr, &smph), "failed to create semaphore for render completion!");
     }
 }
 
@@ -308,11 +309,7 @@ void VkRenderer::create_frame_data_v2()
             .queueFamilyIndex = queueFamilyIndices.s_graphics.value()
         };
 
-        if(vkCreateCommandPool(m_vkContext.get_device().get(), &poolInfo, nullptr, &data.s_commandPool) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create command pools!");
-
-        }
+        VK_ASSERT_MSG(vkCreateCommandPool(m_vkContext.get_device().get(), &poolInfo, nullptr, &data.s_commandPool), "failed to create command pools!");
 
         VkCommandBufferAllocateInfo cmdAllocInfo
         {
@@ -322,10 +319,7 @@ void VkRenderer::create_frame_data_v2()
             .commandBufferCount = 1
         };
 
-        if(vkAllocateCommandBuffers(m_vkContext.get_device().get(), &cmdAllocInfo, &data.s_commandBuffer) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create command buffers!");
-        }
+        VK_ASSERT_MSG(vkAllocateCommandBuffers(m_vkContext.get_device().get(), &cmdAllocInfo, &data.s_commandBuffer), "failed to create command buffers!");
     }
 }
 
@@ -599,6 +593,384 @@ void VkRenderer::render_with_new_sync()
 	vkQueuePresentKHR(gfx->s_handle, &presentInfo);
 
 }
+
+
+void VkRenderer::render_with_shader_objects()
+{
+    
+    if(m_swapchainRecreation)
+    {
+        vkDeviceWaitIdle(m_vkContext.get_device().get());
+        clean_swapchain_v2();
+        create_swapchain();
+        m_swapchainRecreation = false;
+    }
+
+    const uint32_t frameDataIndex = currentFrame++ % MAX_FRAMES_IN_FLIGHT;
+    const uint64_t signalValue = nextSignalValue++;
+    const uint64_t waitValue = signalValue - MAX_FRAMES_IN_FLIGHT;
+
+    VkSemaphoreWaitInfo waitInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
+        .semaphoreCount = 1,
+        .pSemaphores = &timelineSmph,
+        .pValues = &waitValue
+    };
+    vkWaitSemaphores(m_vkContext.get_device().get(), &waitInfo, UINT64_MAX);
+
+    frameData &data = m_frameResources[frameDataIndex];
+    vkResetCommandPool(m_vkContext.get_device().get(), data.s_commandPool, 0);
+
+    VkSemaphore imgAquireSemph = data.s_imgAcquiredSmph;
+
+    uint32_t imageIndex = 0;
+    VkResult aquireResult = vkAcquireNextImageKHR(m_vkContext.get_device().get(), swapchain.get()->get_handle(), UINT64_MAX, imgAquireSemph, VK_NULL_HANDLE, &imageIndex);
+
+    if(aquireResult == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        m_swapchainRecreation = true;
+        return;
+    }
+    else if(aquireResult == VK_SUBOPTIMAL_KHR)
+    {
+        m_swapchainRecreation = true;
+    }
+
+    VkCommandBufferBeginInfo cmdBeginInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+    };
+    
+    vkBeginCommandBuffer(data.s_commandBuffer, &cmdBeginInfo);
+
+    std::vector<VkImageMemoryBarrier2> layoutBarriers
+	{
+		{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+			.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.srcAccessMask = 0,
+			.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+			.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			.image = swapchain.get() -> get_images()[imageIndex],
+			.subresourceRange
+			{
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.baseMipLevel = 0,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1,
+			}
+		},
+		// {
+		// 	.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+		// 	.srcStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
+		// 	.srcAccessMask = 0,
+		// 	.dstStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+		// 	.dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+		// 	.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+		// 	.newLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+		// 	.image = depthImage,
+		// 	.subresourceRange
+		// 	{
+		// 		.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+		// 		.baseMipLevel = 0,
+		// 		.levelCount = 1,
+		// 		.baseArrayLayer = 0,
+		// 		.layerCount = 1,
+		// 	}
+		// }
+    };
+
+    VkDependencyInfo depInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+        .imageMemoryBarrierCount = static_cast<uint32_t>(layoutBarriers.size()),
+        .pImageMemoryBarriers = layoutBarriers.data()
+    };
+
+    vkCmdPipelineBarrier2(data.s_commandBuffer, &depInfo);
+
+    VkRenderingAttachmentInfo colorAttInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .imageView = swapchain.get()->get_image_views()[imageIndex],
+        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .clearValue{.color{0.01f, 0.01f, 0.01f, 1.0f}}
+    };
+
+	VkRenderingAttachmentInfo depthAttInfo
+	{
+		.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+		.imageView = depthImageView,
+		.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+		.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR, 
+		.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+		.clearValue{.depthStencil{1.0f, 0}}
+	};
+
+    VkRenderingInfo renderInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .renderArea
+        {
+            .offset{.x = 0, .y =0},
+            .extent{.width = static_cast<uint32_t>(swapchainContext.width), .height = static_cast<uint32_t>(swapchainContext.height)}
+        },
+        .layerCount = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAttInfo,
+        .pDepthAttachment = &depthAttInfo
+    };
+
+
+
+
+vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
+{
+    VkCommandBuffer cmd = data.s_commandBuffer;
+
+    vertex_obj->bind_shader(data.s_commandBuffer);
+    fragment_obj->bind_shader(data.s_commandBuffer);
+
+
+    VkVertexInputBindingDescription2EXT binding{
+        .sType =
+            VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
+        .binding = 0,
+        .stride = (uint32_t)input_vertex_buffers[0].get_layout().get_size(),
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+        .divisor = 1
+    };
+
+
+    std::vector<VkVertexInputAttributeDescription2EXT> descs;
+    descs.resize(input_vertex_buffers[0].get_layout().get_count());
+    for(int i = 0; i < descs.size(); i++)
+    {
+        descs[i].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
+        descs[i].binding = 0; // modulate this later
+        descs[i].location = i;
+        descs[i].format = get_vertex_buffer_format(input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_type());
+        descs[i].offset = input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_offset();
+        
+    }
+
+
+    vkCmdSetVertexInputEXT(
+        cmd,
+        1,
+        &binding,
+        2,
+        descs.data()
+    );
+
+
+    // --------------------------------------------------
+    // Input assembly
+    // --------------------------------------------------
+
+    vkCmdSetPrimitiveTopology(
+        cmd,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+    );
+
+
+    // --------------------------------------------------
+    // Viewport
+    // --------------------------------------------------
+
+    VkViewport viewport{
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(swapchainContext.width),
+        .height = static_cast<float>(swapchainContext.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+    };
+
+    vkCmdSetViewportWithCount(cmd, 1, &viewport);
+
+
+    // --------------------------------------------------
+    // Scissor
+    // --------------------------------------------------
+
+    VkRect2D scissor{
+        .offset = {0, 0},
+        .extent = {
+            static_cast<uint32_t>(swapchainContext.width),
+            static_cast<uint32_t>(swapchainContext.height)
+        }
+    };
+
+    vkCmdSetScissorWithCount(cmd, 1, &scissor);
+
+
+    // --------------------------------------------------
+    // Rasterization
+    // --------------------------------------------------
+
+    vkCmdSetCullMode(
+        cmd,
+        VK_CULL_MODE_BACK_BIT
+    );
+
+    vkCmdSetFrontFace(
+        cmd,
+        VK_FRONT_FACE_COUNTER_CLOCKWISE
+    );
+
+
+    // --------------------------------------------------
+    // Depth
+    // --------------------------------------------------
+
+    vkCmdSetDepthTestEnable(cmd, VK_TRUE);
+    vkCmdSetDepthWriteEnable(cmd, VK_TRUE);
+    vkCmdSetDepthCompareOp(cmd, VK_COMPARE_OP_LESS);
+
+
+    // --------------------------------------------------
+    // Vertex/index buffers
+    // --------------------------------------------------
+
+    VkBuffer vertexBuffers[] = {
+        vertex_buffer.s_handle
+    };
+
+    VkDeviceSize offsets[] = {
+        0
+    };
+
+    vkCmdBindVertexBuffers(
+        cmd,
+        0,
+        1,
+        vertexBuffers,
+        offsets
+    );
+
+    vkCmdBindIndexBuffer(
+        cmd,
+        index_buffer.s_handle,
+        0,
+        VK_INDEX_TYPE_UINT16
+    );
+
+
+    // --------------------------------------------------
+    // Draw
+    // --------------------------------------------------
+
+    vkCmdDrawIndexed(
+        cmd,
+        static_cast<uint32_t>(indices.size()),
+        1,
+        0,
+        0,
+        0
+    );
+}
+vkCmdEndRendering(data.s_commandBuffer);    
+
+
+    VkImageMemoryBarrier2 presentLayoutBarrier{
+		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+		.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_2_NONE,
+		.dstAccessMask = 0,
+		.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+		.image = swapchain.get() -> get_images()[imageIndex],
+		.subresourceRange
+		{
+			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		}
+	};
+	
+    VkDependencyInfo presentDepInfo{
+		.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+		.imageMemoryBarrierCount = 1,
+		.pImageMemoryBarriers = &presentLayoutBarrier
+	};
+
+	vkCmdPipelineBarrier2(data.s_commandBuffer, &presentDepInfo);
+
+
+	vkEndCommandBuffer(data.s_commandBuffer);
+
+    VkSemaphoreSubmitInfo imageAcquireWaitInfo{
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+		.semaphore = data.s_imgAcquiredSmph,
+		.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT 
+	};
+	
+	std::vector<VkSemaphoreSubmitInfo> semaphoreSignals{
+		{ // render work completion signal
+			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+			.semaphore = m_renderCompleteSmphs[imageIndex],
+			.stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT
+		},
+		{ // entire frame is completed (timeline)
+			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+			.semaphore = timelineSmph,
+			.value = signalValue,
+			.stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT
+		}
+	};
+
+	VkCommandBufferSubmitInfo cmdSubmitInfo{
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+		.commandBuffer = data.s_commandBuffer,
+	};
+
+
+	VkSubmitInfo2 submitInfo{
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+		.waitSemaphoreInfoCount = 1,
+		.pWaitSemaphoreInfos = &imageAcquireWaitInfo, 
+		.commandBufferInfoCount = 1,
+		.pCommandBufferInfos = &cmdSubmitInfo,
+		.signalSemaphoreInfoCount = static_cast<uint32_t>(semaphoreSignals.size()),
+		.pSignalSemaphoreInfos = semaphoreSignals.data()
+	};
+
+   
+    const queue_data* gfx = m_vkContext.get_device().get_graphics_queue();
+    vkQueueSubmit2(gfx->s_handle, 1, &submitInfo, VK_NULL_HANDLE);
+
+
+    VkSwapchainKHR swapchainHandle = swapchain.get()->get_handle();
+	// present the image
+	VkPresentInfoKHR presentInfo{
+		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores = &m_renderCompleteSmphs[imageIndex], 
+		.swapchainCount = 1,
+		.pSwapchains = &swapchainHandle,
+		.pImageIndices = &imageIndex,
+		.pResults = nullptr
+	};
+
+	vkQueuePresentKHR(gfx->s_handle, &presentInfo);    
+}
+
+
+
+
+
+
 
 void VkRenderer::clean_swapchain_v2()
 {

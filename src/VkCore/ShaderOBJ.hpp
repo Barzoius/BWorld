@@ -2,9 +2,13 @@
 
 #include <vector>
 #include <fstream>
+#include <array>
 
 #include "ShaderTypes.hpp"
 
+
+/// TO DO
+/// add unbinding for shader - !!!!! -- might be better to not be isndie the classes
 
 namespace ShaderOBJ
 {
@@ -86,13 +90,14 @@ namespace ShaderOBJ
         ShaderType::COMPUTE
     > : std::true_type {};
 
+    ///=====================================[SHADER CLASS]=====================================///
     template<ShaderType Type>
     class Shader
     {
     public:
 
         Shader() = default;
-        Shader( VkShaderStageFlagBits stage_,
+        Shader( VkDevice device_, 
                 VkShaderStageFlags    next_stage_,
                 std::string           shader_name_,
                 const std::string& path
@@ -102,17 +107,11 @@ namespace ShaderOBJ
                
 
             
-        VkShaderCreateInfoEXT get_create_info() const
-        {
-            return vk_shader_create_info;
-        }
-
-        void set_shader(VkShaderEXT shader)
-        {
-
-        }
-       
-
+        VkShaderCreateInfoEXT get_create_info() const { return vk_shader_create_info; }
+        VkShaderStageFlagBits get_stage()       const { return stage; }
+        void                  set_shader(VkShaderEXT p_shader) { shader = p_shader; }
+        void                  build_shader();
+        void                  bind_shader(VkCommandBuffer cmd_buf);
 
         static std::vector<uint32_t> readFile(const std::string& filePath)
         {
@@ -139,12 +138,11 @@ namespace ShaderOBJ
         }
 
 
-
     public:
         static constexpr ShaderType type = Type;
     private:
-        
-        VkShaderStageFlagBits stage{};
+        VkDevice              device;
+        VkShaderStageFlagBits stage = ShaderStageTraits<Type>::flag;
         VkShaderStageFlags    next_stage{};
         VkShaderEXT           shader      = VK_NULL_HANDLE;
         std::string           shader_name = "shader";
@@ -152,23 +150,7 @@ namespace ShaderOBJ
         std::vector<uint32_t> code;
     };
 
-
-    // template<class... Shaders>
-    // requires LinkedShaders<std::remove_cvref_t<Shaders>::type...> ::value
-    // class ShaderSuite
-    // {
-    // public:
-    //     ShaderSuite(Shaders&&... shaders) : m_shaders(std::forward<Shaders>(shaders)...){}
-
-    //     void link_shaders();
-
-    // private:
-    //     std::tuple<Shaders...> m_shaders
-
-
-    //     // if suite owns copies/moved insatnces
-    //     //std::tuple<std::remove_cvref_t<Shaders>...> m_shaders
-    // };
+    ///========================================================================================///
 
 
     template<ShaderType... Stages>
@@ -179,14 +161,14 @@ namespace ShaderOBJ
         ShaderSuite(Shader<Stages>&... shaders) : m_shaders(&shaders...) {}
 
 
-        void link_shaders();
+        void link();
+        void bind(VkCommandBuffer cmd_buf);
 
     private:
-        std::tuple<Shader<Stages>*...> m_shaders;
-
-
-        // if suite owns copies/moved insatnces
-        //std::tuple<std::remove_cvref_t<Shaders>...> m_shaders
+        VkDevice                                             m_device;
+        std::tuple<Shader<Stages>*...>                       m_shaders;
+        std::array<VkShaderEXT, sizeof...(Stages)>           m_shaderEXTs{};
+        std::array<VkShaderStageFlagBits, sizeof...(Stages)> m_stages { ShaderStageTraits<Stages>::flag...};
     };
 
 
@@ -195,25 +177,74 @@ namespace ShaderOBJ
     ShaderSuite(Shader<Stages>&...) -> ShaderSuite<Stages...>;
 
 
+    template<ShaderType... Stages>
+    requires LinkedShaders<Stages...> ::value
+    void ShaderSuite<Stages...>::link()
+    {
+        std::array<VkShaderCreateInfoEXT, sizeof...(Stages)> shader_create_infos{};
 
+        std::apply
+        (
+            [&shader_create_infos](auto*... shaders)
+            {
+                // I am not sure how to do this :DD
 
+                // if((shaders == nullptr || ...))
+                // {
+                //     LLOGE("Missing shader/s :((\n");
+                // }
 
+                std::size_t i = 0;
+ 
+                ((shader_create_infos[i++] = shaders->get_create_info()), ...);
+            },
+            m_shaders
+        );
 
+        for(auto& shader_create : shader_create_infos)
+            shader_create.flags |= VK_SHADER_CREATE_LINK_STAGE_BIT_EXT;
 
+        VK_ASSERT_MSG(vkCreateShadersEXT(m_device, 
+                                        static_cast<uint32_t>(shader_create_infos.size()), 
+                                        shader_create_infos.data(),
+                                        nullptr,
+                                        m_shaderEXTs.data()), "failed to create shader objects");
 
+        
+        std::apply
+        (
+            [&](auto*... shaders)
+            {
+                std::size_t i = 0;
+                ((shaders->set_shader(m_shaderEXTs[i++])), ...);
+            },
+            m_shaders
+        );
+    }
 
+    template<ShaderType... Stages>
+    requires LinkedShaders<Stages...> ::value
+    void ShaderSuite<Stages...>::bind(VkCommandBuffer cmd_buf)
+    {
+        vkCmdBindShadersEXT(
+            cmd_buf,
+            static_cast<uint32_t>(m_stages.size()),
+            m_stages.data(),
+            m_shaderEXTs.data()
+        );
+    }
 
 
     template<ShaderType Type>
-    Shader<Type>::Shader(   VkShaderStageFlagBits stage_,
+    Shader<Type>::Shader(   VkDevice device_,
                             VkShaderStageFlags    next_stage_,
                             std::string           shader_name_,
-                            const std::string& path
+                            const std::string&    path
                             // const VkDescriptorSetLayout *pSetLayouts,
                             // const VkPushConstantRange *  pPushConstantRange)
                 )
         {
-                    stage       = stage_;
+                    device      = device_;
                     shader_name = shader_name_;
                     next_stage  = next_stage_;
 
@@ -237,5 +268,20 @@ namespace ShaderOBJ
 
         }
 
+    template<ShaderType Type>
+    void Shader<Type>::build_shader()
+    {
+        VK_ASSERT_MSG(vkCreateShadersEXT(device, 
+                                        1, 
+                                        &vk_shader_create_info,
+                                        nullptr,
+                                        &shader), "failed to create shader object");  
+    }
+
+    template<ShaderType Type>
+    void Shader<Type>::bind_shader(VkCommandBuffer cmd_buf)
+    {
+        vkCmdBindShadersEXT(cmd_buf, 1, &stage, &shader);
+    }
 }
 
