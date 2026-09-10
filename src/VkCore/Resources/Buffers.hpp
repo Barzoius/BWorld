@@ -4,7 +4,7 @@
 
 #include "VertexSystem.hpp"
 
-#include "VMA/vk_mem_alloc.h"
+#include "VMA/vk_mem_alloc.hpp"
 
 #include "Queue.hpp"
 

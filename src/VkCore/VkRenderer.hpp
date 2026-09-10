@@ -29,10 +29,10 @@ class VkRenderer : public Renderer
 {
 public:
     VkRenderer(VkContext& ctx) : Renderer(ctx), m_vkContext(ctx){}
-    void Initialize(Context&) override;
-    void RenderFrame() override;
-    void Shutdown() override;
 
+    void Initialize(Context&)                override;
+    void RenderFrame()                       override;
+    void Shutdown()                          override;
     void UpdateResolution(const Resolution&) override;
 
     void create_swapchain();
@@ -68,7 +68,7 @@ private:
     std::unique_ptr<Shader<ShaderType::VERTEX>>   vertex;
     std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
 
-    std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> > vertex_obj;
+    std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> >   vertex_obj;
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
     std::unique_ptr<
         ShaderOBJ::ShaderSuite<

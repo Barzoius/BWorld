@@ -9,7 +9,7 @@
 #include "Instance.hpp"
 #include "VulkanDevice.hpp"
 
-#include "VMA/vk_mem_alloc.h"
+#include "VMA/vk_mem_alloc.hpp"
 
 
 
@@ -25,8 +25,8 @@ public:
     void Initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&) override;
     void Destroy() override;
 
-    [[nodiscard]] const VulkanDevice& get_device() const { return device; }
-    [[nodiscard]] const Instance& get_instance() const { return instance; }
+    [[nodiscard]] const VulkanDevice& get_device()    const { return device; }
+    [[nodiscard]] const Instance&     get_instance()  const { return instance; }
     [[nodiscard]] const VmaAllocator& get_allocator() const { return vmaAllocator; }
 
     void update_instance_resolution(const Resolution&);
