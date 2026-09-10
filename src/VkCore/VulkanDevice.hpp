@@ -38,17 +38,17 @@ public:
 
     PFN_vkCmdBindShadersEXT get_cmd_bind_shaders_ext() const
     {
-        return m_vkCmdBindShadersEXT;
+        return vkCmdBindShadersEXT;
     }
 
     PFN_vkCmdSetVertexInputEXT get_cmd_set_vertex_input_ext() const
     {
-        return m_vkCmdSetVertexInputEXT;
+        return vkCmdSetVertexInputEXT;
     }
 
     PFN_vkCreateShadersEXT get_cmd_create_shaders_ext() const
     {
-        return m_vkCreateShadersEXT;
+        return vkCreateShadersEXT;
     }    
 
 private:
@@ -123,8 +123,34 @@ private:
 
 
 private:
-    PFN_vkCmdBindShadersEXT    m_vkCmdBindShadersEXT    = nullptr;
-    PFN_vkCmdSetVertexInputEXT m_vkCmdSetVertexInputEXT = nullptr;
-    PFN_vkCreateShadersEXT     m_vkCreateShadersEXT     = nullptr;
+    [[nodiscard]] bool load_vk_ext_fns();
+
+public:
+    PFN_vkCreateShadersEXT                 vkCreateShadersEXT                 = nullptr;
+    PFN_vkCmdBindShadersEXT                vkCmdBindShadersEXT                = nullptr;
+    PFN_vkDestroyShaderEXT                 vkDestroyShaderEXT                 = nullptr;
+    PFN_vkGetShaderBinaryDataEXT           vkGetShaderBinaryDataEXT           = nullptr;
+
+    PFN_vkCmdSetAlphaToCoverageEnableEXT   vkCmdSetAlphaToCoverageEnableEXT   = nullptr;
+	PFN_vkCmdSetColorBlendEnableEXT        vkCmdSetColorBlendEnableEXT        = nullptr;
+	PFN_vkCmdSetColorWriteMaskEXT          vkCmdSetColorWriteMaskEXT          = nullptr;
+	PFN_vkCmdSetCullModeEXT                vkCmdSetCullModeEXT                = nullptr;
+	PFN_vkCmdSetDepthBiasEnableEXT         vkCmdSetDepthBiasEnableEXT         = nullptr;
+	PFN_vkCmdSetDepthCompareOpEXT          vkCmdSetDepthCompareOpEXT          = nullptr;
+	PFN_vkCmdSetDepthTestEnableEXT         vkCmdSetDepthTestEnableEXT         = nullptr;
+	PFN_vkCmdSetDepthWriteEnableEXT        vkCmdSetDepthWriteEnableEXT        = nullptr;
+	PFN_vkCmdSetFrontFaceEXT               vkCmdSetFrontFaceEXT               = nullptr;
+	PFN_vkCmdSetPolygonModeEXT             vkCmdSetPolygonModeEXT             = nullptr;
+	PFN_vkCmdSetPrimitiveRestartEnableEXT  vkCmdSetPrimitiveRestartEnableEXT  = nullptr;
+	PFN_vkCmdSetPrimitiveTopologyEXT       vkCmdSetPrimitiveTopologyEXT       = nullptr;
+	PFN_vkCmdSetRasterizationSamplesEXT    vkCmdSetRasterizationSamplesEXT    = nullptr;
+	PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT = nullptr;
+	PFN_vkCmdSetSampleMaskEXT              vkCmdSetSampleMaskEXT              = nullptr;
+	PFN_vkCmdSetScissorWithCountEXT        vkCmdSetScissorWithCountEXT        = nullptr;
+	PFN_vkCmdSetStencilTestEnableEXT       vkCmdSetStencilTestEnableEXT       = nullptr;
+	PFN_vkCmdSetViewportWithCountEXT       vkCmdSetViewportWithCountEXT       = nullptr;
+    
+    PFN_vkCmdSetVertexInputEXT             vkCmdSetVertexInputEXT             = nullptr;
+    
 
 };

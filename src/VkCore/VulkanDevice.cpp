@@ -287,8 +287,8 @@ void VulkanDevice::enable_features()
         .pNext = &m_features.enabled12
     };
 
-    m_features.enabled.features.geometryShader = VK_TRUE;
-    m_features.enabled.features.tessellationShader = VK_TRUE;
+    m_features.enabled.features.geometryShader = VK_FALSE;
+    m_features.enabled.features.tessellationShader = VK_FALSE;
 }
 
 bool VulkanDevice::supports_required_features() const
@@ -387,27 +387,9 @@ void VulkanDevice::create_logical_device()
     
     VK_ASSERT(vkCreateDevice(phyD, &createInfo, nullptr, &handle));
 
-    m_vkCreateShadersEXT =
-    reinterpret_cast<PFN_vkCreateShadersEXT>(vkGetDeviceProcAddr(handle, "vkCreateShadersEXT")); 
-    m_vkCmdBindShadersEXT =
-    reinterpret_cast<PFN_vkCmdBindShadersEXT>(
-        vkGetDeviceProcAddr(handle, "vkCmdBindShadersEXT")
-    );
+    if(load_vk_ext_fns() == false) LLOGE("Unable to load all fucntions!");
 
-    m_vkCmdSetVertexInputEXT =
-        reinterpret_cast<PFN_vkCmdSetVertexInputEXT>(
-            vkGetDeviceProcAddr(handle, "vkCmdSetVertexInputEXT")
-        );
-
-    if (m_vkCmdBindShadersEXT == nullptr)
-    {
-        LLOGE("Failed to load vkCmdBindShadersEXT");
-    }
-
-    if (m_vkCmdSetVertexInputEXT == nullptr)
-    {
-        LLOGE("Failed to load vkCmdSetVertexInputEXT");
-    }
+    
 
     init_queues();
 
@@ -603,5 +585,59 @@ void VulkanDevice::log_device_info() const
     // }
 
     LLOGI("===================================");
+
+}
+
+
+
+bool VulkanDevice::load_vk_ext_fns()
+{
+    bool success = true;
+
+    auto load = [&](auto& fn, const char* name, bool req)
+    {
+        fn = reinterpret_cast<std::decay_t<decltype(fn)>>(vkGetDeviceProcAddr(handle, name));
+
+        if(!fn)
+        {
+            if(req)
+            {
+                LLOGE("Failed to load %s", name);
+                success = false;
+            }
+            else
+                LLOGW("Failed to load %s", name);
+        }
+    };
+
+    // Required
+    load(vkCreateShadersEXT,                 "vkCreateShadersEXT",                 true);
+    load(vkCmdBindShadersEXT,                "vkCmdBindShadersEXT",                true);
+    load(vkDestroyShaderEXT,                 "vkDestroyShaderEXT",                 true);
+    load(vkGetShaderBinaryDataEXT,           "vkGetShaderBinaryDataEXT",           true);
+
+    // Optional
+    load(vkCmdSetAlphaToCoverageEnableEXT,   "vkCmdSetAlphaToCoverageEnableEXT",   false);
+    load(vkCmdSetColorBlendEnableEXT,        "vkCmdSetColorBlendEnableEXT",        false);
+    load(vkCmdSetColorWriteMaskEXT,          "vkCmdSetColorWriteMaskEXT",          false);
+    load(vkCmdSetCullModeEXT,                "vkCmdSetCullModeEXT",                false);
+    load(vkCmdSetDepthBiasEnableEXT,         "vkCmdSetDepthBiasEnableEXT",         false);
+    load(vkCmdSetDepthCompareOpEXT,          "vkCmdSetDepthCompareOpEXT",          false);
+    load(vkCmdSetDepthTestEnableEXT,         "vkCmdSetDepthTestEnableEXT",         false);
+    load(vkCmdSetDepthWriteEnableEXT,        "vkCmdSetDepthWriteEnableEXT",        false);
+    load(vkCmdSetFrontFaceEXT,               "vkCmdSetFrontFaceEXT",               false);
+    load(vkCmdSetPolygonModeEXT,             "vkCmdSetPolygonModeEXT",             false);
+    load(vkCmdSetPrimitiveRestartEnableEXT,  "vkCmdSetPrimitiveRestartEnableEXT",  false);
+    load(vkCmdSetPrimitiveTopologyEXT,       "vkCmdSetPrimitiveTopologyEXT",       false);
+    load(vkCmdSetRasterizationSamplesEXT,    "vkCmdSetRasterizationSamplesEXT",    false);
+    load(vkCmdSetRasterizerDiscardEnableEXT, "vkCmdSetRasterizerDiscardEnableEXT", false);
+    load(vkCmdSetSampleMaskEXT,              "vkCmdSetSampleMaskEXT",              false);
+    load(vkCmdSetScissorWithCountEXT,        "vkCmdSetScissorWithCountEXT",        false);
+    load(vkCmdSetStencilTestEnableEXT,       "vkCmdSetStencilTestEnableEXT",       false);
+    load(vkCmdSetViewportWithCountEXT,       "vkCmdSetViewportWithCountEXT",       false);
+
+    load(vkCmdSetVertexInputEXT,             "vkCmdSetVertexInputEXT",             true);
+
+    return success;
 
 }

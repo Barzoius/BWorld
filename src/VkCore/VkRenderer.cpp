@@ -41,12 +41,12 @@ void VkRenderer::Initialize(Context& context)
         >>(m_vkContext.get_device(), *vertex_obj, *fragment_obj);
     suite->link();
 
-    std::string frag = "Shaders/base1.frag.spv";
-    std::string vert = "Shaders/base1.vert.spv";
+    // std::string frag = "Shaders/base1.frag.spv";
+    // std::string vert = "Shaders/base1.vert.spv";
 
 
-    vertex = std::make_unique<Shader<ShaderType::VERTEX>>(m_vkContext, vert);
-    fragment = std::make_unique<Shader<ShaderType::FRAGMENT>>(m_vkContext, frag);
+    // vertex = std::make_unique<Shader<ShaderType::VERTEX>>(m_vkContext, vert);
+    // fragment = std::make_unique<Shader<ShaderType::FRAGMENT>>(m_vkContext, frag);
 
  
    
@@ -57,7 +57,7 @@ void VkRenderer::Initialize(Context& context)
 
     
 
-    create_GFX_pipeline();
+    //create_GFX_pipeline();
 
 
     
@@ -160,10 +160,14 @@ void VkRenderer::Shutdown() {
     //sterge
     vkDestroyDescriptorSetLayout(m_vkContext.get_device().get(), descriptorSetLayout, nullptr);
 
-    if (gfxPipeline)
+    // if (gfxPipeline)
+    // {
+    //     gfxPipeline->destroy();
+    //     gfxPipeline.reset();
+    // }
+    if(suite)
     {
-        gfxPipeline->destroy();
-        gfxPipeline.reset();
+        suite->destroy();	
     }
 
     if (vertex)
@@ -738,8 +742,6 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
 {
     VkCommandBuffer cmd = data.s_commandBuffer;
 
-    // vertex_obj->bind_shader(data.s_commandBuffer);
-    // fragment_obj->bind_shader(data.s_commandBuffer);
 
     suite -> bind(data.s_commandBuffer);
 
@@ -765,29 +767,17 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
         
     }
 
-
-    m_vkContext.get_device().get_cmd_set_vertex_input_ext()(
-        data.s_commandBuffer,
+    
+    m_vkContext.get_device().vkCmdSetVertexInputEXT(
+        cmd,
         1,
         &binding,
-        2,
+        static_cast<uint32_t>(descs.size()),
         descs.data()
     );
 
 
-    // --------------------------------------------------
-    // Input assembly
-    // --------------------------------------------------
 
-    vkCmdSetPrimitiveTopology(
-        cmd,
-        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
-    );
-
-
-    // --------------------------------------------------
-    // Viewport
-    // --------------------------------------------------
 
     VkViewport viewport{
         .x = 0.0f,
@@ -798,12 +788,6 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
         .maxDepth = 1.0f
     };
 
-    vkCmdSetViewportWithCount(cmd, 1, &viewport);
-
-
-    // --------------------------------------------------
-    // Scissor
-    // --------------------------------------------------
 
     VkRect2D scissor{
         .offset = {0, 0},
@@ -813,32 +797,36 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
         }
     };
 
-    vkCmdSetScissorWithCount(cmd, 1, &scissor);
+    
+
+    m_vkContext.get_device().vkCmdSetViewportWithCountEXT(cmd, 1, &viewport);
+    m_vkContext.get_device().vkCmdSetScissorWithCountEXT(cmd, 1, &scissor);
 
 
-    // --------------------------------------------------
-    // Rasterization
-    // --------------------------------------------------
+	m_vkContext.get_device().vkCmdSetCullModeEXT(cmd, VK_CULL_MODE_BACK_BIT);
+	m_vkContext.get_device().vkCmdSetFrontFaceEXT(cmd,  VK_FRONT_FACE_CLOCKWISE);
 
-    vkCmdSetCullMode(
-        cmd,
-        VK_CULL_MODE_BACK_BIT
-    );
+    m_vkContext.get_device().vkCmdSetDepthTestEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetDepthWriteEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetDepthCompareOpEXT(cmd, VK_COMPARE_OP_LESS);
 
-    vkCmdSetFrontFace(
-        cmd,
-        VK_FRONT_FACE_COUNTER_CLOCKWISE
-    );
+    m_vkContext.get_device().vkCmdSetPrimitiveTopologyEXT(cmd, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    m_vkContext.get_device().vkCmdSetRasterizerDiscardEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetPolygonModeEXT(cmd, VK_POLYGON_MODE_FILL);
+	m_vkContext.get_device().vkCmdSetRasterizationSamplesEXT(cmd, VK_SAMPLE_COUNT_1_BIT);
+	m_vkContext.get_device().vkCmdSetAlphaToCoverageEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetDepthBiasEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetStencilTestEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetPrimitiveRestartEnableEXT(cmd, VK_FALSE);
 
+    const uint32_t sampleMask = 0xFF;
+	m_vkContext.get_device().vkCmdSetSampleMaskEXT(cmd, VK_SAMPLE_COUNT_1_BIT, &sampleMask);
 
-    // --------------------------------------------------
-    // Depth
-    // --------------------------------------------------
-
-    vkCmdSetDepthTestEnable(cmd, VK_TRUE);
-    vkCmdSetDepthWriteEnable(cmd, VK_TRUE);
-    vkCmdSetDepthCompareOp(cmd, VK_COMPARE_OP_LESS);
-
+	const VkBool32 colorBlendEnables = false;
+	const VkColorComponentFlags colorBlendComponentFlags = 0xf;
+	const VkColorBlendEquationEXT colorBlendEquation{};
+	m_vkContext.get_device().vkCmdSetColorBlendEnableEXT(cmd, 0, 1, &colorBlendEnables);
+	m_vkContext.get_device().vkCmdSetColorWriteMaskEXT(cmd, 0, 1, &colorBlendComponentFlags);
 
     // --------------------------------------------------
     // Vertex/index buffers
@@ -851,6 +839,8 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
     VkDeviceSize offsets[] = {
         0
     };
+
+    
 
     vkCmdBindVertexBuffers(
         cmd,

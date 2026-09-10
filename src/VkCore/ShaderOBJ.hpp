@@ -168,6 +168,7 @@ namespace ShaderOBJ
 
         void link();
         void bind(VkCommandBuffer cmd_buf);
+        void destroy();
 
     private:
         const VulkanDevice*                                  m_device = nullptr;
@@ -247,6 +248,21 @@ namespace ShaderOBJ
             m_shaderEXTs.data()
         );
     }
+
+    template<ShaderType... Stages>
+    requires LinkedShaders<Stages...> ::value
+    void ShaderSuite<Stages...>::destroy()
+    {
+        for (VkShaderEXT shader : m_shaderEXTs) 
+        {
+            if (shader != VK_NULL_HANDLE) 
+                m_device->vkDestroyShaderEXT(m_device->get(), shader, nullptr);
+     
+        }
+
+       m_shaderEXTs.fill(VK_NULL_HANDLE);
+    }
+
 
 
     template<ShaderType Type>
