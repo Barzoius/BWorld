@@ -4,10 +4,7 @@
 
 #include "VkLog.hpp"
 
-VulkanDevice::VulkanDevice(const Instance& i) : instance(i)
-{
-    //std::cout << "VulkanDevice constructor\n";
-}
+VulkanDevice::VulkanDevice(const Instance& i) : instance(i) {}
 
 VulkanDevice::~VulkanDevice() = default;
 
@@ -35,9 +32,6 @@ void VulkanDevice::Initialize()
 
 void VulkanDevice::pick_device()
 {
-        // std::cout << "Instance handle at pickDevice = "
-        //       << instance.handle << "\n";
-
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance.handle, &deviceCount, nullptr);
 
@@ -219,25 +213,21 @@ void VulkanDevice::query_features()
 {
 
     m_features.supportedShaderObject = {
-        .sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT
     };
 
     m_features.supported14 = {
-        .sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
         .pNext = &m_features.supportedShaderObject
     };
 
     m_features.supported13 = {
-        .sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
         .pNext = &m_features.supported14
     };
 
     m_features.supported12 = {
-        .sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
         .pNext = &m_features.supported13
     };
 
@@ -246,39 +236,32 @@ void VulkanDevice::query_features()
         .pNext = &m_features.supported12
     };
 
-    vkGetPhysicalDeviceFeatures2(
-        phyD,
-        &m_features.supported
-    );
+    vkGetPhysicalDeviceFeatures2(phyD, &m_features.supported);
 }
 
 
 void VulkanDevice::enable_features()
 {
     m_features.enabledShaderObject = {
-        .sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT,
+        .sType        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT,
         .shaderObject = VK_TRUE
     };
 
     m_features.enabled14 = {
-        .sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
         .pNext = &m_features.enabledShaderObject
     };
 
     m_features.enabled13 = {
-        .sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
-        .pNext = &m_features.enabled14,
+        .sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+        .pNext            = &m_features.enabled14,
         .synchronization2 = VK_TRUE,
         .dynamicRendering = VK_TRUE
     };
 
     m_features.enabled12 = {
-        .sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-        .pNext = &m_features.enabled13,
+        .sType             = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+        .pNext             = &m_features.enabled13,
         .timelineSemaphore = VK_TRUE
     };
 
@@ -287,7 +270,7 @@ void VulkanDevice::enable_features()
         .pNext = &m_features.enabled12
     };
 
-    m_features.enabled.features.geometryShader = VK_FALSE;
+    m_features.enabled.features.geometryShader     = VK_FALSE;
     m_features.enabled.features.tessellationShader = VK_FALSE;
 }
 
@@ -349,12 +332,9 @@ void VulkanDevice::create_logical_device()
     for (uint32_t familyIndex : uniqueFamilies)
     {
         VkDeviceQueueCreateInfo info{};
-        info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-
+        info.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         info.queueFamilyIndex = familyIndex;
-
-        info.queueCount = 1;
-
+        info.queueCount       = 1;
         info.pQueuePriorities = &m_queuePriority;
 
         queueCreateInfos.push_back(info);
@@ -378,10 +358,10 @@ void VulkanDevice::create_logical_device()
     
 
     if (enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
     } else {
-        createInfo.enabledLayerCount = 0;
+        createInfo.enabledLayerCount   = 0;
     }
 
     
@@ -400,7 +380,7 @@ void VulkanDevice::init_tranfer_command_pool()
     vkutil::QueueFamilyIndices queueFamilyIndices = indices;
     VkCommandPoolCreateInfo poolInfo
     {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .queueFamilyIndex = queueFamilyIndices.s_transfer.value()
     };
 

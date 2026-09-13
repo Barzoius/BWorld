@@ -55,8 +55,8 @@ private:
     {
         switch(lvl)
         {
-            case LEVEL::INFO: return "INFO";
-            case LEVEL::WARNING: return "WARNING";
+            case LEVEL::INFO:     return "INFO";
+            case LEVEL::WARNING:  return "WARNING";
             case LEVEL::VK_ERROR: return "ERROR";
             case LEVEL::CRITICAL: return "CRITICAL";
         }
@@ -86,7 +86,7 @@ private:
     }
 
 private:
-    std::mutex m_mutex;
+    std::mutex    m_mutex;
     std::ofstream m_file;
 };
 
@@ -108,28 +108,31 @@ inline std::string format_string(const char* fmt, ...)
 
 
 
-#define LLOGI(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::INFO, format_string(fmt,##__VA_ARGS__))
-#define LLOGW(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::WARNING, format_string(fmt, ##__VA_ARGS__))
+#define LLOGI(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::INFO,     format_string(fmt,##__VA_ARGS__))
+#define LLOGW(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::WARNING,  format_string(fmt, ##__VA_ARGS__))
 #define LLOGE(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::VK_ERROR, format_string(fmt, ##__VA_ARGS__))
 #define LLOGC(fmt, ...) VkLogger::Instance().Log(VkLogger::LEVEL::CRITICAL, format_string(fmt, ##__VA_ARGS__))
 
 
 inline const char* ivkGetVulkanResultString(VkResult result) {
-    switch (result) {
-        case VK_SUCCESS: return "VK_SUCCESS";
-        case VK_NOT_READY: return "VK_NOT_READY";
-        case VK_TIMEOUT: return "VK_TIMEOUT";
-        case VK_EVENT_SET: return "VK_EVENT_SET";
-        case VK_EVENT_RESET: return "VK_EVENT_RESET";
-        case VK_INCOMPLETE: return "VK_INCOMPLETE";
-        case VK_ERROR_OUT_OF_HOST_MEMORY: return "VK_ERROR_OUT_OF_HOST_MEMORY";
-        case VK_ERROR_OUT_OF_DEVICE_MEMORY: return "VK_ERROR_OUT_OF_DEVICE_MEMORY";
-        case VK_ERROR_DEVICE_LOST: return "VK_ERROR_DEVICE_LOST";
+    switch (result) 
+    {
+        case VK_SUCCESS:                     return "VK_SUCCESS";
+
+        case VK_NOT_READY:                   return "VK_NOT_READY";
+        case VK_TIMEOUT:                     return "VK_TIMEOUT";
+        case VK_EVENT_SET:                   return "VK_EVENT_SET";
+        case VK_EVENT_RESET:                 return "VK_EVENT_RESET";
+        case VK_INCOMPLETE:                  return "VK_INCOMPLETE";
+        case VK_ERROR_OUT_OF_HOST_MEMORY:    return "VK_ERROR_OUT_OF_HOST_MEMORY";
+        case VK_ERROR_OUT_OF_DEVICE_MEMORY:  return "VK_ERROR_OUT_OF_DEVICE_MEMORY";
+        case VK_ERROR_DEVICE_LOST:           return "VK_ERROR_DEVICE_LOST";
         case VK_ERROR_INITIALIZATION_FAILED: return "VK_ERROR_INITIALIZATION_FAILED";
-        case VK_ERROR_LAYER_NOT_PRESENT: return "VK_ERROR_LAYER_NOT_PRESENT";
+        case VK_ERROR_LAYER_NOT_PRESENT:     return "VK_ERROR_LAYER_NOT_PRESENT";
         case VK_ERROR_EXTENSION_NOT_PRESENT: return "VK_ERROR_EXTENSION_NOT_PRESENT";
-        case VK_ERROR_FEATURE_NOT_PRESENT: return "VK_ERROR_FEATURE_NOT_PRESENT";
-        default: return "UNKNOWN_VK_RESULT";
+        case VK_ERROR_FEATURE_NOT_PRESENT:   return "VK_ERROR_FEATURE_NOT_PRESENT";
+
+        default:                             return "UNKNOWN_VK_RESULT";
     }
 }
 

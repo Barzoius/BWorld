@@ -1,6 +1,6 @@
 add_library(VkCore STATIC
 
-            VMA/vk_mem_alloc.h
+            VMA/vk_mem_alloc.hpp
             VMA/VmaUsage.cpp
 
             VkContext.hpp
@@ -49,23 +49,12 @@ add_library(VkCore STATIC
 
             Pipeline/ShaderType.hpp
 
-
-
-
-            # Resources/VertexSystem.hpp
-            Resources/UniformSystem.hpp
-
-
-
             Resources/Buffers.hpp
             Resources/Buffers.cpp
 
 
             VkModel.hpp
-            
-
-
-
+        
             )
 
 target_link_libraries(VkCore PRIVATE BEngine)

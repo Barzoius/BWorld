@@ -9,7 +9,7 @@ namespace vkutil
 {
     struct QueueFamilyIndices {
         std::optional<uint32_t> s_graphics; // graphics + present
-        std::optional<uint32_t> s_compute; // async compute
+        std::optional<uint32_t> s_compute;  // async compute
         std::optional<uint32_t> s_transfer; 
 
     
@@ -24,12 +24,12 @@ namespace vkutil
 
     struct SwapChainSupportDetails 
     {
-        VkSurfaceCapabilitiesKHR capabilities;
+        VkSurfaceCapabilitiesKHR        capabilities;
         std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
+        std::vector<VkPresentModeKHR>   presentModes;
     };
 
     SwapChainSupportDetails QuerySwapChainSupport(
         VkPhysicalDevice device,
-        VkSurfaceKHR surface);
+        VkSurfaceKHR     surface);
 }

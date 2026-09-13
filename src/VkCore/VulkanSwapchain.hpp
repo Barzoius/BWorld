@@ -24,12 +24,11 @@ public:
     void update_resolution(int, int);
     void recreate_swapchain();
     
-    [[nodiscard]] VkSwapchainKHR get_handle() const;
-
+    [[nodiscard]] VkSwapchainKHR get_handle()   const;
     [[nodiscard]] VkFormat   get_image_format() const;
-    [[nodiscard]] VkExtent2D get_extent() const;
+    [[nodiscard]] VkExtent2D get_extent()       const;
 
-    [[nodiscard]] int get_width() const;
+    [[nodiscard]] int get_width()  const;
     [[nodiscard]] int get_height() const;
 
     [[nodiscard]] std::vector<VkImageView> get_image_views();

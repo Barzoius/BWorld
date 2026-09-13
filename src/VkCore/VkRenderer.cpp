@@ -13,9 +13,10 @@
 #include <chrono>
 
 
-
 void VkRenderer::Initialize(Context& context) 
 {
+
+
 
 
     // ShaderOBJ::Shader<ShaderType::VERTEX> verte;
@@ -75,9 +76,9 @@ void VkRenderer::construct_vertex_buffer()
     vl.append(DVS::VertexLayout::Position2D).append(DVS::VertexLayout::Float3Color);
     DVS::VertexBuffer vb(std::move(vl));
     vb.emplace_back(DVS::VKFLOAT2{-0.5f, -0.5f}, DVS::VKFLOAT3{1.0f, 1.0f, 1.0f});
-    vb.emplace_back(DVS::VKFLOAT2{0.5f, -0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
-    vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
-    vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 1.0f});
+    vb.emplace_back(DVS::VKFLOAT2{0.5f, -0.5f},  DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
+    vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f},   DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
+    vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f},  DVS::VKFLOAT3{0.0f, 1.0f, 1.0f});
     
 
     input_vertex_buffers.push_back(vb);
@@ -123,7 +124,6 @@ void VkRenderer::RenderFrame()
 }
 
 void VkRenderer::Shutdown() {
-    //std::cout << "VkRenderer shutdown\n";
     
     vkDeviceWaitIdle(m_vkContext.get_device().get());
 
@@ -614,15 +614,15 @@ void VkRenderer::render_with_shader_objects()
     }
 
     const uint32_t frameDataIndex = currentFrame++ % MAX_FRAMES_IN_FLIGHT;
-    const uint64_t signalValue = nextSignalValue++;
-    const uint64_t waitValue = signalValue - MAX_FRAMES_IN_FLIGHT;
+    const uint64_t signalValue    = nextSignalValue++;
+    const uint64_t waitValue      = signalValue - MAX_FRAMES_IN_FLIGHT;
 
     VkSemaphoreWaitInfo waitInfo
     {
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
+        .sType          = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
         .semaphoreCount = 1,
-        .pSemaphores = &timelineSmph,
-        .pValues = &waitValue
+        .pSemaphores    = &timelineSmph,
+        .pValues        = &waitValue
     };
     vkWaitSemaphores(m_vkContext.get_device().get(), &waitInfo, UINT64_MAX);
 
@@ -655,21 +655,21 @@ void VkRenderer::render_with_shader_objects()
     std::vector<VkImageMemoryBarrier2> layoutBarriers
 	{
 		{
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-			.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.sType         = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+			.srcStageMask  = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
 			.srcAccessMask = 0,
-			.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstStageMask  = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
 			.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-			.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-			.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-			.image = swapchain.get() -> get_images()[imageIndex],
+			.oldLayout     = VK_IMAGE_LAYOUT_UNDEFINED,
+			.newLayout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			.image         = swapchain.get() -> get_images()[imageIndex],
 			.subresourceRange
 			{
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-				.baseMipLevel = 0,
-				.levelCount = 1,
+				.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+				.baseMipLevel   = 0,
+				.levelCount     = 1,
 				.baseArrayLayer = 0,
-				.layerCount = 1,
+				.layerCount     = 1,
 			}
 		},
 		// {
@@ -746,12 +746,11 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
     suite -> bind(data.s_commandBuffer);
 
     VkVertexInputBindingDescription2EXT binding{
-        .sType =
-            VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
-        .binding = 0,
-        .stride = (uint32_t)input_vertex_buffers[0].get_layout().get_size(),
+        .sType     = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
+        .binding   = 0,
+        .stride    = (uint32_t)input_vertex_buffers[0].get_layout().get_size(),
         .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-        .divisor = 1
+        .divisor   = 1
     };
 
 
@@ -759,11 +758,11 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
     descs.resize(input_vertex_buffers[0].get_layout().get_count());
     for(int i = 0; i < descs.size(); i++)
     {
-        descs[i].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
-        descs[i].binding = 0; // modulate this later
+        descs[i].sType    = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
+        descs[i].binding  = 0; // modulate this later
         descs[i].location = i;
-        descs[i].format = get_vertex_buffer_format(input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_type());
-        descs[i].offset = input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_offset();
+        descs[i].format   = get_vertex_buffer_format(input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_type());
+        descs[i].offset   = input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_offset();
         
     }
 

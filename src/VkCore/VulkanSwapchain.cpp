@@ -11,7 +11,6 @@ VulkanSwapchain::VulkanSwapchain(VkDevice d,
                                 VkSurfaceKHR s, int w, int h) : 
                                  device(d), phyD(pd), surface(s), width(w), height(h)
 {
-    //std::cout << "Device handle: " << device << "\n";
 }
 
 VulkanSwapchain::~VulkanSwapchain() = default;
@@ -31,7 +30,7 @@ void VulkanSwapchain::Destroy()
 VkSurfaceFormatKHR VulkanSwapchain::choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& formats, SwapchainColorMode colorMode )
 {
     if (formats.empty()) 
-        throw std::runtime_error("No surface formats available");
+        LLOGE("No surface formats available");
 
     if(formats.size() == 1 && formats[0].format == VK_FORMAT_UNDEFINED)
     {
