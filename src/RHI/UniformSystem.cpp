@@ -1,8 +1,15 @@
 #define DUS_IMPL_SOURCE
 
-#include "UniformSystem.hpp"
+// #include "UniformSystem.hpp"
+
+#include "Test.hpp"
 
 #include <algorithm>
+#include <cctype>
+#include <string>
+
+
+#include <iostream>
 
 namespace DUS
 {
@@ -24,6 +31,18 @@ namespace DUS
 
 
     ///==================================[ELEMENT]==================================///
+
+    size_t  Element::get_struct_element_count() const
+    {
+        auto& data = static_cast<ExtraData::Struct&>(*m_pExtraData);
+        return data.layoutElements.size(); 
+    }
+
+    Element& Element::get_struct_element(size_t index) const
+    {
+        auto& data = static_cast<ExtraData::Struct&>(*m_pExtraData);
+        return data.layoutElements[index].second;
+    }
 
     std::string Element::get_sig() const noexcept
     {
@@ -78,33 +97,49 @@ namespace DUS
     {
         return *m_offset;
     }
-    size_t Element::get_offset_end()    const noexcept
-    {
-        switch( m_type)
-        {
-        #define X(elem) case elem: return *m_offset + Map<elem>::shader_size;
-        ELEMENT_TYPES
-        #undef X
-        case Struct: return 0u;
-        case Array:  return 0u;
-        default: assert("Attempt retrival of offset for empty or invlaid type" && false); return 0u;
-        }
+    // size_t Element::get_offset_end()    const noexcept
+    // {
+    //     switch( m_type)
+    //     {
+    //     #define X(elem) case elem: return *m_offset + Map<elem>::shader_size;
+    //     ELEMENT_TYPES
+    //     #undef X
+    //     case Struct: return 0u;
+    //     case Array:  return 0u;
+    //     default: assert("Attempt retrival of offset for empty or invlaid type" && false); return 0u;
+    //     }
     
-    }
-    size_t Element::get_size_in_bytes() const noexcept
-    {
-        return get_offset_end() - get_offset_begin();
-    }
+    // }
+    // size_t Element::get_size_in_bytes() const noexcept
+    // {
+    //     return get_offset_end() - get_offset_begin();
+    // }
 
     Element& Element::add(ElementType type, std::string name) noexcept
     {
+        assert("Attempt to add to non struct layout" && m_type == Struct); 
+        assert("Invalid symbol name in Struct type" && validate_symbol_name(name));
 
+        auto& structData = static_cast<ExtraData::Struct&>(*m_pExtraData);
+
+        for(auto& mem : structData.layoutElements)
+            if(mem.first == name) assert("Attemot to add duplicate name to struct" && false);
+		
+        structData.layoutElements.emplace_back(std::move(name), Element{type});
+        return *this; 
     }
 
 
     Element& Element::set(ElementType type, size_t size)      noexcept
     {
+        assert("Attempt to set on non array in layout" && type == Array);
+        assert( size != 0u );
 
+        auto& arrayData = static_cast<ExtraData::Array&>(*m_pExtraData);
+        arrayData.layoutElements = {type};
+        arrayData.size = size;
+        
+        return *this;
     }
 
     Element::Element(ElementType type) noexcept : m_type(type)
@@ -120,51 +155,80 @@ namespace DUS
         }
     }
 
-    size_t Element::finalize(size_t offset) noexcept
-    {
-        switch( m_type )
-        {
-        #define X(elem) case elem: m_offset = 0u; return 0u; /// based on policy
-        ELEMENT_TYPES
-        #undef X
-        case Struct: return finalize_for_struct(offset);
-        case Array : return finalize_for_array(offset);
-        default    : assert("Attempt finalization on bad type" && false); return 0u;
-        }
-    }
+    // size_t Element::finalize(size_t offset) noexcept
+    // {
+    //     switch( m_type )
+    //     {
+    //     #define X(elem) case elem: m_offset = advance_if_crosses_boundry(offset ,Map<elem>::shader_size); return *m_offset + Map<elem>::shader_size;
+    //     ELEMENT_TYPES
+    //     #undef X
+    //     case Struct: return finalize_for_struct(offset);
+    //     case Array : return finalize_for_array(offset);
+    //     default    : assert("Attempt finalization on bad type" && false); return 0u;
+    //     }
+    // }
 
 
     std::string Element::get_sig_for_struct() const noexcept
     {
+        using namespace std::string_literals;
+        auto sig = "St{"s;
 
+        for(const auto& elem : static_cast<ExtraData::Struct&>(*m_pExtraData).layoutElements)
+            sig += elem.first + ":"s + elem.second.get_sig() + ";"s;
+        
+        sig += "}"s;
+        return sig;
     }
+
     std::string Element::get_sig_for_array()  const noexcept
     {
-
+        using namespace std::string_literals;
+        const auto& data = static_cast<ExtraData::Array&>(*m_pExtraData);
+        return "Ar:"s + std::to_string( data.size ) + "{"s + data.layoutElements->get_sig() + "}"s;
     }
 
-    size_t Element::finalize_for_struct(size_t offset)
-    {
+    // size_t Element::finalize_for_struct(size_t offset)
+    // {
+    //     auto& data = static_cast<ExtraData::Struct&>(*m_pExtraData);
+    //     assert(data.layoutElements.size() != 0u);
 
-    }
-    size_t Element::finalize_for_array(size_t offset)
-    {
+    //     m_offset = advance_to_boundry(offset);
+    //     auto offset_next = *m_offset;
 
-    }
+    //     for(auto& elem : data.layoutElements)
+    //         offset_next = elem.second.finalize(offset_next);
+        
+    //     return offset_next;
+    // }
+
+    // size_t Element::finalize_for_array(size_t offset)
+    // {
+    //     auto& data = static_cast<ExtraData::Array&>(*m_pExtraData);
+    //     assert( data.size != 0u );
+
+    //     offset = advance_to_boundry(offset);
+    //     data.layoutElements->finalize(*m_offset);
+
+    //     data.element_size = Element::advance_to_boundry(data.layoutElements->get_size_in_bytes());
+    //     return get_offset_end();
+    // }
 
 
 
 
     size_t Element::advance_to_boundry(size_t offset)                      noexcept
     {
-
+        return 0u;
     }
     size_t Element::advance_if_crosses_boundry(size_t offset, size_t size) noexcept
     {
+        return 0u;
 
     }
     bool   Element::crosses_boundry(size_t offset, size_t size)            noexcept
     {
+        return 0u;
 
     }
     bool   Element::validate_symbol_name(const std::string& name)          noexcept
@@ -178,7 +242,7 @@ namespace DUS
 
     Layout::Layout(std::shared_ptr<Element> root) noexcept : m_root(std::move(root)){}
 
-    size_t      Layout::get_size_in_bytes() const noexcept { return m_root->get_size_in_bytes(); }
+    // size_t      Layout::get_size_in_bytes() const noexcept { return m_root->get_size_in_bytes(); }
     std::string Layout::get_sig()           const noexcept { return m_root->get_sig(); }
 
     ///================================[RAW LAYOUT]================================///
@@ -187,25 +251,21 @@ namespace DUS
 
     Element& RawLayout::operator[](const std::string& key) noexcept { return (*m_root)[key]; }
 
-    void                     RawLayout::clear_root()   noexcept { *this = RawLayout(); }
-    std::shared_ptr<Element> RawLayout::deliver_root() noexcept
-    {
-        auto temp = std::move(m_root);
-        temp -> finalize(0);
-        *this = RawLayout();
-        return std::move(temp);
-    }
+    void RawLayout::clear_root()   noexcept { *this = RawLayout(); }
 
     ///==============================[FINISHED LAYOUT]=============================///
 
-    CookedLayout::CookedLayout(std::shared_ptr<Element> root) noexcept : Layout(std::move(root)) {}
+    // template<typename Policy>
+    // CookedLayout<Policy>::CookedLayout(std::shared_ptr<Element> root) noexcept : Layout(std::move(root)) {}
 
-    const Element& CookedLayout::operator[](const std::string& key) const noexcept { return (*m_root)[key]; }
+    template<typename Policy>
+    const Element& CookedLayout<Policy>::operator[](const std::string& key) const noexcept { return (*m_root)[key]; }
 
-    std::shared_ptr<Element> CookedLayout::share_root() const noexcept { return m_root; }
+    // template<typename Policy>
+    // std::shared_ptr<Element> CookedLayout<Policy>::share_root() const noexcept { return m_root; }
     
-
-    std::shared_ptr<Element> CookedLayout::relinquish_root() const noexcept{ return std::move(m_root); }
+    // template<typename Policy>
+    // std::shared_ptr<Element> CookedLayout<Policy>::relinquish_root() const noexcept{ return std::move(m_root); }
 
     ///============================[CONST ELEMENT REF]=============================///
 
@@ -259,49 +319,42 @@ namespace DUS
 
     ///==================================[BUFFER]==================================///
 
-    Buffer::Buffer(RawLayout&&)             noexcept
-    {
+    
+    // Buffer::Buffer(RawLayout&& lay)             noexcept
+    // :Buffer(LayoutCodex::resolve(std::move(lay)))
+    // {}
 
+    
+
+
+    ///==================================[CODEX]===================================///
+
+    
+    // CookedLayout LayoutCodex::resolve(RawLayout&& layout) noexcept
+    // {
+    //     auto sig = layout.get_sig();
+    //     auto& map = get().m_map;
+        
+    //     const auto i = map.find(sig);
+
+    //     if(i != map.end())
+    //     {
+    //         layout.clear_root();
+    //         return {i->second};
+    //     }
+
+    //     auto result = map.insert(std::move(sig), layout.deliver_root());
+
+    //     return {result.first->second};
+    // }
+   
+    LayoutCodex& LayoutCodex::get() noexcept
+    {
+        static LayoutCodex codex;
+        return codex;
     }
 
-    Buffer::Buffer(const CookedLayout& lay) noexcept 
-    : m_pLayoutRoot(lay.share_root()), m_bytes(m_pLayoutRoot->get_offset_end())
-    {}
 
-    Buffer::Buffer(CookedLayout&& lay)      noexcept
-    : m_pLayoutRoot(lay.relinquish_root()), m_bytes(m_pLayoutRoot->get_offset_end())
-    {}
 
-    Buffer::Buffer(const Buffer& buf)       noexcept
-    : m_pLayoutRoot(buf.m_pLayoutRoot), m_bytes(buf.m_bytes)
-    {}
+}//END::DUS
 
-    Buffer::Buffer(Buffer&& buf)            noexcept
-    : m_pLayoutRoot(std::move(buf.m_pLayoutRoot)), m_bytes(std::move(buf.m_bytes))
-    {}
-
-    ElementRef      Buffer::operator[](const std::string& key)       noexcept
-    {
-        return { &(*m_pLayoutRoot)[key], m_bytes.data(), 0u };
-    }
-
-    ConstElementRef Buffer::operator[](const std::string& key) const noexcept
-    {
-        return const_cast<Buffer&>(*this)[key];
-    }
-
-    const char*     Buffer::get_data()         const noexcept { return m_bytes.data(); }
-
-    size_t         Buffer::get_size_in_bytes() const noexcept { return m_bytes.size(); }
-
-    const Element& Buffer::get_root_element()  const noexcept { return *m_pLayoutRoot; }
-
-    void Buffer::copy_from(const Buffer& other) noexcept
-    {
-        assert(&get_root_element() == &other.get_root_element());
-        std::copy(other.m_bytes.begin(), other.m_bytes.end(), m_bytes.begin());
-    }
-
-    std::shared_ptr<Element> Buffer::share_root() const noexcept { return m_pLayoutRoot; }
-
-}

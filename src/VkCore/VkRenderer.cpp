@@ -12,12 +12,23 @@
 
 #include <chrono>
 
+#include "Test.hpp"
+
 
 void VkRenderer::Initialize(Context& context) 
 {
 
+    DUS::RawLayout layout;
+    layout.add<DUS::Float>("float1");
+    layout.add<DUS::Float>("float12");
 
+    auto buf = DUS::Buffer<DUS::HLSL_Policy>(std::move(layout));
 
+    std::cout << "Buffer size: "
+            << buf.get_size_in_bytes()
+            << " bytes\n";
+
+    buf.get_root_element().print_layout<DUS::HLSL_Policy>();
 
     // ShaderOBJ::Shader<ShaderType::VERTEX> verte;
     // ShaderOBJ::Shader<ShaderType::GEOMETRY> geom;
