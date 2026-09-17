@@ -14,15 +14,33 @@
 
 #include "Test.hpp"
 
+#include "Sync/VkSynchronization.hpp"
+
 
 void VkRenderer::Initialize(Context& context) 
 {
 
+
+    using policy = vk_sync::ImageMem_2
+    <
+    vk_sync::Stage::Compute,vk_sync::Action::StorageWrite,
+    vk_sync::Stage::Fragment, vk_sync::Action::StorageRead
+    >;
+    
+    vk_sync::Barrier<policy> barrier;
+
     DUS::RawLayout layout;
-    layout.add<DUS::Float>("float1");
-    layout.add<DUS::Float>("float12");
+    layout.add<DUS::Float2>("float1");
+    layout.add<DUS::Float2>("float2");
 
     auto buf = DUS::Buffer<DUS::HLSL_Policy>(std::move(layout));
+
+    buf["float1"] = DUS::FLOAT2{20.0, 10.0};
+    buf["float2"] = DUS::FLOAT2{43.0, 10.0};
+
+    DUS::FLOAT2 f = buf["float2"];
+
+    std::cout<<f.x<<"\n";
 
     std::cout << "Buffer size: "
             << buf.get_size_in_bytes()
@@ -901,6 +919,7 @@ vkCmdEndRendering(data.s_commandBuffer);
 			.baseArrayLayer = 0,
 			.layerCount = 1,
 		}
+        
 	};
 	
     VkDependencyInfo presentDepInfo{

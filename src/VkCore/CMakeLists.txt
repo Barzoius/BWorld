@@ -34,6 +34,8 @@ add_library(VkCore STATIC
 
             ShaderOBJ.hpp
 
+            Sync/VkSynchronization.hpp
+
             Systems/System.hpp
             Systems/System.cpp
             

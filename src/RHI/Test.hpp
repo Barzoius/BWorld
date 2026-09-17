@@ -136,6 +136,13 @@ namespace DUS
     ELEMENT_TYPES
     #undef X
 
+    struct SCALAR_Policy
+    {
+        static size_t place(size_t offset, size_t size) noexcept
+        {
+            return 1u;
+        }
+    };
 
     struct STD140_Policy
     {
@@ -143,15 +150,19 @@ namespace DUS
         {
             return 0u;
         }
-        static constexpr size_t alignment(ElementType type) noexcept
+        static size_t alignment(ElementType type) noexcept
         {
             switch( type )
             {
-                case Float:  return 4u;
-                case Float2: return 8u;
-                case Float3: return 16u;
-                case Float4: return 16u;
-                case Mat4x4: return 16u;
+                case Integer: return 4u;
+                case Bool   : return 4u;
+                case Float  : return 4u;
+                case Float2 : return 8u;
+                case Float3 : return 16u;
+                case Float4 : return 16u;
+                case Mat4x4 : return 16u;
+                case Struct : return alignment_for_struct();
+                case Array  : return alignment_for_array();
 
                 default: assert(false); return 0u;
 
@@ -160,13 +171,24 @@ namespace DUS
             return 0u;
         }
 
-        static size_t advance_to_boundary(size_t offset) noexcept
+        static size_t alignment_for_struct()
         {
-            return 1u;
+            return 0u;
         }
 
-    };
+        static size_t alignment_for_array()
+        {
+            return 0u;
+        }
 
+        static size_t align_up(size_t offset, size_t alignment) noexcept
+        {
+            return (offset + alignment - 1) / alignment * alignment;
+        }
+
+
+
+    };
 
 
     struct STD430_Policy
@@ -210,9 +232,6 @@ namespace DUS
             return advance_if_crosses_boundary(offset, size);
         }
 
-        // this one is useless for hlsl
-        static size_t align(size_t offset, size_t alignment) noexcept { return offset; }
-
         static bool crosses_boundary(size_t offset, size_t size) noexcept
         {
             const auto end       = offset + size;
@@ -232,6 +251,7 @@ namespace DUS
         {
             return offset + (16u - offset % 16u) % 16u;
         }
+
     };
 
 
@@ -249,8 +269,8 @@ namespace DUS
 
     public:
 
-    template<typename Policy>
-    void print_layout(size_t indent = 0u) const
+        template<typename Policy>
+        void print_layout(size_t indent = 0u) const
     {
         const std::string pad(indent, ' ');
 
@@ -285,6 +305,7 @@ namespace DUS
             break;
         }
     }
+       
         std::string get_sig() const noexcept;
 
         bool exists() const noexcept;
@@ -304,7 +325,7 @@ namespace DUS
         template <typename Policy>
         size_t get_offset_end()    const noexcept
         {
-            switch( m_type)
+            switch( m_type )
             {
             #define X(elem) case elem: return *m_offset + Map<elem>::shader_size;
             ELEMENT_TYPES
@@ -383,10 +404,7 @@ namespace DUS
             const auto count = get_struct_element_count();
             assert(count != 0u);
 
-            // auto& data = get_struct_extra_data();
-            // assert(data.layoutElements.size() != 0u);
-
-            m_offset = Policy::advance_to_boundary(offset); // chaneg here
+            m_offset = Policy::advance_to_boundary(offset); // chaneg here || this is here cz a a struct alawyas start at a 16 alignt mem address this changes for std140
             auto offset_next = *m_offset;
 
             for(size_t i = 0; i < count; ++i)
@@ -489,7 +507,7 @@ namespace DUS
         
         std::shared_ptr<Element> relinquish_root() const noexcept
         {
-             return std::move(m_root); 
+            return std::move(m_root); 
         }
     };
 
@@ -665,7 +683,7 @@ namespace DUS
         }
 
         
-        const char*    get_data()         const noexcept { return m_bytes.data(); }
+        const char*    get_data()         const noexcept  { return m_bytes.data(); }
 
         
         size_t         get_size_in_bytes() const noexcept { return m_bytes.size(); }
@@ -688,12 +706,6 @@ namespace DUS
         std::vector<char>        m_bytes;
     };
 
-
-    class Test
-    {
-    public:
-        void func();
-    };
     
 }
 

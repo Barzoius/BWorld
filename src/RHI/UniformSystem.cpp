@@ -320,33 +320,7 @@ namespace DUS
     ///==================================[BUFFER]==================================///
 
     
-    // Buffer::Buffer(RawLayout&& lay)             noexcept
-    // :Buffer(LayoutCodex::resolve(std::move(lay)))
-    // {}
-
-    
-
-
     ///==================================[CODEX]===================================///
-
-    
-    // CookedLayout LayoutCodex::resolve(RawLayout&& layout) noexcept
-    // {
-    //     auto sig = layout.get_sig();
-    //     auto& map = get().m_map;
-        
-    //     const auto i = map.find(sig);
-
-    //     if(i != map.end())
-    //     {
-    //         layout.clear_root();
-    //         return {i->second};
-    //     }
-
-    //     auto result = map.insert(std::move(sig), layout.deliver_root());
-
-    //     return {result.first->second};
-    // }
    
     LayoutCodex& LayoutCodex::get() noexcept
     {
