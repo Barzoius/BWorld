@@ -6,6 +6,8 @@
     X( Fragment )        \
     X( ColorAttachment ) \
     X( Transfer )        \
+    X( None )            
+
 
 
 #define ACTIONS        \
@@ -18,6 +20,7 @@
     X( ColorWrite )    \
     X( TransferRead )  \
     X( TransferWrite ) \
+    X( Zero )
 
 
 
@@ -74,6 +77,13 @@ namespace vk_sync
         static constexpr bool valid                  = true;
     };
 
+    template<> struct SMap<Stage::None>
+    {
+        static constexpr VkPipelineStageFlags2 stage = VK_PIPELINE_STAGE_2_NONE;
+        static constexpr bool valid                  = true;        
+    };
+    
+    
     #define X(stage) static_assert(SMap<stage>::valid, "Stage("#stage") is invalid!");
     STAGES
     #undef X
@@ -143,6 +153,12 @@ namespace vk_sync
         static constexpr bool valid           = true;
     };
 
+    template<> struct AMap<Action::Zero>
+    {
+        static constexpr VkAccessFlags2 value = 0;
+        static constexpr bool valid           = true;        
+    };
+
     #define X(action) static_assert(AMap<action>::valid, "Action("#action") is invalid!");
     ACTIONS 
     #undef X
@@ -204,9 +220,9 @@ namespace vk_sync
     template<Stage SrcS, Action SrcA, Stage DstS, Action DstA>
     struct ImageMem_2
     {
-        VkDependencyInfo get_dependency()
+        void set_up_barrier() noexcept
         {
-            VkMemoryBarrier2 barrier
+            m_barrier =
             {
                 .sType         = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
                 .srcStageMask  = SMap<SrcS>::stage,
@@ -215,32 +231,50 @@ namespace vk_sync
                 .dstStageMask  = SMap<DstS>::stage,
                 .dstAccessMask = AMap<DstA>::value,
             };
-
-            VkDependencyInfo dependency
-            {
-                .sType              = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-                .memoryBarrierCount = 1,
-                .pMemoryBarriers    = &barrier
-            };
-
-            return dependency;
         }
+
+        void set_up__dependency()
+        {
+            m_dependency = VkDependencyInfo
+            {
+                .sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                .imageMemoryBarrierCount = 1,
+                .pImageMemoryBarriers    = &m_barrier
+            };
+        }
+
+        VkImageMemoryBarrier2 m_barrier;
+        VkDependencyInfo m_dependency;
     };
 
     template <typename BarrierPolicy>
     class Barrier : public BarrierPolicy
     {
     public:
-        // NOTE: calling get_dependency() works only as a MSVC extension
-        // for standard cpp u have to use this->get_dependency()
-        Barrier() noexcept : m_dependency(this->get_dependency()) {}
+        Barrier() noexcept { this->set_up_barrier(); this->set_up__dependency(); }
 
-        void bind_barrier(VkCommandBuffer& cmd) const noexcept 
+        void bind_barrier(VkCommandBuffer& cmd) noexcept 
         { 
-            vkCmdPipelineBarrier2(cmd, &m_dependency);
+            vkCmdPipelineBarrier2(cmd, &this->m_dependency);
+        }
+
+        void set_old_layout(VkImageLayout lay)                  noexcept
+        {
+            this->m_barrier.oldLayout = lay;
+        }
+        void set_new_layout(VkImageLayout lay)                  noexcept
+        {
+            this->m_barrier.newLayout = lay;
+        }
+        void set_image(VkImage img)                             noexcept
+        {
+            this->m_barrier.image = img;
+        }
+        void set_subresource_range(VkImageSubresourceRange sub) noexcept
+        {
+            this->m_barrier.subresourceRange = sub;
         }
     private:
-        VkDependencyInfo m_dependency;
     };
 
 }

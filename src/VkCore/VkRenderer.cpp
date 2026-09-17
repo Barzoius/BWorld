@@ -20,15 +20,6 @@
 void VkRenderer::Initialize(Context& context) 
 {
 
-
-    using policy = vk_sync::ImageMem_2
-    <
-    vk_sync::Stage::Compute,vk_sync::Action::StorageWrite,
-    vk_sync::Stage::Fragment, vk_sync::Action::StorageRead
-    >;
-    
-    vk_sync::Barrier<policy> barrier;
-
     DUS::RawLayout layout;
     layout.add<DUS::Float2>("float1");
     layout.add<DUS::Float2>("float2");
@@ -902,33 +893,27 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
 vkCmdEndRendering(data.s_commandBuffer);    
 
 
-    VkImageMemoryBarrier2 presentLayoutBarrier{
-		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-		.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-		.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-		.dstStageMask = VK_PIPELINE_STAGE_2_NONE,
-		.dstAccessMask = 0,
-		.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-		.image = swapchain.get() -> get_images()[imageIndex],
-		.subresourceRange
-		{
-			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			.baseMipLevel = 0,
-			.levelCount = 1,
-			.baseArrayLayer = 0,
-			.layerCount = 1,
-		}
-        
-	};
-	
-    VkDependencyInfo presentDepInfo{
-		.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-		.imageMemoryBarrierCount = 1,
-		.pImageMemoryBarriers = &presentLayoutBarrier
-	};
+    using policy = vk_sync::ImageMem_2
+    <
+    vk_sync::Stage::ColorAttachment,vk_sync::Action::ColorWrite,
+    vk_sync::Stage::None, vk_sync::Action::Zero
+    >;
+    
+    vk_sync::Barrier<policy> present_barrier;
+    present_barrier.set_old_layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    present_barrier.set_new_layout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    present_barrier.set_image(swapchain.get() -> get_images()[imageIndex]);
+    VkImageSubresourceRange subs{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.baseMipLevel = 0,
+		.levelCount = 1,
+		.baseArrayLayer = 0,
+		.layerCount = 1,       
+    };
+    present_barrier.set_subresource_range(subs);
 
-	vkCmdPipelineBarrier2(data.s_commandBuffer, &presentDepInfo);
+    present_barrier.bind_barrier(data.s_commandBuffer);
+
 
 
 	vkEndCommandBuffer(data.s_commandBuffer);
