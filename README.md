@@ -11,6 +11,6 @@ will be defined in its minimal configuration as a composition of terrain feature
 
 Minimal architecture*
 
-<img src="imgs/diag.png" alt="Framework Diagram" style="width:100%;">
+<!-- <img src="imgs/diag.png" alt="Framework Diagram" style="width:100%;"> -->
 
 ## Features

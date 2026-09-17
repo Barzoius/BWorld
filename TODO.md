@@ -15,10 +15,11 @@
     - [x] Use timeline semaphores
     - [ ] Create a new swap chain while still drawing with old swap chain
 - [x] Move to dynamic rendering
-    - [ ] Update pipline creation (less swapchain coupling)
+    - ~~[ ] Update pipline creation (less swapchain coupling)~~
+    - [x] switched to shader objects
 - [ ] Integrate Bindables
     - [x] Vertex Buffer
-    - [ ] Index Buffer
+    - [x] Index Buffer
     - [ ] Maybe implement PVP
     - [ ] Uniform Buffer
 - [ ] Redo UML and Dependency graphs

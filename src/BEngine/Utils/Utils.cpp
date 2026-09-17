@@ -64,7 +64,6 @@ namespace bengine_rand
                          rand<float>(0.0, 1.0));
     }
 
-    bool coin_flip() { return rand<uint32_t>(0, 1) == 1; }
-    
+    bool     coin_flip() { return rand<uint32_t>(0, 1) == 1; }
     uint32_t dice_roll() { return rand<uint32_t>(1, 6); }
 }

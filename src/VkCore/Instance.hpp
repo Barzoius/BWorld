@@ -30,7 +30,6 @@ class Instance
 {
 public:
     Instance();
-
     ~Instance();
 
     void initialize(const std::vector<const char*>&, const SurfaceInfo&, const Resolution&);
@@ -46,8 +45,8 @@ public:
 
 
     [[nodiscard]] VkSurfaceKHR get_surface_handle() const;
-    [[nodiscard]] Resolution   get_resolution() const;
-    [[nodiscard]] VkInstance   get_handle() const;
+    [[nodiscard]] Resolution   get_resolution()     const;
+    [[nodiscard]] VkInstance   get_handle()         const;
     
     void update_resolution(const Resolution&);
 
@@ -56,7 +55,6 @@ private:
     void create_surface();
     void setup_debug_messenger();
     void populate_debug_messenger_createinfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-
     void get_instance_version();
 
     bool check_extensions();

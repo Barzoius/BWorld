@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "VkContext.hpp"
-#include "Pipeline/GraphicsPipeline.hpp"
+#include "VkContexts/VkSwapChainContext.hpp"
 
 
 #include "VulkanSwapchain.hpp"
@@ -37,16 +37,12 @@ public:
     void UpdateResolution(const Resolution&) override;
 
     void create_swapchain();
-    void create_GFX_pipeline();
 
-
-    // things to move from here
 
     void create_frame_data_v2();
     void create_sync_resources();
     void clean_new_sync();
-    void render_with_new_sync();
-    void render_with_shader_objects(); // test;
+    void render_with_shader_objects();
 
     void clean_swapchain_v2();
     void recreate_swapchain_v2();
@@ -64,10 +60,7 @@ private:
     VkContext&                        m_vkContext;
     std::unique_ptr<VulkanSwapchain>  swapchain;
     VkSwapchainContext                swapchainContext;
-    std::unique_ptr<GraphicsPipeline> gfxPipeline;
     
-    std::unique_ptr<Shader<ShaderType::VERTEX>>   vertex;
-    std::unique_ptr<Shader<ShaderType::FRAGMENT>> fragment;
 
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> >   vertex_obj;
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
@@ -105,13 +98,13 @@ private:
 
     struct frameData
     {
-        VkCommandPool s_commandPool = nullptr;
+        VkCommandPool s_commandPool     = nullptr;
         VkCommandBuffer s_commandBuffer = nullptr;
-        VkSemaphore s_imgAcquiredSmph = nullptr;
+        VkSemaphore s_imgAcquiredSmph   = nullptr;
     };
     std::array<frameData, MAX_FRAMES_IN_FLIGHT> m_frameResources;
 
-    uint32_t currentFrame = 0;
+    uint32_t currentFrame    = 0;
     uint64_t nextSignalValue = MAX_FRAMES_IN_FLIGHT + 1;
 
 

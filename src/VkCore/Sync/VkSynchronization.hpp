@@ -165,6 +165,7 @@ namespace vk_sync
 
     //==================================[BARRIER POLICIES]==================================//
 
+    //fix it
     template<Stage SrcS, Action SrcA, Stage DstS, Action DstA>
     struct Mem_2
     {
@@ -191,6 +192,7 @@ namespace vk_sync
         }
     };
 
+    //fix it
     template<Stage SrcS, Action SrcA, Stage DstS, Action DstA>
     struct BufferMem_2
     {
@@ -258,6 +260,9 @@ namespace vk_sync
             vkCmdPipelineBarrier2(cmd, &this->m_dependency);
         }
 
+
+        //these should be in the corect policy !! they only make sense for ImageBarriers
+        //these should fail if m_barrier is empty;
         void set_old_layout(VkImageLayout lay)                  noexcept
         {
             this->m_barrier.oldLayout = lay;
