@@ -11,8 +11,6 @@ add_library(RHI STATIC
     UniformSystem.cpp
     UniformSystem.hpp
     VertexSystem.hpp
-
-    Test.hpp
 )
 
 target_include_directories(RHI PUBLIC

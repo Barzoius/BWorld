@@ -61,7 +61,6 @@ namespace DVS
             static constexpr const char* semantic = "Position";
             static constexpr const char* code = "P2";
         };
-        template<ElementType> struct Map;
         template<> struct Map<Position3D>
         {
             using SysType = VKFLOAT3;
@@ -125,8 +124,8 @@ namespace DVS
             Element(ElementType p_type, size_t p_offset) : type(p_type), offset(p_offset){}
 
             size_t get_offset_after() const noexcept { return offset + get_type_size();}
-            size_t get_offset() const noexcept { return offset; }
-            size_t get_type_size() const noexcept { return size_of(type); }
+            size_t get_offset()       const noexcept { return offset; }
+            size_t get_type_size()    const noexcept { return size_of(type); }
 
             static constexpr size_t size_of(ElementType type) noexcept
             {
@@ -184,8 +183,6 @@ namespace DVS
                 assert("Invalid element type" && false);
                 return "Invalid";
             }
-        private:
-
         
         private:
             ElementType type;

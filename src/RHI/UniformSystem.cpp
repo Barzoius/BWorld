@@ -1,8 +1,7 @@
 #define DUS_IMPL_SOURCE
 
-// #include "UniformSystem.hpp"
+#include "UniformSystem.hpp"
 
-#include "Test.hpp"
 
 #include <algorithm>
 #include <cctype>

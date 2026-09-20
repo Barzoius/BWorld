@@ -40,6 +40,7 @@ add_library(VkCore STATIC
             Systems/System.cpp
             
             Descriptors/model_desc.hpp
+            Descriptors/DescriptorSystem.hpp
 
             Pipeline/GraphicsPipeline.hpp
             Pipeline/GraphicsPipeline.cpp

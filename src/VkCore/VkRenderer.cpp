@@ -9,20 +9,48 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <chrono>
 
-#include "Test.hpp"
+#include "UniformSystem.hpp"
 
 #include "Sync/VkSynchronization.hpp"
+
+#include "Descriptors/DescriptorSystem.hpp"
 
 
 void VkRenderer::Initialize(Context& context) 
 {
 
+    DDS::LayoutElement e1(DDS::Uniform); 
+    e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
+
+
+    DDS::LayoutElement e2(DDS::Uniform); 
+    e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
+    e1.update_shader_flags(VK_SHADER_STAGE_FRAGMENT_BIT);
+
+    DDS::DescriptorLayout lay;
+    lay.append(e1).append(e2);
+    lay.gen_sig();
+    std::cout<<lay.get_sig()<<std::endl;
+
     DUS::RawLayout layout;
     layout.add<DUS::Float2>("float1");
     layout.add<DUS::Float2>("float2");
+
+    DUS::RawLayout MVP_LAY;
+    MVP_LAY.add<DUS::Mat4x4>("model");
+    MVP_LAY.add<DUS::Mat4x4>("view");
+    MVP_LAY.add<DUS::Mat4x4>("projection");
+
+    auto MVP_BUF = DUS::Buffer<DUS::HLSL_Policy>(std::move(MVP_LAY));
+
+    glm::mat4 model(1.0f);
+    DUS::MAT4x4 model_data;
+    std::memcpy(model_data.data, glm::value_ptr(model), sizeof(model_data.data));
+    MVP_BUF["model"] = model_data;
 
     auto buf = DUS::Buffer<DUS::HLSL_Policy>(std::move(layout));
 
@@ -112,30 +140,6 @@ void VkRenderer::construct_vertex_buffer()
 
 }
 
-void VkRenderer::update_uniform_buffer(uint32_t currentImage)
-{
-    // static auto startTime = std::chrono::high_resolution_clock::now();
-
-    // auto currentTime = std::chrono::high_resolution_clock::now();
-    // float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-    // UniformBufferObject ubo{};
-    // ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    // ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    // ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
-    // ubo.proj[1][1] *= -1;
-
-    // upload_to_buffer(
-    //     m_vkContext.get_allocator(),
-    //     uniform_buffers[currentImage],
-    //     &ubo,
-    //     sizeof(ubo)
-    // );
-    
-}
-
-
-
 
 void VkRenderer::RenderFrame() 
 {
@@ -169,16 +173,9 @@ void VkRenderer::Shutdown() {
 
     delete_buffer(vertex_buffer, m_vkContext.get_allocator());
     delete_buffer(index_buffer, m_vkContext.get_allocator());
-    // for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-    // {
-    //     delete_buffer(uniform_buffers[i], m_vkContext.get_allocator());
-    // }
-
 
     clean_swapchain_v2();
 
-    //sterge
-    vkDestroyDescriptorSetLayout(m_vkContext.get_device().get(), descriptorSetLayout, nullptr);
 
     if(suite)
     {

@@ -105,15 +105,50 @@ namespace ShaderOBJ
                 const std::string& path
                 // const VkDescriptorSetLayout *pSetLayouts,
                 // const VkPushConstantRange *  pPushConstantRange)
-        );
+        )
+        {
+            device      = device_;
+            shader_name = shader_name_;
+            next_stage  = next_stage_;
+
+            code = readFile(path);
+
+
+            vk_shader_create_info.sType                  = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
+            vk_shader_create_info.pNext                  = nullptr;
+            vk_shader_create_info.flags                  = 0;
+            vk_shader_create_info.stage                  = stage;
+            vk_shader_create_info.nextStage              = next_stage;
+            vk_shader_create_info.codeType               = VK_SHADER_CODE_TYPE_SPIRV_EXT;
+            vk_shader_create_info.codeSize               = code.size() * sizeof(uint32_t);
+            vk_shader_create_info.pCode                  = code.data();
+            vk_shader_create_info.pName                  = "main";
+            vk_shader_create_info.setLayoutCount         = 0;
+            vk_shader_create_info.pSetLayouts            = nullptr;
+            vk_shader_create_info.pushConstantRangeCount = 0;
+            vk_shader_create_info.pPushConstantRanges    = nullptr;
+            vk_shader_create_info.pSpecializationInfo    = nullptr;          
+        }
                
 
             
         VkShaderCreateInfoEXT get_create_info() const { return vk_shader_create_info; }
         VkShaderStageFlagBits get_stage()       const { return stage; }
         void                  set_shader(VkShaderEXT p_shader) { shader = p_shader; }
-        void                  build_shader();
-        void                  bind_shader(VkCommandBuffer cmd_buf);
+
+        void                  build_shader()
+        {
+            VK_ASSERT_MSG(vkCreateShadersEXT(device, 
+                                            1, 
+                                            &vk_shader_create_info,
+                                            nullptr,
+                                            &shader), "failed to create shader object");  
+        }
+
+        void                  bind_shader(VkCommandBuffer cmd_buf)
+        {
+            // vkCmdBindShadersEXT(cmd_buf, 1, &stage, &shader);
+        }
 
         static std::vector<uint32_t> readFile(const std::string& filePath)
         {
@@ -152,7 +187,7 @@ namespace ShaderOBJ
         std::vector<uint32_t> code;
     };
 
-    ///========================================================================================///
+    ///=====================================[SHADER_SUITE]=====================================///
 
 
     template<ShaderType... Stages>
@@ -263,56 +298,5 @@ namespace ShaderOBJ
        m_shaderEXTs.fill(VK_NULL_HANDLE);
     }
 
-
-
-    template<ShaderType Type>
-    Shader<Type>::Shader(   VkDevice device_,
-                            VkShaderStageFlags    next_stage_,
-                            std::string           shader_name_,
-                            const std::string&    path
-                            // const VkDescriptorSetLayout *pSetLayouts,
-                            // const VkPushConstantRange *  pPushConstantRange)
-                )
-        {
-                    device      = device_;
-                    shader_name = shader_name_;
-                    next_stage  = next_stage_;
-
-                    code = readFile(path);
-
-
-                    vk_shader_create_info.sType                  = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
-                    vk_shader_create_info.pNext                  = nullptr;
-                    vk_shader_create_info.flags                  = 0;
-                    vk_shader_create_info.stage                  = stage;
-                    vk_shader_create_info.nextStage              = next_stage;
-                    vk_shader_create_info.codeType               = VK_SHADER_CODE_TYPE_SPIRV_EXT;
-                    vk_shader_create_info.codeSize               = code.size() * sizeof(uint32_t);
-                    vk_shader_create_info.pCode                  = code.data();
-                    vk_shader_create_info.pName                  = "main";
-                    vk_shader_create_info.setLayoutCount         = 0;
-                    vk_shader_create_info.pSetLayouts            = nullptr;
-                    vk_shader_create_info.pushConstantRangeCount = 0;
-                    vk_shader_create_info.pPushConstantRanges    = nullptr;
-                    vk_shader_create_info.pSpecializationInfo    = nullptr;
-
-        }
-
-    template<ShaderType Type>
-    void Shader<Type>::build_shader()
-    {
-        VK_ASSERT_MSG(vkCreateShadersEXT(device, 
-                                        1, 
-                                        &vk_shader_create_info,
-                                        nullptr,
-                                        &shader), "failed to create shader object");  
-    }
-
-    template<ShaderType Type>
-    void Shader<Type>::bind_shader(VkCommandBuffer cmd_buf)
-    {
-        
-        // vkCmdBindShadersEXT(cmd_buf, 1, &stage, &shader);
-    }
 }
 

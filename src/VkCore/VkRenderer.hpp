@@ -61,7 +61,6 @@ private:
     std::unique_ptr<VulkanSwapchain>  swapchain;
     VkSwapchainContext                swapchainContext;
     
-
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> >   vertex_obj;
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
     std::unique_ptr<
@@ -71,10 +70,7 @@ private:
         >
     > suite;
 
-
     bool m_framebufferResized = false;
-
-
 
     buffer vertex_buffer;
     std::vector<DVS::VertexBuffer> input_vertex_buffers;
@@ -98,9 +94,9 @@ private:
 
     struct frameData
     {
-        VkCommandPool s_commandPool     = nullptr;
-        VkCommandBuffer s_commandBuffer = nullptr;
-        VkSemaphore s_imgAcquiredSmph   = nullptr;
+        VkCommandPool   s_commandPool     = nullptr;
+        VkCommandBuffer s_commandBuffer   = nullptr;
+        VkSemaphore     s_imgAcquiredSmph = nullptr;
     };
     std::array<frameData, MAX_FRAMES_IN_FLIGHT> m_frameResources;
 
@@ -127,7 +123,6 @@ private:
         glm::mat4 proj;
     };
     
-    VkDescriptorSetLayout descriptorSetLayout;
-
+    VkPipelineLayout      m_pipelineLayout{ VK_NULL_HANDLE };
 
 };
