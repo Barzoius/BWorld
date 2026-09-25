@@ -23,66 +23,75 @@
 void VkRenderer::Initialize(Context& context) 
 {
 
-    DDS::LayoutElement e1(DDS::Uniform); 
-    e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
+    // DDS::LayoutElement e1(DDS::Uniform); 
+    // e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
 
 
-    DDS::LayoutElement e2(DDS::Uniform); 
-    e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
-    e1.update_shader_flags(VK_SHADER_STAGE_FRAGMENT_BIT);
+    // DDS::LayoutElement e2(DDS::Uniform); 
+    // e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
+    // e1.update_shader_flags(VK_SHADER_STAGE_FRAGMENT_BIT);
 
-    DDS::DescriptorLayout lay;
-    lay.append(e1).append(e2);
-    lay.gen_sig();
-    std::cout<<lay.get_sig()<<std::endl;
+    // DDS::Layout lay;
+    // lay.append(e1).append(e2);
+    // lay.gen_sig();
+    // std::cout<<lay.get_sig()<<std::endl;
 
-    DUS::RawLayout layout;
-    layout.add<DUS::Float2>("float1");
-    layout.add<DUS::Float2>("float2");
+    // DDS::DescriptorSet set1(m_vkContext.get_device().get(), lay);
 
-    DUS::RawLayout MVP_LAY;
-    MVP_LAY.add<DUS::Mat4x4>("model");
-    MVP_LAY.add<DUS::Mat4x4>("view");
-    MVP_LAY.add<DUS::Mat4x4>("projection");
+    // // m_vkContext.get_desc_allocator().allocate(m_vkContext.get_device().get(), )
 
-    auto MVP_BUF = DUS::Buffer<DUS::HLSL_Policy>(std::move(MVP_LAY));
+    // DDS::DescriptorLayoutCache::destroy(m_vkContext.get_device().get());
 
-    glm::mat4 model(1.0f);
-    DUS::MAT4x4 model_data;
-    std::memcpy(model_data.data, glm::value_ptr(model), sizeof(model_data.data));
-    MVP_BUF["model"] = model_data;
+    
 
-    auto buf = DUS::Buffer<DUS::HLSL_Policy>(std::move(layout));
+    // DUS::RawLayout MVP_LAY;
+    // MVP_LAY.add<DUS::Mat4x4>("model");
+    // MVP_LAY.add<DUS::Mat4x4>("view");
+    // MVP_LAY.add<DUS::Mat4x4>("projection");
 
-    buf["float1"] = DUS::FLOAT2{20.0, 10.0};
-    buf["float2"] = DUS::FLOAT2{43.0, 10.0};
+    // auto MVP_BUF = DUS::Buffer<DUS::HLSL_Policy>(std::move(MVP_LAY));
 
-    DUS::FLOAT2 f = buf["float2"];
+    // glm::mat4 model(1.0f);
+    // DUS::MAT4x4 model_data;
+    // std::memcpy(model_data.data, glm::value_ptr(model), sizeof(model_data.data));
+    // MVP_BUF["model"] = model_data;
 
-    std::cout<<f.x<<"\n";
-
-    std::cout << "Buffer size: "
-            << buf.get_size_in_bytes()
-            << " bytes\n";
-
-    buf.get_root_element().print_layout<DUS::HLSL_Policy>();
-
-    // ShaderOBJ::Shader<ShaderType::VERTEX> verte;
-    // ShaderOBJ::Shader<ShaderType::GEOMETRY> geom;
-    // ShaderOBJ::Shader<ShaderType::FRAGMENT> frage;
-    // ShaderOBJ::ShaderSuite suite(verte, geom, frage);
 
     vertex_obj = std::make_unique<ShaderOBJ::Shader<ShaderType::VERTEX>>(
         m_vkContext.get_device().get(), 
         VK_SHADER_STAGE_FRAGMENT_BIT, 
         "vertex_1", 
-        "Shaders/base1.vert.spv");
+        "Shaders/base3.vert.spv");
 
     fragment_obj = std::make_unique<ShaderOBJ::Shader<ShaderType::FRAGMENT>>(
         m_vkContext.get_device().get(), 
         0, \
         "fragment_1", 
         "Shaders/base1.frag.spv");  
+
+    VkDescriptorSetAndBindingMappingEXT buff_bind{};
+    buff_bind.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_AND_BINDING_MAPPING_EXT;
+    buff_bind.pNext = nullptr;
+    buff_bind.descriptorSet = 0;
+    buff_bind.firstBinding = 0;
+    buff_bind.bindingCount = 1;
+    buff_bind.resourceMask = VK_SPIRV_RESOURCE_TYPE_UNIFORM_BUFFER_BIT_EXT;
+    buff_bind.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_CONSTANT_OFFSET_EXT;
+
+    buff_bind.sourceData.constantOffset.heapArrayStride =
+        static_cast<uint32_t>(
+            m_vkContext.m_descHeapMng.m_sizes.buffer_descriptor_size
+        );
+
+    VkShaderDescriptorSetAndBindingMappingInfoEXT mapping_info{};
+    mapping_info.sType =
+        VK_STRUCTURE_TYPE_SHADER_DESCRIPTOR_SET_AND_BINDING_MAPPING_INFO_EXT;
+    mapping_info.pNext = nullptr;
+    mapping_info.mappingCount = 1;
+    mapping_info.pMappings = &buff_bind;
+
+    vertex_obj->set_pNext(mapping_info);
+    fragment_obj->set_pNext(mapping_info);
 
     suite = std::make_unique<ShaderOBJ::ShaderSuite<
             ShaderType::VERTEX,
@@ -101,6 +110,16 @@ void VkRenderer::Initialize(Context& context)
    
     create_swapchain();
     
+
+    ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));;
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), swapchainContext.width / (float) swapchainContext.height, 0.1f, 10.0f);
+    //ubo.proj[1][1] *= -1;
+
+    ubo_buff = create_uniform_buffer(ubo, m_vkContext.get_allocator());
+
+    m_vkContext.m_descHeapMng.upload_buffer(m_vkContext.get_device(), ubo_buff);
+
 
     construct_vertex_buffer();
 
@@ -306,6 +325,17 @@ void VkRenderer::render_with_shader_objects()
         m_swapchainRecreation = false;
     }
 
+    static auto startTime = std::chrono::high_resolution_clock::now();
+
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));;
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), swapchainContext.width / (float) swapchainContext.height, 0.1f, 10.0f);
+
+    memcpy(ubo_buff.s_data, &ubo, sizeof(ubo));
+
     const uint32_t frameDataIndex = currentFrame++ % MAX_FRAMES_IN_FLIGHT;
     const uint64_t signalValue    = nextSignalValue++;
     const uint64_t waitValue      = signalValue - MAX_FRAMES_IN_FLIGHT;
@@ -435,8 +465,9 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
 {
     VkCommandBuffer cmd = data.s_commandBuffer;
 
-
     suite -> bind(data.s_commandBuffer);
+
+    
 
     VkVertexInputBindingDescription2EXT binding{
         .sType     = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
@@ -554,6 +585,17 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
     // Draw
     // --------------------------------------------------
 
+    VkBindHeapInfoEXT bind_heap_info_res{
+        .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
+        .heapRange{
+            .address = m_vkContext.m_descHeapMng.m_descHeapResources.s_address,
+            .size    = m_vkContext.m_descHeapMng.m_descHeapResources.s_size},
+        .reservedRangeOffset = m_vkContext.m_descHeapMng.m_descHeapResources.s_size - m_vkContext.m_descHeapMng.m_properties.minResourceHeapReservedRange,
+        .reservedRangeSize = m_vkContext.m_descHeapMng.m_properties.minResourceHeapReservedRange,
+    };
+
+    m_vkContext.get_device().vkCmdBindResourceHeapEXT(cmd, &bind_heap_info_res);
+
     vkCmdDrawIndexed(
         cmd,
         static_cast<uint32_t>(indices.size()),
@@ -658,10 +700,6 @@ void VkRenderer::clean_swapchain_v2()
     swapchain.get()->Destroy();
 }
 
-void VkRenderer::recreate_swapchain_v2()
-{
-
-}
 
 
 

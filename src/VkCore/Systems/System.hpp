@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+// i think i will fully remove this "System" concept
 struct System
 {
     VkDevice device;

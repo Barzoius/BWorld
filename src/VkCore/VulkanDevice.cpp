@@ -212,8 +212,13 @@ void VulkanDevice::init_queues()
 void VulkanDevice::query_features() 
 {
 
+    m_features.supporteDescriptorHeap = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_HEAP_FEATURES_EXT
+    };
+
     m_features.supportedShaderObject = {
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT,
+        .pNext = &m_features.supporteDescriptorHeap
     };
 
     m_features.supported14 = {
@@ -242,14 +247,22 @@ void VulkanDevice::query_features()
 
 void VulkanDevice::enable_features()
 {
+    m_features.enabledDescriptorHeap = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_HEAP_FEATURES_EXT,
+        .pNext = nullptr,
+        .descriptorHeap = VK_TRUE
+    };
+
     m_features.enabledShaderObject = {
         .sType        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT,
+        .pNext        = &m_features.enabledDescriptorHeap,
         .shaderObject = VK_TRUE
     };
 
     m_features.enabled14 = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
-        .pNext = &m_features.enabledShaderObject
+        .pNext = &m_features.enabledShaderObject,
+        .maintenance5 = VK_TRUE
     };
 
     m_features.enabled13 = {
@@ -260,9 +273,11 @@ void VulkanDevice::enable_features()
     };
 
     m_features.enabled12 = {
-        .sType             = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-        .pNext             = &m_features.enabled13,
-        .timelineSemaphore = VK_TRUE
+        .sType               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+        .pNext               = &m_features.enabled13,
+        .descriptorIndexing  = VK_TRUE,
+        .timelineSemaphore   = VK_TRUE,
+        .bufferDeviceAddress = VK_TRUE
     };
 
     m_features.enabled = {
@@ -351,19 +366,10 @@ void VulkanDevice::create_logical_device()
     createInfo.pNext                   = &m_features.enabled;
     createInfo.pQueueCreateInfos       = queueCreateInfos.data();
     createInfo.queueCreateInfoCount    = (uint32_t)queueCreateInfos.size(); 
-    createInfo.enabledLayerCount       = 0;
+    createInfo.enabledLayerCount       = 0; // this is depricated and enabledLayerCount must be 0
     createInfo.ppEnabledLayerNames     = NULL;
     createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-    
-
-    if (enableValidationLayers) {
-        createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
-    } else {
-        createInfo.enabledLayerCount   = 0;
-    }
-
     
     VK_ASSERT(vkCreateDevice(phyD, &createInfo, nullptr, &handle));
 
@@ -450,6 +456,8 @@ void VulkanDevice::retrive_device_info()
         &m_properties
     );
 }
+
+
 
 VkPhysicalDeviceProperties VulkanDevice::get_device_info() const
 {
@@ -617,6 +625,11 @@ bool VulkanDevice::load_vk_ext_fns()
     load(vkCmdSetViewportWithCountEXT,       "vkCmdSetViewportWithCountEXT",       false);
 
     load(vkCmdSetVertexInputEXT,             "vkCmdSetVertexInputEXT",             true);
+
+
+    // desc heap
+    load(vkWriteResourceDescriptorsEXT,      "vkWriteResourceDescriptorsEXT",      true);
+    load(vkCmdBindResourceHeapEXT,           "vkCmdBindResourceHeapEXT",           true);
 
     return success;
 

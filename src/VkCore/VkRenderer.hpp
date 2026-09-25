@@ -10,6 +10,7 @@
 
 #include "VkContext.hpp"
 #include "VkContexts/VkSwapChainContext.hpp"
+#include "VkConstants.hpp"
 
 
 #include "VulkanSwapchain.hpp"
@@ -86,12 +87,10 @@ private:
     void update_uniform_buffer(uint32_t currentImage);
 
 
+    UBO_TEST ubo{};
 
 private:
     //------------------------------------[SYNCHRONIZATION DATA]---------------------------------//
-
-    static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-
     struct frameData
     {
         VkCommandPool   s_commandPool     = nullptr;
@@ -122,6 +121,8 @@ private:
         glm::mat4 view;
         glm::mat4 proj;
     };
+
+    buffer ubo_buff;
     
     VkPipelineLayout      m_pipelineLayout{ VK_NULL_HANDLE };
 

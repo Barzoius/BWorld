@@ -54,23 +54,25 @@ public:
 
 private:
 
-    VkPhysicalDeviceProperties m_properties{};
+    VkPhysicalDeviceProperties                  m_properties{};
 
     struct VulkanDeviceFeatures
     {
         // Supported
-        VkPhysicalDeviceFeatures2               supported{};
-        VkPhysicalDeviceVulkan12Features        supported12{};
-        VkPhysicalDeviceVulkan13Features        supported13{};
-        VkPhysicalDeviceVulkan14Features        supported14{};
-        VkPhysicalDeviceShaderObjectFeaturesEXT supportedShaderObject{};
+        VkPhysicalDeviceFeatures2                 supported{};
+        VkPhysicalDeviceVulkan12Features          supported12{};
+        VkPhysicalDeviceVulkan13Features          supported13{};
+        VkPhysicalDeviceVulkan14Features          supported14{};
+        VkPhysicalDeviceShaderObjectFeaturesEXT   supportedShaderObject{};
+        VkPhysicalDeviceDescriptorHeapFeaturesEXT supporteDescriptorHeap{};
 
         // Enabled
-        VkPhysicalDeviceFeatures2               enabled{};
-        VkPhysicalDeviceVulkan12Features        enabled12{};
-        VkPhysicalDeviceVulkan13Features        enabled13{};
-        VkPhysicalDeviceVulkan14Features        enabled14{};
-        VkPhysicalDeviceShaderObjectFeaturesEXT enabledShaderObject{};
+        VkPhysicalDeviceFeatures2                 enabled{};
+        VkPhysicalDeviceVulkan12Features          enabled12{};
+        VkPhysicalDeviceVulkan13Features          enabled13{};
+        VkPhysicalDeviceVulkan14Features          enabled14{};
+        VkPhysicalDeviceShaderObjectFeaturesEXT   enabledShaderObject{};
+        VkPhysicalDeviceDescriptorHeapFeaturesEXT enabledDescriptorHeap{}; 
     }m_features;
 
 private:
@@ -84,7 +86,10 @@ private:
     bool supports_required_features() const;
 
     void retrive_device_info();
-    VkPhysicalDeviceProperties get_device_info() const;
+
+    VkPhysicalDeviceProperties                  get_device_info()    const;
+
+
     void log_device_info() const;
 
     
@@ -112,8 +117,14 @@ private:
     const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
-        VK_EXT_SHADER_OBJECT_EXTENSION_NAME };
+        VK_EXT_SHADER_OBJECT_EXTENSION_NAME,
+        VK_KHR_MAINTENANCE_5_EXTENSION_NAME,
+        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+        VK_EXT_DESCRIPTOR_HEAP_EXTENSION_NAME,
+    };
 
+        //VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME
+  
         
     static constexpr float m_queuePriority    = 1.0f;
     static constexpr float m_graphicsPriority = 1.0f;
@@ -152,6 +163,7 @@ public:
 	PFN_vkCmdSetViewportWithCountEXT       vkCmdSetViewportWithCountEXT       = nullptr;
     
     PFN_vkCmdSetVertexInputEXT             vkCmdSetVertexInputEXT             = nullptr;
-    
 
+    PFN_vkWriteResourceDescriptorsEXT      vkWriteResourceDescriptorsEXT      = nullptr;
+    PFN_vkCmdBindResourceHeapEXT           vkCmdBindResourceHeapEXT           = nullptr;
 };

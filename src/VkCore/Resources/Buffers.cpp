@@ -113,7 +113,7 @@ buffer create_index_buffer(System& sys, const std::vector<uint16_t>& indices, Vm
     return buffer;
 }
 
-buffer create_buffer( VmaAllocator allocator,
+buffer create_buffer(VmaAllocator allocator,
                     VkDeviceSize size,
                     VkBufferUsageFlags usage,
                     VmaMemoryUsage memoryUsage,
@@ -136,9 +136,12 @@ buffer create_buffer( VmaAllocator allocator,
         &allocInfo,
         &out.s_handle,
         &out.s_allocation,
-        nullptr);
+        &out.s_info);
 
     out.s_size = size;
+    out.s_data = out.s_info.pMappedData;
+
+    
     return out;
 }
 
@@ -156,26 +159,80 @@ void upload_to_buffer(  VmaAllocator allocator,
     vmaUnmapMemory(allocator, buffer.s_allocation);
 }
 
-
-buffer create_uniform_buffer(UniformBufferObject ubo, VmaAllocator allocator)
+buffer create_perisistent_buffer(
+    VmaAllocator allocator,
+                                VkDeviceSize size,
+                                VkBufferUsageFlags usage,
+                                VmaMemoryUsage memoryUsage,
+                                VmaAllocationCreateFlags flags)
 {
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-    auto buffer = create_buffer(
+    buffer out{};
+
+    VkBufferCreateInfo bufferInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VmaAllocationCreateInfo allocInfo{};
+    allocInfo.usage = memoryUsage;
+    allocInfo.flags = flags;
+
+    VkResult result = vmaCreateBuffer(
         allocator,
-        bufferSize,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        VMA_MEMORY_USAGE_AUTO,
-        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |    
-        VMA_ALLOCATION_CREATE_MAPPED_BIT // check again these flags
-    );
-    upload_to_buffer(allocator, buffer, &ubo, bufferSize);
+        &bufferInfo,
+        &allocInfo,
+        &out.s_handle,
+        &out.s_allocation,
+        &out.s_info);
 
+    if (result != VK_SUCCESS) std::cout<<"failed buffer creation";
 
-
-
-    buffer.s_size = bufferSize;
-    return buffer;
+    out.s_size = size;
+    return out;
 }
+
+
+
+
+buffer create_uniform_buffer(UBO_TEST ubo, VmaAllocator alloc)
+{
+    VkDeviceSize size = static_cast<uint64_t>(sizeof(UBO_TEST));
+
+    buffer b = create_perisistent_buffer(alloc, size, 
+    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT, VMA_MEMORY_USAGE_AUTO,
+    VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
+
+    void* data = &ubo;
+    b.s_data = data;
+
+    b.s_data = b.s_info.pMappedData;
+
+    memcpy(b.s_data, data, sizeof(UBO_TEST));
+
+    return b;
+}
+
+
+
+// buffer create_uniform_buffer(UniformBufferObject ubo, VmaAllocator allocator)
+// {
+//     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+//     auto buffer = create_buffer(
+//         allocator,
+//         bufferSize,
+//         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+//         VMA_MEMORY_USAGE_AUTO,
+//         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |    
+//         VMA_ALLOCATION_CREATE_MAPPED_BIT // check again these flags
+//     );
+//     upload_to_buffer(allocator, buffer, &ubo, bufferSize);
+
+
+
+
+//     buffer.s_size = bufferSize;
+//     return buffer;
+// }
 
 void delete_buffer(buffer& buffer, VmaAllocator allocator)
 {

@@ -116,7 +116,7 @@ namespace ShaderOBJ
 
             vk_shader_create_info.sType                  = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
             vk_shader_create_info.pNext                  = nullptr;
-            vk_shader_create_info.flags                  = 0;
+            vk_shader_create_info.flags                  = VK_SHADER_CREATE_DESCRIPTOR_HEAP_BIT_EXT;
             vk_shader_create_info.stage                  = stage;
             vk_shader_create_info.nextStage              = next_stage;
             vk_shader_create_info.codeType               = VK_SHADER_CODE_TYPE_SPIRV_EXT;
@@ -174,7 +174,11 @@ namespace ShaderOBJ
             return buffer;
         }
 
-
+        //just for testing
+        void set_pNext(VkShaderDescriptorSetAndBindingMappingInfoEXT info)
+        {
+            vk_shader_create_info.pNext = &info;
+        }
     public:
         static constexpr ShaderType type = Type;
     private:
@@ -204,6 +208,7 @@ namespace ShaderOBJ
         void link();
         void bind(VkCommandBuffer cmd_buf);
         void destroy();
+        void set_pNext(VkShaderDescriptorSetAndBindingMappingInfoEXT info);
 
     private:
         const VulkanDevice*                                  m_device = nullptr;
@@ -297,6 +302,8 @@ namespace ShaderOBJ
 
        m_shaderEXTs.fill(VK_NULL_HANDLE);
     }
+
+
 
 }
 

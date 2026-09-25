@@ -41,6 +41,8 @@ add_library(VkCore STATIC
             
             Descriptors/model_desc.hpp
             Descriptors/DescriptorSystem.hpp
+            Descriptors/DescriptorSystem.cpp
+            Descriptors/DescriptorAllocator.hpp
 
             Pipeline/GraphicsPipeline.hpp
             Pipeline/GraphicsPipeline.cpp
@@ -55,8 +57,19 @@ add_library(VkCore STATIC
             Resources/Buffers.hpp
             Resources/Buffers.cpp
 
+            Resources/ResourceConfig.hpp
+            Resources/VkResource.hpp
+            
+            Resources/Buffer.hpp
+            Resources/Buffer.cpp
+
+
 
             VkModel.hpp
+
+            VkConstants.hpp
+            DescHeapManager.hpp
+            # DescHeapManager.cpp
         
             )
 

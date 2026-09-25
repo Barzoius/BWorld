@@ -5,10 +5,15 @@
 #include <assert.h>
 #include <string>
 #include <unordered_map>
+#include <variant>
+#include <span>
 
 #include "vulkan/vulkan.h"
 
 #include "VkLog.hpp"
+#include "VkContext.hpp"
+#include "DescriptorAllocator.hpp"
+#include "Resources/Buffers.hpp"
 
 #include <format>
 
@@ -23,7 +28,6 @@ namespace DDS
         ReadImage,
         WriteImage,
         Storage,
-        Array,
         Empty,
     };
 
@@ -62,13 +66,13 @@ namespace DDS
 
     };
 
-
-    //this class will be needed for a possible array option 
+    ///=====================================[ELEMENT]=====================================///
     class LayoutElement
     {
     public:
         LayoutElement() noexcept = default;
         LayoutElement(ElementType type) : m_type(type) {}
+        LayoutElement(ElementType type, VkShaderStageFlags flag) : m_type(type), m_flag(flag) {}
 
         ElementType        get_type()  const noexcept { return m_type; }
         VkShaderStageFlags get_flag()  const noexcept { return m_flag; }
@@ -131,25 +135,26 @@ namespace DDS
         uint32_t           m_count = 0;
     };
 
-    class DescriptorLayout
+    ///=====================================[LAYOUT]=====================================///
+    class Layout
     {
-        friend class DescriptorCodex;
     public:
-        DescriptorLayout() noexcept = default;
-        DescriptorLayout& append(LayoutElement elem) noexcept
+        Layout() noexcept = default;
+        Layout& append(LayoutElement elem) noexcept
         {
             m_layout.emplace_back(elem); return *this;
         }
 
         VkDescriptorSetLayout resolve(VkDevice dev)
         {
+            gen_sig();
+            
             std::vector<VkDescriptorSetLayoutBinding> bindings;
             bindings.reserve(m_layout.size());
 
             uint32_t slot = 0;
             for(auto& elem : m_layout)
             {
-                if(elem.get_type() == Array)   assert(false); // not implemented yet
                 if(elem.get_type() != Uniform) assert(false); // not implemented yet
 
                 VkDescriptorSetLayoutBinding binding =
@@ -161,6 +166,7 @@ namespace DDS
                     .pImmutableSamplers = nullptr // relevant for images
                 };
                 bindings.emplace_back(binding);
+                slot++;
                 binding = {};
             }
 
@@ -171,12 +177,14 @@ namespace DDS
                 .pBindings    = bindings.data()
             };
 
-            VK_ASSERT_MSG(vkCreateDescriptorSetLayout(dev, &layout_info, nullptr, &m_descriptorSetLayout), "failed to create descriptor set layout!");
+            VkDescriptorSetLayout lay;
+            VK_ASSERT_MSG(vkCreateDescriptorSetLayout(dev, &layout_info, nullptr, &lay ), "failed to create descriptor set layout!");
 
-            return m_descriptorSetLayout;
+            return lay;
         }
 
-        VkDescriptorSetLayout get_vk_desc_set_layout() const noexcept { return m_descriptorSetLayout; }
+
+        std::vector<LayoutElement> get_layout()        const noexcept {return m_layout; }
         size_t                get_count()              const noexcept { return m_layout.size(); }
         std::string           get_sig()                const noexcept { return m_sig; }
 
@@ -199,93 +207,131 @@ namespace DDS
 
     private:
         std::vector<LayoutElement> m_layout;
-        VkDescriptorSetLayout      m_descriptorSetLayout;
         std::string                m_sig;
     };
 
 
+    ///=====================================[CACHE]=====================================///
+    // is not a really good idea to make this global especially 
+    // if we have multiple devices but is not the case here
+    class DescriptorLayoutCache 
+    {
+    public:
+        static VkDescriptorSetLayout resolve(const VkDevice& dev, Layout lay) noexcept
+        {
+            auto sig  = lay.get_sig();
+            auto& map = get().m_map;
+
+            const auto i = map.find(sig);
+
+            if(i != map.end()) return i->second;
+            
+            auto result = map.insert({std::move(sig), lay.resolve(dev)});
+
+            return result.first -> second;
+        }
+
+        static void destroy(const VkDevice& dev)
+        {
+            for(auto& i : get().m_map) 
+            {
+                std::cout<<"Destroying layout: "<<i.first<<"|\n";
+                vkDestroyDescriptorSetLayout(dev, i.second, nullptr);
+            }
+            get().m_map.clear();
+        }
+
+    private:
+        static DescriptorLayoutCache& get() noexcept 
+        {        
+            static DescriptorLayoutCache cache;
+            return cache;
+        };
+    public:
+        std::unordered_map<std::string, VkDescriptorSetLayout> m_map;
+    };
+
+
+    ///=======================================[SET]=======================================///
+
+
+    struct DescriptorBuffer
+    {
+        VkBuffer buffer;
+        VkDeviceSize offset;
+        VkDeviceSize range;
+        VkDescriptorType descriptor_type() const noexcept
+        {
+            return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        }
+    };
+
+    struct DescriptorImage
+    {
+        VkSampler sampler;
+        VkImageView imageView;
+        VkImageLayout layout;
+        VkDescriptorType descriptor_type() const noexcept
+        {
+            return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        }
+    };
+
+    using DescriptorResource =
+        std::variant<
+            DescriptorBuffer,
+            DescriptorImage,
+            VkBufferView
+        >;
 
     class DescriptorSet
     {
     public:
-        void create()
+        DescriptorSet(const VkDevice& dev, Layout& lay) : m_layout(lay)
         {
-            std::cout<<"WOW\n";
-        }
-    private:
-        DescriptorLayout m_layout;
-    };
-
-
-
-
-    class DescriptorAllocator
-    {
-    public:
-        DescriptorAllocator(VkDevice& dev)
-        {
-            VkDescriptorPoolSize sizes[] = 
-            {
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,          50 },
-                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  30 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,          20 },
-            };
-
-            VkDescriptorPoolCreateInfo poolInfo{};
-            poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            poolInfo.poolSizeCount = 3;
-            poolInfo.pPoolSizes    = sizes;
-            poolInfo.maxSets       = 100;
-
-            VkDescriptorPool descriptorPool;
-
-            VK_ASSERT_MSG(vkCreateDescriptorPool(dev,&poolInfo,nullptr,&descriptorPool),
-            "Failed to create base descriptor pool!");
-
-            m_pools.emplace_back(descriptorPool);
+            m_vkLayout = DescriptorLayoutCache::resolve(dev, lay);
+            //m_set = alloc.allocate(dev, m_vkLayout);
         }
 
-        VkDescriptorSet allocate(VkDevice& dev, VkDescriptorSetLayout layout, size_t count)
+
+        void write(const VkDevice& dev, uint32_t binding, const DescriptorBuffer& buffer)
         {
-            VkDescriptorSet desc_set;
+            auto& element = m_layout.get_layout()[binding];
+            assert(element.get_vk_descriptor_type() == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
+                   element.get_vk_descriptor_type() == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER );
 
-            std::vector<VkDescriptorSetLayout> layouts(count, layout);
+            VkDescriptorBufferInfo info{};
+            info.buffer = buffer.buffer;
+            info.offset = buffer.offset; //THE FUCK IS THIS FOR
+            info.range  = buffer.range;
 
-            VkDescriptorSetAllocateInfo allocInfo{};
-            allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            allocInfo.descriptorPool     = m_pools[0];
-            allocInfo.descriptorSetCount = static_cast<uint32_t>(count);
-            allocInfo.pSetLayouts        = layouts.data();
+            VkWriteDescriptorSet write{};
+            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstSet = m_set;
+            write.dstBinding = binding;
+            write.dstArrayElement = 0;
+            write.descriptorType = element.get_vk_descriptor_type();
+            write.descriptorCount = 1;
+            write.pBufferInfo = &info;
 
-            std::vector<VkDescriptorSet> descriptorSets;
-            descriptorSets.resize(count);
-
-            VK_ASSERT_MSG(vkAllocateDescriptorSets(dev, &allocInfo, descriptorSets.data()),
-            "failed to allocate descriptor sets!");
+            vkUpdateDescriptorSets(
+                dev,
+                1,
+                &write,
+                0,
+                nullptr
+            );
         }
 
+        void write(uint32_t binding, const DescriptorImage& image)
+        {
+
+        }
 
     private:
-        std::vector<VkDescriptorPool> m_pools;
+        Layout                m_layout;
+        VkDescriptorSetLayout m_vkLayout;
+        VkDescriptorSet       m_set;
     };
 
-
-
-
-    class DescriptorCodex
-    {
-    public:
-        static DescriptorLayout resolve(DescriptorLayout) noexcept
-        {
-
-        }
-    private:
-        static DescriptorCodex& get() noexcept 
-        {        
-            static DescriptorCodex codex;
-            return codex;
-        };
-    public:
-        std::unordered_map<std::string, bool> m_map;
-    };
 }

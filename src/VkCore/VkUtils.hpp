@@ -32,4 +32,12 @@ namespace vkutil
     SwapChainSupportDetails QuerySwapChainSupport(
         VkPhysicalDevice device,
         VkSurfaceKHR     surface);
+
+
+
+    
+    inline VkDeviceSize aligned_size(VkDeviceSize value, VkDeviceSize alignment)
+    {
+        return (value + alignment - 1) & ~(alignment - 1);
+    }
 }
