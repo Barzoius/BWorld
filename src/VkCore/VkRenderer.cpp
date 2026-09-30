@@ -15,13 +15,25 @@
 
 #include "UniformSystem.hpp"
 
-#include "Sync/VkSynchronization.hpp"
+
+#include "Resources/Buffer.hpp"
+
 
 #include "Descriptors/DescriptorSystem.hpp"
 
 
+
 void VkRenderer::Initialize(Context& context) 
 {
+
+    alloc::initialize_vma_allocator(m_vkContext);
+
+    m_heap_manager.init(m_vkContext.get_device().getPhyD());
+    m_heap_manager.create_buffer_heap(m_vkContext.get_device());
+
+    auto* buf = m_heap_manager.m_descHeapResources.get();
+    //==============================
+
 
     // DDS::LayoutElement e1(DDS::Uniform); 
     // e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
@@ -78,9 +90,10 @@ void VkRenderer::Initialize(Context& context)
     buff_bind.resourceMask = VK_SPIRV_RESOURCE_TYPE_UNIFORM_BUFFER_BIT_EXT;
     buff_bind.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_CONSTANT_OFFSET_EXT;
 
+
     buff_bind.sourceData.constantOffset.heapArrayStride =
         static_cast<uint32_t>(
-            m_vkContext.m_descHeapMng.m_sizes.buffer_descriptor_size
+            m_heap_manager.m_sizes.buffer_descriptor_size
         );
 
     VkShaderDescriptorSetAndBindingMappingInfoEXT mapping_info{};
@@ -99,13 +112,6 @@ void VkRenderer::Initialize(Context& context)
         >>(m_vkContext.get_device(), *vertex_obj, *fragment_obj);
     suite->link();
 
-    // std::string frag = "Shaders/base1.frag.spv";
-    // std::string vert = "Shaders/base1.vert.spv";
-
-
-    // vertex = std::make_unique<Shader<ShaderType::VERTEX>>(m_vkContext, vert);
-    // fragment = std::make_unique<Shader<ShaderType::FRAGMENT>>(m_vkContext, frag);
-
  
    
     create_swapchain();
@@ -116,20 +122,38 @@ void VkRenderer::Initialize(Context& context)
     ubo.proj = glm::perspective(glm::radians(45.0f), swapchainContext.width / (float) swapchainContext.height, 0.1f, 10.0f);
     //ubo.proj[1][1] *= -1;
 
-    ubo_buff = create_uniform_buffer(ubo, m_vkContext.get_allocator());
+    //ubo_buff = create_uniform_buffer(ubo, m_vkContext.get_allocator());
 
-    m_vkContext.m_descHeapMng.upload_buffer(m_vkContext.get_device(), ubo_buff);
+
+    BufferConfig ubo_config(sizeof(ubo));
+    ubo_config
+    .with_debug_name("uniform_buff_1")
+    .with_usage(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | 
+    VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT)
+    .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT).
+    with_sharing_mode(VK_SHARING_MODE_EXCLUSIVE);
+
+    m_uniform_buff_ptr = ubo_config.build_ptr(m_vkContext.get_device());
+    m_uniform_buff_ptr->update(ubo);
+
+
+    // m_vkContext.m_descHeapMng.upload_buffer(m_vkContext.get_device(), ubo_buff);
+    
+    m_heap_manager.upload_buffer(m_vkContext.get_device(), m_uniform_buff_ptr);
+
+
+    std::cout << "UBO handle  = " << m_uniform_buff_ptr->get_handle() << '\n';
+    std::cout << "UBO address = 0x"
+            << std::hex
+            << m_uniform_buff_ptr->get_device_address()
+            << std::dec << '\n';
+    std::cout << "UBO size    = " << m_uniform_buff_ptr->get_size() << '\n';
+    std::cout << "UBO mapped  = "
+            << static_cast<void*>(m_uniform_buff_ptr->get_mapped_data())
+            << '\n';
 
 
     construct_vertex_buffer();
-
-    
-
-    //create_GFX_pipeline();
-
-
-    
-    
 
     create_sync_resources();
     create_frame_data_v2();
@@ -151,7 +175,44 @@ void VkRenderer::construct_vertex_buffer()
     input_vertex_buffers.push_back(vb);
 
 
-    vertex_buffer = create_vertex_buffer_with_staging(m_vkContext.transfer_sys, vb, m_vkContext.get_allocator());
+    
+
+    /// with new buffer sysetm
+    BufferConfig stag_config(vb.get_size_in_bytes());
+    stag_config
+    .with_debug_name("stage_buff_1")
+    .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
+    .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
+    Buffer stag_buffer(m_vkContext.get_device(), stag_config);
+
+
+    const auto data = vb.get_data();
+    const auto size = vb.get_size_in_bytes();
+
+    if(vb.get_data() != nullptr) 
+        stag_buffer.update(vb.get_data(), size);
+
+
+
+    BufferConfig config(vb.get_size_in_bytes());
+    config.with_debug_name("vert_buff_1")
+    .with_usage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+    .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+    
+    m_vert_buff_ptr = config.build_ptr(m_vkContext.get_device());
+
+    
+
+    copy_buffer(m_vkContext.transfer_sys, stag_buffer.get_handle(), 
+    m_vert_buff_ptr.get()->get_handle(), vb.get_size_in_bytes());
+
+    stag_buffer.destroy(); // we have desctructor but the scope finishes later 
+
+    /// with new buffer sysetm -- end
+
+
+    //vertex_buffer = create_vertex_buffer_with_staging(m_vkContext.transfer_sys, vb, m_vkContext.get_allocator());
 
 
     index_buffer = create_index_buffer(m_vkContext.transfer_sys, indices, m_vkContext.get_allocator());
@@ -162,7 +223,6 @@ void VkRenderer::construct_vertex_buffer()
 
 void VkRenderer::RenderFrame() 
 {
-    //render_with_new_sync();
     render_with_shader_objects();
 }
 
@@ -190,8 +250,13 @@ void VkRenderer::Shutdown() {
 	m_renderCompleteSmphs.clear();
 
 
-    delete_buffer(vertex_buffer, m_vkContext.get_allocator());
+    m_vert_buff_ptr.get()->destroy();
+    m_uniform_buff_ptr.get()->destroy();
+    m_heap_manager.m_descHeapResources->destroy();
+    
     delete_buffer(index_buffer, m_vkContext.get_allocator());
+
+    alloc::destroy_vma_allocator();
 
     clean_swapchain_v2();
 
@@ -211,6 +276,8 @@ void VkRenderer::Shutdown() {
 
     LLOGI("Resolution updated: %d x %d", res.width, res.height);
  }
+
+
 
 void VkRenderer::create_swapchain()
 {
@@ -325,6 +392,8 @@ void VkRenderer::render_with_shader_objects()
         m_swapchainRecreation = false;
     }
 
+    ///=================
+
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -334,7 +403,12 @@ void VkRenderer::render_with_shader_objects()
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), swapchainContext.width / (float) swapchainContext.height, 0.1f, 10.0f);
 
-    memcpy(ubo_buff.s_data, &ubo, sizeof(ubo));
+    // memcpy(ubo_buff.s_data, &ubo, sizeof(ubo));
+    m_uniform_buff_ptr->update(ubo);
+
+    
+
+    ///=================
 
     const uint32_t frameDataIndex = currentFrame++ % MAX_FRAMES_IN_FLIGHT;
     const uint64_t signalValue    = nextSignalValue++;
@@ -367,6 +441,10 @@ void VkRenderer::render_with_shader_objects()
         m_swapchainRecreation = true;
     }
 
+
+
+    //record_to_buffer(data.s_commandBuffer);
+
     VkCommandBufferBeginInfo cmdBeginInfo
     {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -374,6 +452,8 @@ void VkRenderer::render_with_shader_objects()
     };
     
     vkBeginCommandBuffer(data.s_commandBuffer, &cmdBeginInfo);
+
+
 
     std::vector<VkImageMemoryBarrier2> layoutBarriers
 	{
@@ -500,63 +580,19 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
     );
 
 
+    // Set states
+    set_all_states(cmd);
 
 
-    VkViewport viewport{
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(swapchainContext.width),
-        .height = static_cast<float>(swapchainContext.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-    };
 
-
-    VkRect2D scissor{
-        .offset = {0, 0},
-        .extent = {
-            static_cast<uint32_t>(swapchainContext.width),
-            static_cast<uint32_t>(swapchainContext.height)
-        }
-    };
-
-    
-
-    m_vkContext.get_device().vkCmdSetViewportWithCountEXT(cmd, 1, &viewport);
-    m_vkContext.get_device().vkCmdSetScissorWithCountEXT(cmd, 1, &scissor);
-
-
-	m_vkContext.get_device().vkCmdSetCullModeEXT(cmd, VK_CULL_MODE_BACK_BIT);
-	m_vkContext.get_device().vkCmdSetFrontFaceEXT(cmd,  VK_FRONT_FACE_CLOCKWISE);
-
-    m_vkContext.get_device().vkCmdSetDepthTestEnableEXT(cmd, VK_FALSE);
-	m_vkContext.get_device().vkCmdSetDepthWriteEnableEXT(cmd, VK_FALSE);
-	m_vkContext.get_device().vkCmdSetDepthCompareOpEXT(cmd, VK_COMPARE_OP_LESS);
-
-    m_vkContext.get_device().vkCmdSetPrimitiveTopologyEXT(cmd, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    m_vkContext.get_device().vkCmdSetRasterizerDiscardEnableEXT(cmd, VK_FALSE);
-	m_vkContext.get_device().vkCmdSetPolygonModeEXT(cmd, VK_POLYGON_MODE_FILL);
-	m_vkContext.get_device().vkCmdSetRasterizationSamplesEXT(cmd, VK_SAMPLE_COUNT_1_BIT);
-	m_vkContext.get_device().vkCmdSetAlphaToCoverageEnableEXT(cmd, VK_FALSE);
-	m_vkContext.get_device().vkCmdSetDepthBiasEnableEXT(cmd, VK_FALSE);
-	m_vkContext.get_device().vkCmdSetStencilTestEnableEXT(cmd, VK_FALSE);
-	m_vkContext.get_device().vkCmdSetPrimitiveRestartEnableEXT(cmd, VK_FALSE);
-
-    const uint32_t sampleMask = 0xFF;
-	m_vkContext.get_device().vkCmdSetSampleMaskEXT(cmd, VK_SAMPLE_COUNT_1_BIT, &sampleMask);
-
-	const VkBool32 colorBlendEnables = false;
-	const VkColorComponentFlags colorBlendComponentFlags = 0xf;
-	const VkColorBlendEquationEXT colorBlendEquation{};
-	m_vkContext.get_device().vkCmdSetColorBlendEnableEXT(cmd, 0, 1, &colorBlendEnables);
-	m_vkContext.get_device().vkCmdSetColorWriteMaskEXT(cmd, 0, 1, &colorBlendComponentFlags);
 
     // --------------------------------------------------
     // Vertex/index buffers
     // --------------------------------------------------
 
     VkBuffer vertexBuffers[] = {
-        vertex_buffer.s_handle
+        // vertex_buffer.s_handle
+        m_vert_buff_ptr.get()->get_handle()
     };
 
     VkDeviceSize offsets[] = {
@@ -585,15 +621,27 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
     // Draw
     // --------------------------------------------------
 
+    // VkBindHeapInfoEXT bind_heap_info_res{
+    //     .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
+    //     .heapRange{
+    //         .address = m_vkContext.m_descHeapMng.m_descHeapResources.s_address,
+    //         .size    = m_vkContext.m_descHeapMng.m_descHeapResources.s_size},
+    //     .reservedRangeOffset = m_vkContext.m_descHeapMng.m_descHeapResources.s_size - m_vkContext.m_descHeapMng.m_properties.minResourceHeapReservedRange,
+    //     .reservedRangeSize = m_vkContext.m_descHeapMng.m_properties.minResourceHeapReservedRange,
+    // };
+
+
+
     VkBindHeapInfoEXT bind_heap_info_res{
         .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
         .heapRange{
-            .address = m_vkContext.m_descHeapMng.m_descHeapResources.s_address,
-            .size    = m_vkContext.m_descHeapMng.m_descHeapResources.s_size},
-        .reservedRangeOffset = m_vkContext.m_descHeapMng.m_descHeapResources.s_size - m_vkContext.m_descHeapMng.m_properties.minResourceHeapReservedRange,
-        .reservedRangeSize = m_vkContext.m_descHeapMng.m_properties.minResourceHeapReservedRange,
+            .address = m_heap_manager.m_descHeapResources->get_device_address(),
+            .size    = m_heap_manager.m_descHeapResources->get_size()},
+        .reservedRangeOffset = m_heap_manager.m_descHeapResources->get_size() - m_heap_manager.m_properties.minResourceHeapReservedRange,
+        .reservedRangeSize = m_heap_manager.m_properties.minResourceHeapReservedRange,
     };
 
+    
     m_vkContext.get_device().vkCmdBindResourceHeapEXT(cmd, &bind_heap_info_res);
 
     vkCmdDrawIndexed(
@@ -608,25 +656,18 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
 vkCmdEndRendering(data.s_commandBuffer);    
 
 
-    using policy = vk_sync::ImageMem_2
-    <
-    vk_sync::Stage::ColorAttachment,vk_sync::Action::ColorWrite,
-    vk_sync::Stage::None, vk_sync::Action::Zero
-    >;
-    
-    vk_sync::Barrier<policy> present_barrier;
+    vk_sync::Barrier<present_policy> present_barrier;
     present_barrier.set_old_layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     present_barrier.set_new_layout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
     present_barrier.set_image(swapchain.get() -> get_images()[imageIndex]);
     VkImageSubresourceRange subs{
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-		.baseMipLevel = 0,
-		.levelCount = 1,
-		.baseArrayLayer = 0,
-		.layerCount = 1,       
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1,       
     };
     present_barrier.set_subresource_range(subs);
-
     present_barrier.bind_barrier(data.s_commandBuffer);
 
 
@@ -702,8 +743,68 @@ void VkRenderer::clean_swapchain_v2()
 
 
 
+void VkRenderer::set_all_states(VkCommandBuffer& cmd)
+{
+    ///------set states------///
 
-//------------------------------------[RENDER HELPER FUNCTION]---------------------------------//
+    VkViewport viewport{
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(swapchainContext.width),
+        .height = static_cast<float>(swapchainContext.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+    };
+
+
+    VkRect2D scissor{
+        .offset = {0, 0},
+        .extent = {
+            static_cast<uint32_t>(swapchainContext.width),
+            static_cast<uint32_t>(swapchainContext.height)
+        }
+    };
+
+
+    m_vkContext.get_device().vkCmdSetViewportWithCountEXT(cmd, 1, &viewport);
+    m_vkContext.get_device().vkCmdSetScissorWithCountEXT(cmd, 1, &scissor);
+
+
+	m_vkContext.get_device().vkCmdSetCullModeEXT(cmd, VK_CULL_MODE_BACK_BIT);
+	m_vkContext.get_device().vkCmdSetFrontFaceEXT(cmd,  VK_FRONT_FACE_CLOCKWISE);
+
+    m_vkContext.get_device().vkCmdSetDepthTestEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetDepthWriteEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetDepthCompareOpEXT(cmd, VK_COMPARE_OP_LESS);
+
+    m_vkContext.get_device().vkCmdSetPrimitiveTopologyEXT(cmd, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    m_vkContext.get_device().vkCmdSetRasterizerDiscardEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetPolygonModeEXT(cmd, VK_POLYGON_MODE_FILL);
+	m_vkContext.get_device().vkCmdSetRasterizationSamplesEXT(cmd, VK_SAMPLE_COUNT_1_BIT);
+	m_vkContext.get_device().vkCmdSetAlphaToCoverageEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetDepthBiasEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetStencilTestEnableEXT(cmd, VK_FALSE);
+	m_vkContext.get_device().vkCmdSetPrimitiveRestartEnableEXT(cmd, VK_FALSE);
+
+    const uint32_t sampleMask = 0xFF;
+	m_vkContext.get_device().vkCmdSetSampleMaskEXT(cmd, VK_SAMPLE_COUNT_1_BIT, &sampleMask);
+
+	const VkBool32 colorBlendEnables = false;
+	const VkColorComponentFlags colorBlendComponentFlags = 0xf;
+	const VkColorBlendEquationEXT colorBlendEquation{};
+	m_vkContext.get_device().vkCmdSetColorBlendEnableEXT(cmd, 0, 1, &colorBlendEnables);
+	m_vkContext.get_device().vkCmdSetColorWriteMaskEXT(cmd, 0, 1, &colorBlendComponentFlags);
+}
 
 
 
+void VkRenderer::record_to_buffer(VkCommandBuffer& cmd)
+{
+    VkCommandBufferBeginInfo cmd_begin_info
+    {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+    };
+    
+    vkBeginCommandBuffer(cmd, &cmd_begin_info);
+}

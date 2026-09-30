@@ -8,6 +8,7 @@
 #include "VkUtils.hpp"
 #include "Resources/Buffers.hpp"
 
+
 class DescHeapManager
 {
 public:
@@ -57,9 +58,7 @@ public:
         };
 
         m_descHeapResources.s_address = vkGetBufferDeviceAddress(dev, &addressInfo);
-
-      
-        
+   
     }
 
 
@@ -95,6 +94,37 @@ public:
         dev.vkWriteResourceDescriptorsEXT(dev.get(), 1, &buffer_resource_desc, &buffer_host_address);
 
     }
+
+    // void upload_buffer_new(VulkanDevice dev, Buffer& buf)
+    // {
+    //     VkBufferDeviceAddressInfo addressInfo{
+    //         .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+    //         .buffer = buf.get_handle()
+    //     };
+
+    //     VkDeviceAddress address = vkGetBufferDeviceAddress(dev.get(), &addressInfo);
+
+    //     VkDeviceAddressRangeEXT buffer_device_addr_range
+    //     {
+    //         .address = address,
+    //         .size    = buf.get_size()
+    //     };
+
+    //     VkResourceDescriptorInfoEXT buffer_resource_desc
+    //     {
+    //         .sType = VK_STRUCTURE_TYPE_RESOURCE_DESCRIPTOR_INFO_EXT,
+    //         .type  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    //         .data  = {.pAddressRange = &buffer_device_addr_range}
+    //     };
+
+    //     VkHostAddressRangeEXT buffer_host_address
+    //     {
+    //         .address = (uint8_t *) (m_descHeapResources.s_data), 
+    //         .size    = m_sizes.buffer_descriptor_size
+    //     };
+
+    //     dev.vkWriteResourceDescriptorsEXT(dev.get(), 1, &buffer_resource_desc, &buffer_host_address);
+    // }
 
     void create_sampler_heap()
     {

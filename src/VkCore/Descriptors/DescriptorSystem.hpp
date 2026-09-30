@@ -294,34 +294,34 @@ namespace DDS
         }
 
 
-        void write(const VkDevice& dev, uint32_t binding, const DescriptorBuffer& buffer)
-        {
-            auto& element = m_layout.get_layout()[binding];
-            assert(element.get_vk_descriptor_type() == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
-                   element.get_vk_descriptor_type() == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER );
+        // void write(const VkDevice& dev, uint32_t binding, const DescriptorBuffer& buffer)
+        // {
+        //     auto& element = m_layout.get_layout()[binding];
+        //     assert(element.get_vk_descriptor_type() == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
+        //            element.get_vk_descriptor_type() == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER );
 
-            VkDescriptorBufferInfo info{};
-            info.buffer = buffer.buffer;
-            info.offset = buffer.offset; //THE FUCK IS THIS FOR
-            info.range  = buffer.range;
+        //     VkDescriptorBufferInfo info{};
+        //     info.buffer = buffer.buffer;
+        //     info.offset = buffer.offset; //THE FUCK IS THIS FOR
+        //     info.range  = buffer.range;
 
-            VkWriteDescriptorSet write{};
-            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            write.dstSet = m_set;
-            write.dstBinding = binding;
-            write.dstArrayElement = 0;
-            write.descriptorType = element.get_vk_descriptor_type();
-            write.descriptorCount = 1;
-            write.pBufferInfo = &info;
+        //     VkWriteDescriptorSet write{};
+        //     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        //     write.dstSet = m_set;
+        //     write.dstBinding = binding;
+        //     write.dstArrayElement = 0;
+        //     write.descriptorType = element.get_vk_descriptor_type();
+        //     write.descriptorCount = 1;
+        //     write.pBufferInfo = &info;
 
-            vkUpdateDescriptorSets(
-                dev,
-                1,
-                &write,
-                0,
-                nullptr
-            );
-        }
+        //     vkUpdateDescriptorSets(
+        //         dev,
+        //         1,
+        //         &write,
+        //         0,
+        //         nullptr
+        //     );
+        // }
 
         void write(uint32_t binding, const DescriptorImage& image)
         {

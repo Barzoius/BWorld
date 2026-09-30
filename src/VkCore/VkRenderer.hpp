@@ -18,6 +18,9 @@
 
 
 #include "Resources/Buffers.hpp"
+#include "Resources/Buffer.hpp"
+
+
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -26,11 +29,18 @@
 
 #include "ShaderOBJ.hpp"
 
+#include "Sync/VkSynchronization.hpp"
+
+
+#include "VkDescHeapMng.hpp"
+
+
+#include <cstdlib>
 
 class VkRenderer : public Renderer
 {
 public:
-    VkRenderer(VkContext& ctx) : Renderer(ctx), m_vkContext(ctx){}
+    VkRenderer(VkContext& ctx) : Renderer(ctx), m_vkContext(ctx), m_heap_manager(){}
 
     void Initialize(Context&)                override;
     void RenderFrame()                       override;
@@ -48,14 +58,11 @@ public:
     void clean_swapchain_v2();
     void recreate_swapchain_v2();
 
-private:
+    //just for now its sets all states no costomization
+    void set_all_states(VkCommandBuffer&);
 
-    //------------------------------------[RENDER HELPER FUNCTIONS]---------------------------------//
-    // uint32_t begin_frame_sync();
-    // uint32_t acquire_swapchain_image(frameData&);
-    // void record_command_buffer(frameData& frame, uint32_t imageIndex);
-    //----------------------------------------------------------------------------------------------//
 
+    void record_to_buffer(VkCommandBuffer&);
 
 private:
     VkContext&                        m_vkContext;
@@ -73,6 +80,10 @@ private:
 
     bool m_framebufferResized = false;
 
+
+    VkDescHeapMng m_heap_manager;
+
+    BufferPtr m_vert_buff_ptr;
     buffer vertex_buffer;
     std::vector<DVS::VertexBuffer> input_vertex_buffers;
 
@@ -88,6 +99,8 @@ private:
 
 
     UBO_TEST ubo{};
+    BufferPtr m_uniform_buff_ptr;
+    buffer ubo_buff;
 
 private:
     //------------------------------------[SYNCHRONIZATION DATA]---------------------------------//
@@ -113,17 +126,11 @@ private:
 
     VkImage depthImage = nullptr;
     VkImageView depthImageView = nullptr;
+private: //policies
 
+using present_policy = vk_sync::ImageMem_2
+    <vk_sync::Stage::ColorAttachment,vk_sync::Action::ColorWrite,
+    vk_sync::Stage::None, vk_sync::Action::Zero>;
 
-    //de sters
-    struct UniformBufferObject {
-        glm::mat4 model;
-        glm::mat4 view;
-        glm::mat4 proj;
-    };
-
-    buffer ubo_buff;
-    
-    VkPipelineLayout      m_pipelineLayout{ VK_NULL_HANDLE };
 
 };

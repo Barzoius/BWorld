@@ -1,4 +1,5 @@
 #include "VertexSystem.hpp"
+#include "UniformSystem.hpp"
 
 
 class Model
@@ -14,4 +15,7 @@ public:
 private:
     DVS::VertexBuffer m_vertices;
     std::vector<unsigned short> m_indices;
+    // model unfiform;
+    //textures
+    //shaders
 };

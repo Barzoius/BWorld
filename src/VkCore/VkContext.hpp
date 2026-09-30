@@ -10,9 +10,6 @@
 #include "VulkanDevice.hpp"
 #include "VMA/vk_mem_alloc.hpp"
 #include "Systems/System.hpp"
-#include "Descriptors/DescriptorAllocator.hpp"
-
-#include "DescHeapManager.hpp"
 
 class VkContext : public Context
 {
@@ -26,10 +23,10 @@ public:
     void Destroy() override;
 
     [[nodiscard]] const VulkanDevice&        get_device()         const { return m_device; }
+    [[nodiscard]]       VulkanDevice&        get_device()               { return m_device; }
+
     [[nodiscard]] const Instance&            get_instance()       const { return m_instance; }
     [[nodiscard]] const VmaAllocator&        get_allocator()      const { return m_vmaAllocator; }
-    [[nodiscard]] const DescriptorAllocator& get_desc_allocator() const { return m_descAllocator; }
-
 
     void update_instance_resolution(const Resolution&);
 
@@ -39,9 +36,5 @@ private:
     Instance            m_instance;
     VulkanDevice        m_device;
     VmaAllocator        m_vmaAllocator;   
-    DescriptorAllocator m_descAllocator;
-
-public:
-    DescHeapManager     m_descHeapMng;
 
 };
