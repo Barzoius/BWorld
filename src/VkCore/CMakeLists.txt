@@ -53,9 +53,6 @@ add_library(VkCore STATIC
 
             Pipeline/ShaderType.hpp
 
-            Resources/Buffers.hpp
-            Resources/Buffers.cpp
-
 
             Resources/ResourceConfig.hpp
             Resources/VkResource.hpp

@@ -92,7 +92,14 @@ public:
     template <class T>
 	size_t update(const T &object, size_t offset = 0)
 	{
+        
 		return update(reinterpret_cast<const uint8_t *>(&object), sizeof(T), offset);
+	}
+
+    template <typename T>
+	size_t update(std::vector<T> const &data, size_t offset = 0)
+	{
+		return update(data.data(), data.size() * sizeof(T), offset);
 	}
 
     VmaAllocation     get_allocation() const;
@@ -270,8 +277,6 @@ inline size_t Allocated<Handle>::update(const uint8_t *data, size_t size, size_t
 template <typename Handle>
 inline size_t Allocated<Handle>::update(void const *data, size_t size, size_t offset)
 {
-    std::cout << "UBO UPDATE size = " << size
-          << " offset = " << offset << '\n';
 	return update(reinterpret_cast<const uint8_t *>(data), size, offset);
 }
 

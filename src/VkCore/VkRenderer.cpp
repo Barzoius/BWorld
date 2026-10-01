@@ -23,6 +23,7 @@
 
 
 
+
 void VkRenderer::Initialize(Context& context) 
 {
 
@@ -136,21 +137,9 @@ void VkRenderer::Initialize(Context& context)
     m_uniform_buff_ptr = ubo_config.build_ptr(m_vkContext.get_device());
     m_uniform_buff_ptr->update(ubo);
 
-
-    // m_vkContext.m_descHeapMng.upload_buffer(m_vkContext.get_device(), ubo_buff);
     
     m_heap_manager.upload_buffer(m_vkContext.get_device(), m_uniform_buff_ptr);
 
-
-    std::cout << "UBO handle  = " << m_uniform_buff_ptr->get_handle() << '\n';
-    std::cout << "UBO address = 0x"
-            << std::hex
-            << m_uniform_buff_ptr->get_device_address()
-            << std::dec << '\n';
-    std::cout << "UBO size    = " << m_uniform_buff_ptr->get_size() << '\n';
-    std::cout << "UBO mapped  = "
-            << static_cast<void*>(m_uniform_buff_ptr->get_mapped_data())
-            << '\n';
 
 
     construct_vertex_buffer();
@@ -208,16 +197,33 @@ void VkRenderer::construct_vertex_buffer()
     m_vert_buff_ptr.get()->get_handle(), vb.get_size_in_bytes());
 
     stag_buffer.destroy(); // we have desctructor but the scope finishes later 
-
-    /// with new buffer sysetm -- end
-
-
-    //vertex_buffer = create_vertex_buffer_with_staging(m_vkContext.transfer_sys, vb, m_vkContext.get_allocator());
-
-
-    index_buffer = create_index_buffer(m_vkContext.transfer_sys, indices, m_vkContext.get_allocator());
     
+    // INDEX BUFFER 
 
+    size_t buffSize = sizeof(indices[0]) * indices.size();
+
+    BufferConfig stag_config_2(buffSize);
+    stag_config_2
+    .with_debug_name("stage_buff_2")
+    .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
+    .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
+    Buffer stag_buffer_2(m_vkContext.get_device(), stag_config_2);
+
+    
+    stag_buffer_2.update(indices);
+
+    BufferConfig config_index(buffSize);
+    config.with_debug_name("index_buff_1")
+    .with_usage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
+    .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+    
+    m_index_buff_ptr = config.build_ptr(m_vkContext.get_device());
+
+    copy_buffer(m_vkContext.transfer_sys, stag_buffer_2.get_handle(), 
+    m_index_buff_ptr.get()->get_handle(), buffSize);
+
+    stag_buffer_2.destroy();
 }
 
 
@@ -252,9 +258,10 @@ void VkRenderer::Shutdown() {
 
     m_vert_buff_ptr.get()->destroy();
     m_uniform_buff_ptr.get()->destroy();
+    m_index_buff_ptr.get()->destroy();
     m_heap_manager.m_descHeapResources->destroy();
     
-    delete_buffer(index_buffer, m_vkContext.get_allocator());
+    // delete_buffer(index_buffer, m_vkContext.get_allocator());
 
     alloc::destroy_vma_allocator();
 
@@ -611,7 +618,8 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
 
     vkCmdBindIndexBuffer(
         cmd,
-        index_buffer.s_handle,
+        // index_buffer.s_handle,
+        m_index_buff_ptr->get_handle(),
         0,
         VK_INDEX_TYPE_UINT16
     );

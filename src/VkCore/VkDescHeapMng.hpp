@@ -59,8 +59,6 @@ public:
             .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
             .buffer = m_descHeapResources->get_handle()
         };          
-        
-        std::cout<<"CREATED\n";
     }
 
 

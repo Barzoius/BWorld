@@ -123,20 +123,9 @@ inline Buffer::Buffer(VulkanDevice& dev, BufferConfig const& config)
 		this->set_debug_name(config.get_debug_name());
 	}
 
-    VkResult result = create(config.get_create_info());
-
-    // std::cout << "VMA create result: " << result << '\n';
-    // std::cout << "Name " << this->get_debug_name() << '\n';
-    // std::cout << "Size " << this->get_size() << '\n';
-
-    // std::cout << "handle: " << this->get_handle() << '\n';
-    // std::cout << "allocation: " << this->get_allocation() << '\n';
-    
-    
+    VkResult result = create(config.get_create_info());    
 
     set_alloc_mem_props();
-
-    //std::cout << "mapped: " << this->get_alloc_info().pMappedData << '\n';
   }
 
 

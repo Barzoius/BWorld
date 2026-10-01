@@ -15,9 +15,6 @@
 
 #include "VulkanSwapchain.hpp"
 
-
-
-#include "Resources/Buffers.hpp"
 #include "Resources/Buffer.hpp"
 
 
@@ -36,6 +33,13 @@
 
 
 #include <cstdlib>
+
+struct UBO_TEST{
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
 
 class VkRenderer : public Renderer
 {
@@ -84,23 +88,25 @@ private:
     VkDescHeapMng m_heap_manager;
 
     BufferPtr m_vert_buff_ptr;
-    buffer vertex_buffer;
+    BufferPtr m_index_buff_ptr;
+
+
     std::vector<DVS::VertexBuffer> input_vertex_buffers;
 
-    buffer index_buffer;
+
     const std::vector<uint16_t> indices = {
         0, 1, 2, 2, 3, 0
     };
     void construct_vertex_buffer();
 
-    std::vector<buffer> uniform_buffers;
+
 
     void update_uniform_buffer(uint32_t currentImage);
 
 
     UBO_TEST ubo{};
     BufferPtr m_uniform_buff_ptr;
-    buffer ubo_buff;
+
 
 private:
     //------------------------------------[SYNCHRONIZATION DATA]---------------------------------//
@@ -132,5 +138,34 @@ using present_policy = vk_sync::ImageMem_2
     <vk_sync::Stage::ColorAttachment,vk_sync::Action::ColorWrite,
     vk_sync::Stage::None, vk_sync::Action::Zero>;
 
+public:
+    static VkFormat get_vertex_buffer_format(DVS::VertexLayout::ElementType type) noexcept
+    {
 
+        switch(type)
+        {
+            case DVS::VertexLayout::ElementType::Position2D:
+                return VK_FORMAT_R32G32_SFLOAT;
+            case DVS::VertexLayout::ElementType::Position3D:
+                return VK_FORMAT_R32G32B32_SFLOAT;
+            case DVS::VertexLayout::ElementType::Texture2D:
+                return VK_FORMAT_R32G32_SFLOAT;
+            case DVS::VertexLayout::ElementType::Normal:
+                return VK_FORMAT_R32G32B32_SFLOAT;;
+            case DVS::VertexLayout::ElementType::Tangent:
+                return VK_FORMAT_R32G32B32_SFLOAT;          
+            case DVS::VertexLayout::ElementType::Bitangent:
+                return VK_FORMAT_R32G32B32_SFLOAT;
+            case DVS::VertexLayout::ElementType::Float3Color:
+                return VK_FORMAT_R32G32B32_SFLOAT;
+            case DVS::VertexLayout::ElementType::Float4Color:
+                return VK_FORMAT_R32G32B32A32_SFLOAT;   
+            case DVS::VertexLayout::ElementType::RGBAColor:
+                return VK_FORMAT_R8G8B8A8_UNORM;               
+        }
+
+                        
+        assert("Invalid element format" && false); return VK_FORMAT_UNDEFINED;
+        
+    }
 };
