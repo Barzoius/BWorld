@@ -1,6 +1,12 @@
 #pragma once
+
 #include "Window.hpp"
 #include "VertexSystem.hpp"
+#include "Camera.hpp"
+#include "Timer.hpp"
+
+
+#include <memory>
 
 class Scene
 {
@@ -18,4 +24,6 @@ public:
 
 private:
     Window* window;
+    Camera  camera;
+    Timer   timer;
 };

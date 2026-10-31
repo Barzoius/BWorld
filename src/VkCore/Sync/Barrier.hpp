@@ -1,3 +1,5 @@
+#pragma once
+
 #include "vulkan/vulkan.h"
 
 #define STAGES           \
@@ -259,7 +261,7 @@ namespace vk_sync
     public:
         Barrier() noexcept { this->set_up_barrier(); this->set_up__dependency(); }
 
-        void bind_barrier(VkCommandBuffer& cmd) noexcept 
+        void bind_barrier(VkCommandBuffer cmd) noexcept 
         { 
             vkCmdPipelineBarrier2(cmd, &this->m_dependency);
         }

@@ -9,7 +9,6 @@
 
 #include "VulkanSwapchain.hpp"
 
-#include "VulkanQueue.hpp"
 
 #include "Queue.hpp"
 
@@ -35,6 +34,9 @@ public:
 
     [[nodiscard]] VkCommandPool get_transfer_pool() const { return m_transferCommandPool; }
 
+
+    VkCommandPool create_cmd_pool(VkCommandPoolCreateInfo);
+    void          destroy_cmd_pool(VkCommandPool);
 
     //remove these
     PFN_vkCmdBindShadersEXT get_cmd_bind_shaders_ext() const
@@ -102,6 +104,7 @@ private:
     void init_queues();
  
     void init_tranfer_command_pool();
+
 private:
     const Instance&  instance;    
     VkPhysicalDevice phyD{};

@@ -101,3 +101,4 @@ add_custom_target(compile_shaders ALL
     DEPENDS ${COMPILED_SHADERS}
     COMMENT "Building all Vulkan shaders"
 )
+

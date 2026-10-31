@@ -17,6 +17,10 @@ void VulkanDevice::Destroy()
         vkDestroyDevice(handle, nullptr);
     }
 }
+void VulkanDevice::destroy_cmd_pool(VkCommandPool pool)
+{
+    vkDestroyCommandPool(handle, pool, nullptr); 
+}
 
 void VulkanDevice::Initialize()
 {
@@ -392,6 +396,15 @@ void VulkanDevice::init_tranfer_command_pool()
 
     VK_ASSERT_MSG(vkCreateCommandPool(handle, &poolInfo, nullptr, &m_transferCommandPool),
     "failed to create command pool for transfer operations!");
+}
+
+VkCommandPool VulkanDevice::create_cmd_pool(VkCommandPoolCreateInfo info)
+{
+    VkCommandPool pool;
+    VK_ASSERT_MSG(vkCreateCommandPool(handle, &info, nullptr, &pool),
+    "failed to create command pool for transfer operations!");
+
+    return pool;
 }
 
 

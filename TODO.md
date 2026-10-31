@@ -20,8 +20,8 @@
 - [ ] Integrate Bindables
     - [x] Vertex Buffer
     - [x] Index Buffer
-    - [ ] Maybe implement PVP
-    - [ ] Uniform Buffer
+    - ~~[ ] Maybe implement PVP~~
+    - [x] Uniform Buffer
 - [ ] Redo UML and Dependency graphs
 - [ ] Integrate ImGUI or QT
 - [ ] Move to 3D

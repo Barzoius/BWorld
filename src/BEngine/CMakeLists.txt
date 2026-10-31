@@ -17,6 +17,9 @@ add_library(BEngine STATIC
             Utils/Utils.hpp
             Utils/Utils.cpp
 
+            Camera.hpp
+            Camera.cpp
+
 
             )
             

@@ -41,8 +41,14 @@ template<>
 struct VMAOps<VkImage>
 {
     using  CreateInfo = VkImageCreateInfo;
-    static VkResult create(){ return VK_SUCCESS; }
-    static void destroy() {};
+    static VkResult create(const VkImageCreateInfo* create_info, const VmaAllocationCreateInfo* alloc_create_info, VkImage* image, VmaAllocation* allocation, VmaAllocationInfo* alloc_info)
+    { 
+        return vmaCreateImage(get_memory_allocator(), create_info, alloc_create_info, image, allocation, alloc_info);  
+    }
+    static void destroy(VkImage image, VmaAllocation allocation) 
+    {
+        vmaDestroyImage(get_memory_allocator(), image, allocation);
+    };
 };
 
 

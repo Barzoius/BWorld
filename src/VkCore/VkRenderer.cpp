@@ -2,7 +2,6 @@
 #include <memory>
 
 
-// #include "Resources/VertexSystem.hpp"
 
 #include "VertexSystem.hpp"
 
@@ -17,12 +16,27 @@
 
 
 #include "Resources/Buffer.hpp"
+#include "Resources/Image.hpp"
 
 
 #include "Descriptors/DescriptorSystem.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.hpp"
 
+#include <filesystem>
+namespace fs = std::filesystem;
 
+void load()
+{
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load("C:/Users/mecca/Desktop/MASTER_1/BWorld/src/Media/Image/Images/brickwall.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+    if (!pixels) {
+        throw std::runtime_error("failed to load texture image!");
+    }
+}
 
 void VkRenderer::Initialize(Context& context) 
 {
@@ -34,8 +48,7 @@ void VkRenderer::Initialize(Context& context)
 
     auto* buf = m_heap_manager.m_descHeapResources.get();
     //==============================
-
-
+    
     // DDS::LayoutElement e1(DDS::Uniform); 
     // e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
 
@@ -145,12 +158,53 @@ void VkRenderer::Initialize(Context& context)
     construct_vertex_buffer();
 
     create_sync_resources();
-    create_frame_data_v2();
+
+    create_frame_data();
 
 }
 
 void VkRenderer::construct_vertex_buffer()
 {
+    //image
+    
+    // int texWidth, texHeight, texChannels;
+    // stbi_uc* pixels = stbi_load("C:/Users/mecca/Desktop/MASTER_1/BWorld/src/Media/Image/Images/brickwall.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    // VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+    // if (!pixels) {
+    //     throw std::runtime_error("failed to load texture image!");
+    // }
+
+    // BufferConfig stage_img_conf(imageSize);
+    // stage_img_conf
+    // .with_debug_name("stage_image_config")
+    // .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
+    // .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
+    // Buffer stag_img(m_vkContext.get_device(), stage_img_conf);
+
+    // if(pixels != nullptr) stag_img.update(pixels, imageSize);
+
+    // stbi_image_free(pixels);
+
+    // ImageConfig img_conf(texWidth, texHeight);
+    // img_conf.with_debug_name("img_1")
+    // .with_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT)
+    // .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+    
+    // m_test_image = img_conf.build_ptr(m_vkContext.get_device());
+
+
+
+    // trasition_img_layout(m_vkContext.transfer_sys, m_test_image->get_handle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    // copy_buffer_to_img(m_vkContext.transfer_sys, stag_img.get_handle(),
+    //  m_test_image->get_handle(),
+    //  static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+
+    // stag_img.destroy();
+    
+    ///----VERTEX BUFFER----////
     
     DVS::VertexLayout vl;
     vl.append(DVS::VertexLayout::Position2D).append(DVS::VertexLayout::Float3Color);
@@ -163,8 +217,6 @@ void VkRenderer::construct_vertex_buffer()
 
     input_vertex_buffers.push_back(vb);
 
-
-    
 
     /// with new buffer sysetm
     BufferConfig stag_config(vb.get_size_in_bytes());
@@ -229,7 +281,7 @@ void VkRenderer::construct_vertex_buffer()
 
 void VkRenderer::RenderFrame() 
 {
-    render_with_shader_objects();
+    render();
 }
 
 void VkRenderer::Shutdown() {
@@ -255,6 +307,8 @@ void VkRenderer::Shutdown() {
 	}
 	m_renderCompleteSmphs.clear();
 
+
+    m_test_image->destroy();
 
     m_vert_buff_ptr.get()->destroy();
     m_uniform_buff_ptr.get()->destroy();
@@ -325,20 +379,6 @@ void VkRenderer::create_sync_resources()
     VK_ASSERT_MSG(vkCreateSemaphore(m_vkContext.get_device().get(), &smphInfo, nullptr, &timelineSmph), "Failed to create timeline semaphore!");
 
 
-    for(frameData &data : m_frameResources)
-    {
-        VkSemaphoreCreateInfo smphInfo
-        {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-        };
-        
-        VK_ASSERT_MSG(
-            vkCreateSemaphore(m_vkContext.get_device().get(), 
-                              &smphInfo, nullptr, 
-                              &data.s_imgAcquiredSmph), 
-                              "failed to create semaphore for image acquisition!");
-    }
-
     m_renderCompleteSmphs.resize(swapchain.get()->get_images().size());
     for(VkSemaphore& smph : m_renderCompleteSmphs)
     {
@@ -348,49 +388,49 @@ void VkRenderer::create_sync_resources()
 }
 
 
-void VkRenderer::create_frame_data_v2()
-{
-  
-    for(frameData &data : m_frameResources)
-    {
-        vkutil::QueueFamilyIndices queueFamilyIndices = m_vkContext.get_device().get_device_indices();
-        VkCommandPoolCreateInfo poolInfo
-        {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-            .queueFamilyIndex = queueFamilyIndices.s_graphics.value()
-        };
-
-        VK_ASSERT_MSG(vkCreateCommandPool(m_vkContext.get_device().get(), &poolInfo, nullptr, &data.s_commandPool), "failed to create command pools!");
-
-        VkCommandBufferAllocateInfo cmdAllocInfo
-        {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            .commandPool = data.s_commandPool,
-            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            .commandBufferCount = 1
-        };
-
-        VK_ASSERT_MSG(vkAllocateCommandBuffers(m_vkContext.get_device().get(), &cmdAllocInfo, &data.s_commandBuffer), "failed to create command buffers!");
-    }
-}
 
 void VkRenderer::clean_new_sync()
 {
     if(timelineSmph)
         vkDestroySemaphore(m_vkContext.get_device().get(), timelineSmph, nullptr);
     
-    for(frameData &data : m_frameResources)
-    {
-        vkDestroySemaphore(m_vkContext.get_device().get(), data.s_imgAcquiredSmph, nullptr);
-        vkDestroyCommandPool(m_vkContext.get_device().get(), data.s_commandPool, nullptr);
 
-    }
+    clean_frame_data();
 }
 
 
-void VkRenderer::render_with_shader_objects()
+
+void VkRenderer::create_frame_data()
 {
-    
+    m_frameResources2.reserve(MAX_FRAMES_IN_FLIGHT);
+    for(int i = 0 ; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        m_frameResources2.emplace_back(m_vkContext.get_device());
+
+        VkSemaphoreCreateInfo smphInfo
+        {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+        };
+        
+        VK_ASSERT_MSG(
+        vkCreateSemaphore(m_vkContext.get_device().get(), 
+                        &smphInfo, nullptr, 
+                        &m_frameResources2.back().s_imgAcquiredSmph), 
+                        "failed to create semaphore for image acquisition!");
+    }
+}
+
+void VkRenderer::clean_frame_data()
+{
+    for(frame_data &data : m_frameResources2)
+    {
+        vkDestroySemaphore(m_vkContext.get_device().get(), data.s_imgAcquiredSmph, nullptr);
+        m_vkContext.get_device().destroy_cmd_pool(data.s_pool.get_handle());
+    }
+}
+
+void VkRenderer::render()
+{
     if(m_swapchainRecreation)
     {
         vkDeviceWaitIdle(m_vkContext.get_device().get());
@@ -399,7 +439,7 @@ void VkRenderer::render_with_shader_objects()
         m_swapchainRecreation = false;
     }
 
-    ///=================
+///=================
 
     static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -412,10 +452,6 @@ void VkRenderer::render_with_shader_objects()
 
     // memcpy(ubo_buff.s_data, &ubo, sizeof(ubo));
     m_uniform_buff_ptr->update(ubo);
-
-    
-
-    ///=================
 
     const uint32_t frameDataIndex = currentFrame++ % MAX_FRAMES_IN_FLIGHT;
     const uint64_t signalValue    = nextSignalValue++;
@@ -430,12 +466,15 @@ void VkRenderer::render_with_shader_objects()
     };
     vkWaitSemaphores(m_vkContext.get_device().get(), &waitInfo, UINT64_MAX);
 
-    frameData &data = m_frameResources[frameDataIndex];
-    vkResetCommandPool(m_vkContext.get_device().get(), data.s_commandPool, 0);
+    frame_data &data = m_frameResources2[frameDataIndex]; 
+    data.s_pool.reset();
 
     VkSemaphore imgAquireSemph = data.s_imgAcquiredSmph;
 
+    
     uint32_t imageIndex = 0;
+
+    /// move to swapchain -----------------------------
     VkResult aquireResult = vkAcquireNextImageKHR(m_vkContext.get_device().get(), swapchain.get()->get_handle(), UINT64_MAX, imgAquireSemph, VK_NULL_HANDLE, &imageIndex);
 
     if(aquireResult == VK_ERROR_OUT_OF_DATE_KHR)
@@ -447,19 +486,11 @@ void VkRenderer::render_with_shader_objects()
     {
         m_swapchainRecreation = true;
     }
+    //// --------------------------------------------------
 
-
-
-    //record_to_buffer(data.s_commandBuffer);
-
-    VkCommandBufferBeginInfo cmdBeginInfo
-    {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
-    };
     
-    vkBeginCommandBuffer(data.s_commandBuffer, &cmdBeginInfo);
-
+    
+    data.s_buffer.begin();
 
 
     std::vector<VkImageMemoryBarrier2> layoutBarriers
@@ -509,7 +540,7 @@ void VkRenderer::render_with_shader_objects()
         .pImageMemoryBarriers = layoutBarriers.data()
     };
 
-    vkCmdPipelineBarrier2(data.s_commandBuffer, &depInfo);
+    vkCmdPipelineBarrier2(data.s_buffer.get_handle(), &depInfo);
 
     VkRenderingAttachmentInfo colorAttInfo
     {
@@ -548,97 +579,23 @@ void VkRenderer::render_with_shader_objects()
 
 
 
-vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
+data.s_buffer.begin_render(renderInfo);
 {
-    VkCommandBuffer cmd = data.s_commandBuffer;
-
-    suite -> bind(data.s_commandBuffer);
-
-    
-
-    VkVertexInputBindingDescription2EXT binding{
-        .sType     = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
-        .binding   = 0,
-        .stride    = (uint32_t)input_vertex_buffers[0].get_layout().get_size(),
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-        .divisor   = 1
-    };
 
 
-    std::vector<VkVertexInputAttributeDescription2EXT> descs;
-    descs.resize(input_vertex_buffers[0].get_layout().get_count());
-    for(int i = 0; i < descs.size(); i++)
-    {
-        descs[i].sType    = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
-        descs[i].binding  = 0; // modulate this later
-        descs[i].location = i;
-        descs[i].format   = get_vertex_buffer_format(input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_type());
-        descs[i].offset   = input_vertex_buffers[0].get_layout().resolve_by_index((size_t)i).get_offset();
-        
-    }
+    suite -> bind(data.s_buffer.get_handle());
 
-    
-    m_vkContext.get_device().vkCmdSetVertexInputEXT(
-        cmd,
-        1,
-        &binding,
-        static_cast<uint32_t>(descs.size()),
-        descs.data()
-    );
-
+    data.s_buffer.set_vertex_input(input_vertex_buffers[0].get_layout());
 
     // Set states
-    set_all_states(cmd);
+    set_all_states(data.s_buffer.get_handle());
 
-
-
-
-    // --------------------------------------------------
-    // Vertex/index buffers
-    // --------------------------------------------------
-
-    VkBuffer vertexBuffers[] = {
-        // vertex_buffer.s_handle
-        m_vert_buff_ptr.get()->get_handle()
-    };
-
-    VkDeviceSize offsets[] = {
-        0
-    };
-
-    
-
-    vkCmdBindVertexBuffers(
-        cmd,
-        0,
-        1,
-        vertexBuffers,
-        offsets
-    );
-
-    vkCmdBindIndexBuffer(
-        cmd,
-        // index_buffer.s_handle,
-        m_index_buff_ptr->get_handle(),
-        0,
-        VK_INDEX_TYPE_UINT16
-    );
-
+    data.s_buffer.bind_vertex_buffers(m_vert_buff_ptr, 0);
+    data.s_buffer.bind_index_buffers(m_index_buff_ptr);
 
     // --------------------------------------------------
     // Draw
     // --------------------------------------------------
-
-    // VkBindHeapInfoEXT bind_heap_info_res{
-    //     .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
-    //     .heapRange{
-    //         .address = m_vkContext.m_descHeapMng.m_descHeapResources.s_address,
-    //         .size    = m_vkContext.m_descHeapMng.m_descHeapResources.s_size},
-    //     .reservedRangeOffset = m_vkContext.m_descHeapMng.m_descHeapResources.s_size - m_vkContext.m_descHeapMng.m_properties.minResourceHeapReservedRange,
-    //     .reservedRangeSize = m_vkContext.m_descHeapMng.m_properties.minResourceHeapReservedRange,
-    // };
-
-
 
     VkBindHeapInfoEXT bind_heap_info_res{
         .sType = VK_STRUCTURE_TYPE_BIND_HEAP_INFO_EXT,
@@ -650,10 +607,10 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
     };
 
     
-    m_vkContext.get_device().vkCmdBindResourceHeapEXT(cmd, &bind_heap_info_res);
+    m_vkContext.get_device().vkCmdBindResourceHeapEXT(data.s_buffer.get_handle(), &bind_heap_info_res);
 
     vkCmdDrawIndexed(
-        cmd,
+        data.s_buffer.get_handle(),
         static_cast<uint32_t>(indices.size()),
         1,
         0,
@@ -661,7 +618,7 @@ vkCmdBeginRendering(data.s_commandBuffer, &renderInfo);
         0
     );
 }
-vkCmdEndRendering(data.s_commandBuffer);    
+data.s_buffer.end_render();  
 
 
     vk_sync::Barrier<present_policy> present_barrier;
@@ -676,11 +633,14 @@ vkCmdEndRendering(data.s_commandBuffer);
         .layerCount = 1,       
     };
     present_barrier.set_subresource_range(subs);
-    present_barrier.bind_barrier(data.s_commandBuffer);
+    present_barrier.bind_barrier(data.s_buffer.get_handle());
 
 
 
-	vkEndCommandBuffer(data.s_commandBuffer);
+    data.s_buffer.end();
+    ////////////////////////////////////////////////////////////////
+    // END COMMAND BUFFER
+    ////////////////////////////////////////////////////////////////
 
     VkSemaphoreSubmitInfo imageAcquireWaitInfo{
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
@@ -704,7 +664,7 @@ vkCmdEndRendering(data.s_commandBuffer);
 
 	VkCommandBufferSubmitInfo cmdSubmitInfo{
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-		.commandBuffer = data.s_commandBuffer,
+		.commandBuffer = data.s_buffer.get_handle(),
 	};
 
 
@@ -735,12 +695,8 @@ vkCmdEndRendering(data.s_commandBuffer);
 		.pResults = nullptr
 	};
 
-	vkQueuePresentKHR(gfx->s_handle, &presentInfo);    
+	vkQueuePresentKHR(gfx->s_handle, &presentInfo);
 }
-
-
-
-
 
 
 
@@ -751,7 +707,7 @@ void VkRenderer::clean_swapchain_v2()
 
 
 
-void VkRenderer::set_all_states(VkCommandBuffer& cmd)
+void VkRenderer::set_all_states(VkCommandBuffer cmd)
 {
     ///------set states------///
 

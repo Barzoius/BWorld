@@ -3,6 +3,8 @@
 
 #include "Utils/Utils.hpp"
 
+#include <filesystem>
+
 #include "iostream"
 Scene::Scene()
 {
@@ -22,6 +24,8 @@ void Scene::Run()
 
 void Scene::Update()
 {
+    const auto dt = timer.mark() * 1.0f; 
+
     window->poll_events();
 
     if(window->was_resized())
@@ -46,24 +50,30 @@ void Scene::Update()
                 
                 case GLFW_KEY_A:
                     std::cout<<"KEY_A = MOVE_LEFT"<<std::endl;
+                    camera.translate({-dt, 0.0f, 0.0f});
                     break;
                 case GLFW_KEY_D:
+                    camera.translate({dt, 0.0f, 0.0f});
                     std::cout<<"KEY_D = MOVE_RIGHT"<<std::endl;
                     break;
                 case GLFW_KEY_W:
+                    camera.translate({0.0f, 0.0f, dt});
                     std::cout<<"KEY_W = MOVE_FRONT"<<std::endl;
                     break;
                 case GLFW_KEY_S:
+                    camera.translate({0.0f, 0.0f, -dt});
                     std::cout<<"KEY_S = MOVE_BACK"<<std::endl;
                     break;
                 case GLFW_KEY_Q:
                     std::cout<<"KEY_Q = MOVE_UP"<<std::endl;
+                    camera.translate({0.0f, dt, 0.0f});
                     break;
                 case GLFW_KEY_E:
                     std::cout<<"KEY_E = MOVE_DOWN"<<std::endl;
+                    camera.translate({0.0f, -dt, 0.0f});
                     break;
                 case GLFW_KEY_R:
-                    std::cout<<"KEY_R = RANDOM_INT: "<< bengine_rand::rand<uint32_t>(0, 100)<<std::endl; 
+                    std::cout<<"KEY_R = RANDOM_INT: "<< bengine_rand::rand<uint32_t>(0, 100)<<std::endl;             
                     break;        
                 case GLFW_KEY_CAPS_LOCK:
                     std::cout<<"KEY_CAPS_LOCK:"<<std::endl; 

@@ -2,6 +2,26 @@
 
 #include <random>
 
+// #define STB_IMAGE_IMPLEMENTATION
+// #include "stb_image.hpp"
+
+
+namespace img
+{
+    // void load(const char* path)
+    // {
+    //     int height;
+    //     int width;
+    //     int channels;
+
+    //     unsigned char* pixels = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
+    //     uint64_t       size   = height * width * 4;
+
+    //     if(!pixels) throw std::runtime_error("failed to load texture image!");
+    // }
+}
+
+
 namespace bengine_rand
 {
     thread_local std::mt19937 gen(std::random_device{}());

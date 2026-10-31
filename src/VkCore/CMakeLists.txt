@@ -34,12 +34,14 @@ add_library(VkCore STATIC
 
             ShaderOBJ.hpp
 
-            Sync/VkSynchronization.hpp
+            Sync/Barrier.hpp
+            Sync/Semaphore.hpp
+            Sync/Semaphore.cpp
+
 
             Systems/System.hpp
             Systems/System.cpp
             
-            Descriptors/model_desc.hpp
             Descriptors/DescriptorSystem.hpp
             Descriptors/DescriptorAllocator.hpp
 
@@ -66,15 +68,22 @@ add_library(VkCore STATIC
 
             Resources/Image.hpp
             Resources/Image.cpp
+            
+            Resources/ImageView.hpp
 
-
+            Resources/Sampler.hpp
+            
 
             VkModel.hpp
 
             VkConstants.hpp
-            DescHeapManager.hpp
             VkDescHeapMng.hpp
         
+            Cmd/VkCmdPool.hpp
+            Cmd/VkCmdPool.cpp
+            Cmd/VkCmdBuffer.hpp
+            Cmd/VkCmdBuffer.cpp
+
             )
 
 target_link_libraries(VkCore PRIVATE BEngine)

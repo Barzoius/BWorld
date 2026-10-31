@@ -15,7 +15,14 @@
 
 #include "VulkanSwapchain.hpp"
 
+#include "Cmd/VkCmdBuffer.hpp"
+#include "Cmd/VkCmdPool.hpp"
+
+
 #include "Resources/Buffer.hpp"
+#include "Resources/Image.hpp"
+
+
 
 
 
@@ -26,7 +33,7 @@
 
 #include "ShaderOBJ.hpp"
 
-#include "Sync/VkSynchronization.hpp"
+#include "Sync/Barrier.hpp"
 
 
 #include "VkDescHeapMng.hpp"
@@ -44,7 +51,8 @@ struct UBO_TEST{
 class VkRenderer : public Renderer
 {
 public:
-    VkRenderer(VkContext& ctx) : Renderer(ctx), m_vkContext(ctx), m_heap_manager(){}
+    VkRenderer(VkContext& ctx) 
+    : Renderer(ctx), m_vkContext(ctx), m_heap_manager() {}
 
     void Initialize(Context&)                override;
     void RenderFrame()                       override;
@@ -54,18 +62,19 @@ public:
     void create_swapchain();
 
 
-    void create_frame_data_v2();
     void create_sync_resources();
     void clean_new_sync();
-    void render_with_shader_objects();
+  
+    void create_frame_data();
+    void render();
+    void clean_frame_data();
+
 
     void clean_swapchain_v2();
     void recreate_swapchain_v2();
 
     //just for now its sets all states no costomization
-    void set_all_states(VkCommandBuffer&);
-
-
+    void set_all_states(VkCommandBuffer);
     void record_to_buffer(VkCommandBuffer&);
 
 private:
@@ -73,17 +82,75 @@ private:
     std::unique_ptr<VulkanSwapchain>  swapchain;
     VkSwapchainContext                swapchainContext;
     
+    bool m_framebufferResized  = false;
+    bool m_swapchainRecreation = false;
+
+private:
+    //------------------------------------[SYNCHRONIZATION DATA]---------------------------------//
+    struct frameData
+    {
+        VkCommandPool   s_commandPool     = nullptr;
+        VkCommandBuffer s_commandBuffer   = nullptr;
+        VkSemaphore     s_imgAcquiredSmph = nullptr;
+    };
+    std::array<frameData, MAX_FRAMES_IN_FLIGHT> m_frameResources;
+
+
+    struct frame_data
+    {
+        VkCmdPool   s_pool;
+        VkCmdBuffer s_buffer;
+        VkSemaphore s_imgAcquiredSmph = nullptr;
+
+        frame_data(VulkanDevice& device)
+        : s_pool(device, device.get_device_indices().s_graphics.value()),
+          s_buffer(s_pool) {}
+    };
+    std::vector<frame_data> m_frameResources2;
+
+    uint32_t currentFrame    = 0;
+    uint64_t nextSignalValue = MAX_FRAMES_IN_FLIGHT + 1;
+
+
+    VkSemaphore timelineSmph = nullptr; // cpu-gpu
+    std::vector<VkSemaphore> m_renderCompleteSmphs;//should move to swapchain
+    
+private:
+    struct data{};
+    template<std::size_t... I>
+    static std::array<data, sizeof...(I)> 
+    create_frame_resources(std::index_sequence<I...>)
+    {
+        return std::array<data, sizeof...(I)>{
+            (static_cast<void>(I), data{})...
+        };
+    }
+
+private: //policies
+
+using present_policy = vk_sync::ImageMem_2
+    <vk_sync::Stage::ColorAttachment,vk_sync::Action::ColorWrite,
+    vk_sync::Stage::None, vk_sync::Action::Zero>;
+
+
+
+
+
+
+
+
+
+
+
+public: // for testing
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> >   vertex_obj;
-    std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
-    std::unique_ptr<
-        ShaderOBJ::ShaderSuite<
-            ShaderType::VERTEX,
-            ShaderType::FRAGMENT
-        >
-    > suite;
-
-    bool m_framebufferResized = false;
-
+        std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
+        std::unique_ptr<
+            ShaderOBJ::ShaderSuite<
+                ShaderType::VERTEX,
+                ShaderType::FRAGMENT
+            >
+        > suite;
 
     VkDescHeapMng m_heap_manager;
 
@@ -107,39 +174,14 @@ private:
     UBO_TEST ubo{};
     BufferPtr m_uniform_buff_ptr;
 
+    const char* img_data;
+    ImagePtr m_test_image;
 
-private:
-    //------------------------------------[SYNCHRONIZATION DATA]---------------------------------//
-    struct frameData
-    {
-        VkCommandPool   s_commandPool     = nullptr;
-        VkCommandBuffer s_commandBuffer   = nullptr;
-        VkSemaphore     s_imgAcquiredSmph = nullptr;
-    };
-    std::array<frameData, MAX_FRAMES_IN_FLIGHT> m_frameResources;
-
-    uint32_t currentFrame    = 0;
-    uint64_t nextSignalValue = MAX_FRAMES_IN_FLIGHT + 1;
-
-
-    VkSemaphore timelineSmph = nullptr; // cpu-gpu
-    std::vector<VkSemaphore> m_renderCompleteSmphs;//should move to swapchain
-    
-    //------------------------------------------------------------------------------------------//
-
-
-    bool m_swapchainRecreation = false;
-
-    VkImage depthImage = nullptr;
+    VkImage     depthImage     = nullptr;
     VkImageView depthImageView = nullptr;
-private: //policies
-
-using present_policy = vk_sync::ImageMem_2
-    <vk_sync::Stage::ColorAttachment,vk_sync::Action::ColorWrite,
-    vk_sync::Stage::None, vk_sync::Action::Zero>;
 
 public:
-    static VkFormat get_vertex_buffer_format(DVS::VertexLayout::ElementType type) noexcept
+ static VkFormat get_vertex_buffer_format(DVS::VertexLayout::ElementType type) noexcept
     {
 
         switch(type)

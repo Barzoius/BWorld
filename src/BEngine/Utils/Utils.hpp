@@ -5,6 +5,10 @@
 #include "glm/vec4.hpp"
 
 
+#include <string>
+
+#include <iostream>
+
 
 namespace bengine_rand
 {
@@ -21,5 +25,10 @@ namespace bengine_rand
     bool coin_flip();
     uint32_t dice_roll();
     
+}
+
+namespace img
+{
+    void load(const char* path);
 }
 

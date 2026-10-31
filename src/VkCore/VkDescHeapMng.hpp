@@ -1,5 +1,9 @@
+#pragma once
 
 #include "Resources/Buffer.hpp"
+#include "Resources/Image.hpp" 
+#include "Resources/Sampler.hpp"
+
 
 class VulkanDevice;
 class VkDescHeapMng
@@ -50,15 +54,18 @@ public:
         .with_vma_flags(VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
 
+        m_descHeapResources = resource_heap_config.build_ptr(dev);     
+    }
+
+    void create_sampler_heap(VulkanDevice& dev)
+    {
+        BufferConfig resource_heap_config(m_sizes.heap_buffer_size);
+        resource_heap_config.with_usage(VK_BUFFER_USAGE_DESCRIPTOR_HEAP_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
+        .with_vma_usage(VMA_MEMORY_USAGE_CPU_TO_GPU)
+        .with_vma_flags(VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
 
-        m_descHeapResources = resource_heap_config.build_ptr(dev);
-
-
-        VkBufferDeviceAddressInfo addressInfo{
-            .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-            .buffer = m_descHeapResources->get_handle()
-        };          
+        m_descHeapSamplers = resource_heap_config.build_ptr(dev);
     }
 
 
@@ -86,6 +93,12 @@ public:
 
         dev.vkWriteResourceDescriptorsEXT(dev.get(), 1, &buffer_resource_desc, &buffer_host_address);
     }
+
+    void upload_sampler(VulkanDevice& dev, Sampler sampler)
+    {
+        // we dont actaully need a created Smapler just the create sampler info
+    }
+    
 public:
     VkPhysicalDeviceDescriptorHeapPropertiesEXT m_properties{};
     struct Sizes
