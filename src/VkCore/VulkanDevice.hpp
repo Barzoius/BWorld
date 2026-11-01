@@ -24,6 +24,8 @@ public:
     void Initialize();
     void Destroy();
 
+    void wait();
+
     [[nodiscard]] VkDevice                   get()                const;
     [[nodiscard]] VkPhysicalDevice           getPhyD()            const;
     [[nodiscard]] vkutil::QueueFamilyIndices get_device_indices() const;

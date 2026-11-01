@@ -87,14 +87,6 @@ private:
 
 private:
     //------------------------------------[SYNCHRONIZATION DATA]---------------------------------//
-    struct frameData
-    {
-        VkCommandPool   s_commandPool     = nullptr;
-        VkCommandBuffer s_commandBuffer   = nullptr;
-        VkSemaphore     s_imgAcquiredSmph = nullptr;
-    };
-    std::array<frameData, MAX_FRAMES_IN_FLIGHT> m_frameResources;
-
 
     struct frame_data
     {

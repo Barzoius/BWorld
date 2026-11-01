@@ -23,11 +23,7 @@ VkCmdPool::VkCmdPool(VkCmdPool && other)
     other.m_handle = VK_NULL_HANDLE;
 }
 
-VkCmdPool::~VkCmdPool()
-{
-    if(m_handle != VK_NULL_HANDLE)
-        m_device.destroy_cmd_pool(m_handle);
-}
+VkCmdPool::~VkCmdPool() {}
 
 void VkCmdPool::reset()
 {

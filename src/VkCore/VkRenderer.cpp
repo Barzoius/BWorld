@@ -289,16 +289,7 @@ void VkRenderer::Shutdown() {
     vkDeviceWaitIdle(m_vkContext.get_device().get());
 
 
-    if (timelineSmph)
-	{
-		vkDestroySemaphore(m_vkContext.get_device().get(), timelineSmph, nullptr);
-	}
-
-    for (auto &data : m_frameResources)
-	{
-		vkDestroySemaphore(m_vkContext.get_device().get(), data.s_imgAcquiredSmph, nullptr);
-		vkDestroyCommandPool(m_vkContext.get_device().get(), data.s_commandPool, nullptr); 
-	}
+    clean_new_sync();
 
 
     for (VkSemaphore &semaphore : m_renderCompleteSmphs)
@@ -308,24 +299,30 @@ void VkRenderer::Shutdown() {
 	m_renderCompleteSmphs.clear();
 
 
-    m_test_image->destroy();
+    //m_test_image->destroy();
 
     m_vert_buff_ptr.get()->destroy();
     m_uniform_buff_ptr.get()->destroy();
     m_index_buff_ptr.get()->destroy();
     m_heap_manager.m_descHeapResources->destroy();
+
+
     
     // delete_buffer(index_buffer, m_vkContext.get_allocator());
 
     alloc::destroy_vma_allocator();
 
+
     clean_swapchain_v2();
+
 
 
     if(suite)
     {
         suite->destroy();	
     }
+    std::cout<<"RENDER SHUTDOWN END\n";
+
 
 }
 
@@ -343,7 +340,8 @@ void VkRenderer::Shutdown() {
 void VkRenderer::create_swapchain()
 {
 
-    swapchain = std::make_unique<VulkanSwapchain>(m_vkContext.get_device().get(), m_vkContext.get_device().getPhyD(),  m_vkContext.get_instance().get_surface_handle(), 
+    swapchain = std::make_unique<VulkanSwapchain>(m_vkContext.get_device(), 
+     m_vkContext.get_instance().get_surface_handle(), 
                                                          m_vkContext.get_instance().get_resolution().width, 
                                                          m_vkContext.get_instance().get_resolution().height);
     swapchain -> createSwapChain();
@@ -702,7 +700,7 @@ data.s_buffer.end_render();
 
 void VkRenderer::clean_swapchain_v2()
 {
-    swapchain.get()->Destroy();
+    swapchain.get()->destroy();
 }
 
 
