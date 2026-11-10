@@ -1,27 +1,26 @@
 #pragma once
 
-#include "VertexSystem.hpp"
+#include "IndexedMesh.hpp"
 #include <vector>
 #include <string>
 #include <memory>
 
-// use indexed shape instead
-struct Mesh
-{
-    DVS::VertexBuffer     vertex_buffer;
-    std::vector<uint16_t> index_buffer;
-};
 
 struct Material
 {
 
 };
 
-struct RenderObjec
+struct model
 {
-    int                       id;
-    std::unique_ptr<Mesh>     mesh;
-    std::unique_ptr<Material> material;
-    //transform
+    int x,y,z,w;
+};
 
+
+struct RenderObject
+{
+    int          id;
+    IndexedMesh* mesh;
+    Material     material;
+    model        model;
 };

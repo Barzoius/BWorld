@@ -45,43 +45,7 @@ void VkRenderer::Initialize(Context& context)
 
     m_heap_manager.init(m_vkContext.get_device().getPhyD());
     m_heap_manager.create_buffer_heap(m_vkContext.get_device());
-
-    auto* buf = m_heap_manager.m_descHeapResources.get();
-    //==============================
     
-    // DDS::LayoutElement e1(DDS::Uniform); 
-    // e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
-
-
-    // DDS::LayoutElement e2(DDS::Uniform); 
-    // e1.change_shader_flags(VK_SHADER_STAGE_VERTEX_BIT);
-    // e1.update_shader_flags(VK_SHADER_STAGE_FRAGMENT_BIT);
-
-    // DDS::Layout lay;
-    // lay.append(e1).append(e2);
-    // lay.gen_sig();
-    // std::cout<<lay.get_sig()<<std::endl;
-
-    // DDS::DescriptorSet set1(m_vkContext.get_device().get(), lay);
-
-    // // m_vkContext.get_desc_allocator().allocate(m_vkContext.get_device().get(), )
-
-    // DDS::DescriptorLayoutCache::destroy(m_vkContext.get_device().get());
-
-    
-
-    // DUS::RawLayout MVP_LAY;
-    // MVP_LAY.add<DUS::Mat4x4>("model");
-    // MVP_LAY.add<DUS::Mat4x4>("view");
-    // MVP_LAY.add<DUS::Mat4x4>("projection");
-
-    // auto MVP_BUF = DUS::Buffer<DUS::HLSL_Policy>(std::move(MVP_LAY));
-
-    // glm::mat4 model(1.0f);
-    // DUS::MAT4x4 model_data;
-    // std::memcpy(model_data.data, glm::value_ptr(model), sizeof(model_data.data));
-    // MVP_BUF["model"] = model_data;
-
 
     vertex_obj = std::make_unique<ShaderOBJ::Shader<ShaderType::VERTEX>>(
         m_vkContext.get_device().get(), 
@@ -103,6 +67,7 @@ void VkRenderer::Initialize(Context& context)
     buff_bind.bindingCount = 1;
     buff_bind.resourceMask = VK_SPIRV_RESOURCE_TYPE_UNIFORM_BUFFER_BIT_EXT;
     buff_bind.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_CONSTANT_OFFSET_EXT;
+    
 
 
     buff_bind.sourceData.constantOffset.heapArrayStride =
@@ -131,12 +96,7 @@ void VkRenderer::Initialize(Context& context)
     create_swapchain();
     
 
-    ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));;
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), swapchainContext.width / (float) swapchainContext.height, 0.1f, 10.0f);
-    //ubo.proj[1][1] *= -1;
 
-    //ubo_buff = create_uniform_buffer(ubo, m_vkContext.get_allocator());
 
 
     BufferConfig ubo_config(sizeof(ubo));
@@ -155,134 +115,97 @@ void VkRenderer::Initialize(Context& context)
 
 
 
-    construct_vertex_buffer();
-
     create_sync_resources();
 
     create_frame_data();
 
 }
 
-void VkRenderer::construct_vertex_buffer()
+void VkRenderer::Submit(const RenderObject& obj)
 {
-    //image
-    
-    // int texWidth, texHeight, texChannels;
-    // stbi_uc* pixels = stbi_load("C:/Users/mecca/Desktop/MASTER_1/BWorld/src/Media/Image/Images/brickwall.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    // VkDeviceSize imageSize = texWidth * texHeight * 4;
+    m_render_objects.emplace_back(obj);
+    GPU_Mesh mesh;
 
-    // if (!pixels) {
-    //     throw std::runtime_error("failed to load texture image!");
-    // }
+    //-----VERTEX BUFFER-----//
+    {
+        const auto& vb = obj.mesh->m_vertices;
 
-    // BufferConfig stage_img_conf(imageSize);
-    // stage_img_conf
-    // .with_debug_name("stage_image_config")
-    // .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
-    // .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+        BufferConfig stag_config(vb.get_size_in_bytes());
+        stag_config
+        .with_debug_name("stage_buff_1")
+        .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
+        .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
-    // Buffer stag_img(m_vkContext.get_device(), stage_img_conf);
+        Buffer stag_buffer(m_vkContext.get_device(), stag_config);
 
-    // if(pixels != nullptr) stag_img.update(pixels, imageSize);
 
-    // stbi_image_free(pixels);
+        const auto data = vb.get_data();
+        const auto size = vb.get_size_in_bytes();
 
-    // ImageConfig img_conf(texWidth, texHeight);
-    // img_conf.with_debug_name("img_1")
-    // .with_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT)
-    // .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
-    
-    // m_test_image = img_conf.build_ptr(m_vkContext.get_device());
+        if(vb.get_data() != nullptr) 
+            stag_buffer.update(vb.get_data(), size);
 
 
 
-    // trasition_img_layout(m_vkContext.transfer_sys, m_test_image->get_handle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        BufferConfig config(vb.get_size_in_bytes());
+        config.with_debug_name("vert_buff_1")
+        .with_usage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+        .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+        
+        mesh.vertex_buffer = config.build_ptr(m_vkContext.get_device()); 
 
-    // copy_buffer_to_img(m_vkContext.transfer_sys, stag_img.get_handle(),
-    //  m_test_image->get_handle(),
-    //  static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-
-    // stag_img.destroy();
-    
-    ///----VERTEX BUFFER----////
-    
-    DVS::VertexLayout vl;
-    vl.append(DVS::VertexLayout::Position2D).append(DVS::VertexLayout::Float3Color);
-    DVS::VertexBuffer vb(std::move(vl));
-    vb.emplace_back(DVS::VKFLOAT2{-0.5f, -0.5f}, DVS::VKFLOAT3{1.0f, 1.0f, 1.0f});
-    vb.emplace_back(DVS::VKFLOAT2{0.5f, -0.5f},  DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
-    vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f},   DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
-    vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f},  DVS::VKFLOAT3{0.0f, 1.0f, 1.0f});
-    
-
-    input_vertex_buffers.push_back(vb);
+        copy_buffer(m_vkContext.transfer_sys, stag_buffer.get_handle(), 
+        mesh.vertex_buffer.get()->get_handle(), vb.get_size_in_bytes());
 
 
-    /// with new buffer sysetm
-    BufferConfig stag_config(vb.get_size_in_bytes());
-    stag_config
-    .with_debug_name("stage_buff_1")
-    .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
-    .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+        // stag_buffer.destroy();
+    }
 
-    Buffer stag_buffer(m_vkContext.get_device(), stag_config);
+    //-----INDEX BUFFER-----//
+    {
+        const auto& indices = obj.mesh->m_indices;
 
+        mesh.index_count = static_cast<uint32_t>(indices.size());
 
-    const auto data = vb.get_data();
-    const auto size = vb.get_size_in_bytes();
+        size_t buffSize = sizeof(indices[0]) * indices.size();
 
-    if(vb.get_data() != nullptr) 
-        stag_buffer.update(vb.get_data(), size);
+        BufferConfig stag_config_2(buffSize);
+        stag_config_2
+        .with_debug_name("stage_buff_2")
+        .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
+        .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
+        Buffer stag_buffer_2(m_vkContext.get_device(), stag_config_2);
 
+        
+        stag_buffer_2.update(indices);
 
-    BufferConfig config(vb.get_size_in_bytes());
-    config.with_debug_name("vert_buff_1")
-    .with_usage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
-    .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
-    
-    m_vert_buff_ptr = config.build_ptr(m_vkContext.get_device());
+        BufferConfig config_index(buffSize);
+        config_index.with_debug_name("index_buff_1")
+        .with_usage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
+        .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+        
+        mesh.index_buffer = config_index.build_ptr(m_vkContext.get_device());
 
-    
+        copy_buffer(m_vkContext.transfer_sys, stag_buffer_2.get_handle(), 
+        mesh.index_buffer.get()->get_handle(), buffSize);
 
-    copy_buffer(m_vkContext.transfer_sys, stag_buffer.get_handle(), 
-    m_vert_buff_ptr.get()->get_handle(), vb.get_size_in_bytes());
+        // stag_buffer_2.destroy();
+    }
 
-    stag_buffer.destroy(); // we have desctructor but the scope finishes later 
-    
-    // INDEX BUFFER 
+    m_meshes.emplace_back(std::move(mesh));
 
-    size_t buffSize = sizeof(indices[0]) * indices.size();
-
-    BufferConfig stag_config_2(buffSize);
-    stag_config_2
-    .with_debug_name("stage_buff_2")
-    .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
-    .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-
-    Buffer stag_buffer_2(m_vkContext.get_device(), stag_config_2);
-
-    
-    stag_buffer_2.update(indices);
-
-    BufferConfig config_index(buffSize);
-    config.with_debug_name("index_buff_1")
-    .with_usage(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
-    .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
-    
-    m_index_buff_ptr = config.build_ptr(m_vkContext.get_device());
-
-    copy_buffer(m_vkContext.transfer_sys, stag_buffer_2.get_handle(), 
-    m_index_buff_ptr.get()->get_handle(), buffSize);
-
-    stag_buffer_2.destroy();
 }
+
+
 
 
 void VkRenderer::RenderFrame() 
 {
     render();
 }
+
+
 
 void VkRenderer::Shutdown() {
     
@@ -301,9 +224,12 @@ void VkRenderer::Shutdown() {
 
     //m_test_image->destroy();
 
-    m_vert_buff_ptr.get()->destroy();
+    m_render_objects.clear();
+    m_meshes.clear();
+
+   // m_vert_buff_ptr.get()->destroy();
     m_uniform_buff_ptr.get()->destroy();
-    m_index_buff_ptr.get()->destroy();
+    // m_index_buff_ptr.get()->destroy();
     m_heap_manager.m_descHeapResources->destroy();
 
 
@@ -447,8 +373,8 @@ void VkRenderer::render()
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));;
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), swapchainContext.width / (float) swapchainContext.height, 0.1f, 10.0f);
+    
 
-    // memcpy(ubo_buff.s_data, &ubo, sizeof(ubo));
     m_uniform_buff_ptr->update(ubo);
 
     const uint32_t frameDataIndex = currentFrame++ % MAX_FRAMES_IN_FLIGHT;
@@ -583,13 +509,13 @@ data.s_buffer.begin_render(renderInfo);
 
     suite -> bind(data.s_buffer.get_handle());
 
-    data.s_buffer.set_vertex_input(input_vertex_buffers[0].get_layout());
+    data.s_buffer.set_vertex_input(DVS::get_universal_layout());
 
     // Set states
     set_all_states(data.s_buffer.get_handle());
 
-    data.s_buffer.bind_vertex_buffers(m_vert_buff_ptr, 0);
-    data.s_buffer.bind_index_buffers(m_index_buff_ptr);
+    data.s_buffer.bind_vertex_buffers(m_meshes[1].vertex_buffer, 0);
+    data.s_buffer.bind_index_buffers(m_meshes[1].index_buffer);
 
     // --------------------------------------------------
     // Draw
@@ -609,7 +535,7 @@ data.s_buffer.begin_render(renderInfo);
 
     vkCmdDrawIndexed(
         data.s_buffer.get_handle(),
-        static_cast<uint32_t>(indices.size()),
+        m_meshes[1].index_count,
         1,
         0,
         0,
@@ -693,6 +619,8 @@ data.s_buffer.end_render();
 		.pResults = nullptr
 	};
 
+    VkSwapchainPresentFenceInfoKHR vk;
+    
 	vkQueuePresentKHR(gfx->s_handle, &presentInfo);
 }
 
@@ -760,13 +688,49 @@ void VkRenderer::set_all_states(VkCommandBuffer cmd)
 
 
 
-void VkRenderer::record_to_buffer(VkCommandBuffer& cmd)
+
+
+void image()
 {
-    VkCommandBufferBeginInfo cmd_begin_info
     {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
-    };
+    //image
     
-    vkBeginCommandBuffer(cmd, &cmd_begin_info);
+    // int texWidth, texHeight, texChannels;
+    // stbi_uc* pixels = stbi_load("C:/Users/mecca/Desktop/MASTER_1/BWorld/src/Media/Image/Images/brickwall.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    // VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+    // if (!pixels) {
+    //     throw std::runtime_error("failed to load texture image!");
+    // }
+
+    // BufferConfig stage_img_conf(imageSize);
+    // stage_img_conf
+    // .with_debug_name("stage_image_config")
+    // .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT)
+    // .with_usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
+    // Buffer stag_img(m_vkContext.get_device(), stage_img_conf);
+
+    // if(pixels != nullptr) stag_img.update(pixels, imageSize);
+
+    // stbi_image_free(pixels);
+
+    // ImageConfig img_conf(texWidth, texHeight);
+    // img_conf.with_debug_name("img_1")
+    // .with_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT)
+    // .with_vma_usage(VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+    
+    // m_test_image = img_conf.build_ptr(m_vkContext.get_device());
+
+
+
+    // trasition_img_layout(m_vkContext.transfer_sys, m_test_image->get_handle(), VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    // copy_buffer_to_img(m_vkContext.transfer_sys, stag_img.get_handle(),
+    //  m_test_image->get_handle(),
+    //  static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+
+    // stag_img.destroy();
+    
+    }
 }

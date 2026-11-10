@@ -69,6 +69,7 @@ private:
         VkPhysicalDeviceVulkan14Features          supported14{};
         VkPhysicalDeviceShaderObjectFeaturesEXT   supportedShaderObject{};
         VkPhysicalDeviceDescriptorHeapFeaturesEXT supporteDescriptorHeap{};
+        VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR supportedMaintenance1{};
 
         // Enabled
         VkPhysicalDeviceFeatures2                 enabled{};
@@ -77,6 +78,7 @@ private:
         VkPhysicalDeviceVulkan14Features          enabled14{};
         VkPhysicalDeviceShaderObjectFeaturesEXT   enabledShaderObject{};
         VkPhysicalDeviceDescriptorHeapFeaturesEXT enabledDescriptorHeap{}; 
+        VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR enableMaintenance1{};
     }m_features;
 
 private:
@@ -125,6 +127,7 @@ private:
         VK_EXT_SHADER_OBJECT_EXTENSION_NAME,
         VK_KHR_MAINTENANCE_5_EXTENSION_NAME,
         VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+        VK_KHR_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME,
         VK_EXT_DESCRIPTOR_HEAP_EXTENSION_NAME,
     };
 

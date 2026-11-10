@@ -377,6 +377,24 @@ namespace DVS
 
     private:
         std::vector<char> m_buffer;
-        VertexLayout m_layout;
+        VertexLayout m_layout; 
+        // in the context of the universal layout this should be a const&
+        // might have to decide in the DVS sytems if  a universal layout is to be used or not
     };
+
+
+    inline const VertexLayout& get_universal_layout()
+    {
+        static const VertexLayout layout = []()
+        {
+            VertexLayout result;
+            result.append(VertexLayout::Position3D)
+                  .append(VertexLayout::Float3Color)
+                  .append(VertexLayout::Texture2D)
+                  .append(VertexLayout::Normal);
+            return result;
+        }();
+
+        return layout;
+    }
 };

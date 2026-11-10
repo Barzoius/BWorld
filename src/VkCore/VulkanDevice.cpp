@@ -225,9 +225,14 @@ void VulkanDevice::query_features()
         .pNext = &m_features.supporteDescriptorHeap
     };
 
+    m_features.supportedMaintenance1 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR,
+        .pNext = &m_features.supportedShaderObject
+    };
+
     m_features.supported14 = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
-        .pNext = &m_features.supportedShaderObject
+        .pNext = &m_features.supportedMaintenance1
     };
 
     m_features.supported13 = {
@@ -263,9 +268,15 @@ void VulkanDevice::enable_features()
         .shaderObject = VK_TRUE
     };
 
+    m_features.enableMaintenance1 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR,
+        .pNext = &m_features.supportedShaderObject,
+        .swapchainMaintenance1 = VK_TRUE
+    };
+
     m_features.enabled14 = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
-        .pNext = &m_features.enabledShaderObject,
+        .pNext = &m_features.enableMaintenance1,
         .maintenance5 = VK_TRUE
     };
 

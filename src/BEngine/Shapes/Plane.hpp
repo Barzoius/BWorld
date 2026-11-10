@@ -1,13 +1,15 @@
-#include "IndexedShape.hpp"
+#pragma once
+
+#include "IndexedMesh.hpp"
 
 class Plane final
 {
 public:
-    static IndexedShape make(DVS::VertexLayout p_layout)
+    static IndexedMesh make()
     {
         using type = DVS::VertexLayout::ElementType;
 
-        DVS::VertexBuffer vertices{std::move(p_layout), 4u};
+        DVS::VertexBuffer vertices{DVS::get_universal_layout(), 4u};
 
 
         return {std::move(vertices), {}};

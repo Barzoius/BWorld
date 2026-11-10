@@ -4,6 +4,7 @@
 #include "VertexSystem.hpp"
 #include "Camera.hpp"
 #include "Timer.hpp"
+#include "RenderObject.hpp"
 
 
 #include <memory>
@@ -26,4 +27,7 @@ private:
     Window* window;
     Camera  camera;
     Timer   timer;
+
+    std::vector<RenderObject> objects;
+
 };

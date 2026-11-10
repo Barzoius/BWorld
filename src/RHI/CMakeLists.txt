@@ -4,7 +4,6 @@
 
 add_library(RHI STATIC
     Context.hpp
-    Model.hpp
     Renderer.hpp
     Timer.hpp
     ShaderTypes.hpp
@@ -13,6 +12,7 @@ add_library(RHI STATIC
     UniformSystem.hpp
     VertexSystem.hpp
     RenderObject.hpp
+    IndexedMesh.hpp
 )
 
 target_include_directories(RHI PUBLIC

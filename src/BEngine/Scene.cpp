@@ -6,9 +6,57 @@
 #include <filesystem>
 
 #include "iostream"
+
+
+#include "Shapes/Cube.hpp"
+#include "Shapes/Sphere.hpp"
+#include "Shapes/Square.hpp"
+
+
+
 Scene::Scene()
 {
     window = Engine::GetWindow();
+
+    IndexedMesh square_mesh = Square::make_colored();
+    IndexedMesh cube_mesh = Cube::make_colored();
+    IndexedMesh sphere_mesh = Sphere::make();
+
+    objects.emplace_back(RenderObject{
+        .id = 0,
+        .mesh = &square_mesh,
+        .material = {},
+        .model = {.x = -150}
+    });
+
+
+    objects.emplace_back(RenderObject{
+        .id = 1,
+        .mesh = &cube_mesh,
+        .material = {},
+        .model = {.x = -50}
+    });
+
+    objects.emplace_back(RenderObject{
+        .id = 2,
+        .mesh = &sphere_mesh,
+        .material = {},
+        .model = {.x = 0}
+    });
+
+    objects.emplace_back(RenderObject{
+        .id = 3,
+        .mesh = &cube_mesh,
+        .material = {},
+        .model = {.x = 100}
+    });
+
+    for(auto& obj : objects)
+    {
+        Engine::GetRenderer()->Submit(obj);
+        std::cout<<"OBJ: "<<obj.id<<"\n";
+    }
+
 }
 
 
@@ -34,6 +82,7 @@ void Scene::Update()
                                                  window->specs.wnd_height});
         window->clear_resize_flag();
     }
+
 
     while(auto e  = window->keyboard.read_key())
     {
@@ -103,16 +152,5 @@ void Scene::Update()
 
 void Scene::Exit()
 {
-
-    // DVS::VertexLayout vl;
-    // vl.append(DVS::VertexLayout::Position2D).append(DVS::VertexLayout::Float3Color);
-    // DVS::VertexBuffer vb(std::move(vl));
-    // vb.emplace_back(DVS::VKFLOAT2{-0.5f, -0.5f}, DVS::VKFLOAT3{1.0f, 1.0f, 1.0f});
-    // vb.emplace_back(DVS::VKFLOAT2{0.5f, -0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 0.0f});
-    // vb.emplace_back(DVS::VKFLOAT2{0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 0.0f, 1.0f});
-    // vb.emplace_back(DVS::VKFLOAT2{-0.5f, 0.5f}, DVS::VKFLOAT3{0.0f, 1.0f, 1.0f});
-
-    // std::cout<<"CODE\n";
-    // std::cout<<vb.get_layout().get_code()<<std::endl;
 
 }

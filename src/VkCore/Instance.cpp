@@ -15,6 +15,15 @@ void Instance::initialize(const std::vector<const char*>& exts,
     surfaceInfo          = si;
     resolution           = res;
 
+   
+    requiered_extensions.push_back(
+        VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME
+    );
+
+    requiered_extensions.push_back(
+        VK_KHR_SURFACE_MAINTENANCE_1_EXTENSION_NAME
+    );
+
     if (enableValidationLayers)
         requiered_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);  
 

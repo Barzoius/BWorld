@@ -58,6 +58,7 @@ public:
     void RenderFrame()                       override;
     void Shutdown()                          override;
     void UpdateResolution(const Resolution&) override;
+    void Submit(const RenderObject&)         override;
 
     void create_swapchain();
 
@@ -75,12 +76,13 @@ public:
 
     //just for now its sets all states no costomization
     void set_all_states(VkCommandBuffer);
-    void record_to_buffer(VkCommandBuffer&);
 
 private:
     VkContext&                        m_vkContext;
     std::unique_ptr<VulkanSwapchain>  swapchain;
     VkSwapchainContext                swapchainContext;
+    
+    std::vector<VkFence> m_present_fences;
     
     bool m_framebufferResized  = false;
     bool m_swapchainRecreation = false;
@@ -128,13 +130,17 @@ using present_policy = vk_sync::ImageMem_2
 
 
 
-
-
-
-
-
-
 public: // for testing
+
+    struct GPU_Mesh
+    {
+        BufferPtr vertex_buffer;
+        BufferPtr index_buffer;
+        uint32_t index_count = 0;
+    };
+    std::vector<RenderObject> m_render_objects;
+    std::vector<GPU_Mesh> m_meshes;
+    
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> >   vertex_obj;
         std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
         std::unique_ptr<
@@ -146,17 +152,6 @@ public: // for testing
 
     VkDescHeapMng m_heap_manager;
 
-    BufferPtr m_vert_buff_ptr;
-    BufferPtr m_index_buff_ptr;
-
-
-    std::vector<DVS::VertexBuffer> input_vertex_buffers;
-
-
-    const std::vector<uint16_t> indices = {
-        0, 1, 2, 2, 3, 0
-    };
-    void construct_vertex_buffer();
 
 
 
@@ -173,7 +168,7 @@ public: // for testing
     VkImageView depthImageView = nullptr;
 
 public:
- static VkFormat get_vertex_buffer_format(DVS::VertexLayout::ElementType type) noexcept
+    static VkFormat get_vertex_buffer_format(DVS::VertexLayout::ElementType type) noexcept
     {
 
         switch(type)

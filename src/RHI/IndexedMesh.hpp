@@ -1,15 +1,17 @@
+#pragma once
 
 #include <vector>
 #include <cassert>
 
 #include "VertexSystem.hpp"
 
-class IndexedShape
+
+class IndexedMesh
 {
 public:
-    IndexedShape() = default;
+    IndexedMesh() = delete;
 
-    IndexedShape(DVS::VertexBuffer p_vertices, std::vector<unsigned short> p_indices)
+    IndexedMesh(DVS::VertexBuffer p_vertices, std::vector<unsigned short> p_indices)
     :
     m_vertices(std::move(p_vertices)), m_indices(std::move(p_indices))
     {
@@ -17,7 +19,7 @@ public:
         assert(m_indices.size() % 3 == 0);
     }
 
-private:
+public:
     DVS::VertexBuffer m_vertices; 
     std::vector<unsigned short> m_indices;
 };

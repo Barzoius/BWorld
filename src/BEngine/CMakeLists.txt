@@ -10,7 +10,6 @@ add_library(BEngine STATIC
 
             Inputs/Keyboard.hpp
             Inputs/Keyboard.cpp
-
             Inputs/Mouse.hpp
             Inputs/Mouse.cpp
 
@@ -20,6 +19,12 @@ add_library(BEngine STATIC
             Camera.hpp
             Camera.cpp
 
+            Shapes/Cube.hpp
+            Shapes/Square.hpp
+            Shapes/Plane.hpp
+            Shapes/Sphere.hpp
+
+            ECS[oo]basic[oo]/Registry.hpp
 
             )
             

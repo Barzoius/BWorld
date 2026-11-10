@@ -30,7 +30,6 @@ add_library(VkCore STATIC
             Queue.hpp
             Queue.cpp
 
-            Commands.hpp
 
             ShaderOBJ.hpp
 
@@ -73,8 +72,6 @@ add_library(VkCore STATIC
 
             Resources/Sampler.hpp
             
-
-            VkModel.hpp
 
             VkConstants.hpp
             VkDescHeapMng.hpp
