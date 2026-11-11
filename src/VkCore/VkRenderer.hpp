@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include "VkContext.hpp"
-#include "VkContexts/VkSwapChainContext.hpp"
 #include "VkConstants.hpp"
 
 
@@ -21,8 +20,6 @@
 
 #include "Resources/Buffer.hpp"
 #include "Resources/Image.hpp"
-
-
 
 
 
@@ -39,12 +36,23 @@
 #include "VkDescHeapMng.hpp"
 
 
-#include <cstdlib>
 
 struct UBO_TEST{
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 proj;
+};
+
+
+struct CameraUBO
+{
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
+};
+
+struct ObjectMODEL
+{
+    alignas(16) glm::mat4 model;
 };
 
 
@@ -70,6 +78,8 @@ public:
     void render();
     void clean_frame_data();
 
+    void update_global_uniforms();
+    void update_entity_unfiorms();
 
     void clean_swapchain_v2();
     void recreate_swapchain_v2();
@@ -80,7 +90,6 @@ public:
 private:
     VkContext&                        m_vkContext;
     std::unique_ptr<VulkanSwapchain>  swapchain;
-    VkSwapchainContext                swapchainContext;
     
     std::vector<VkFence> m_present_fences;
     
@@ -137,9 +146,17 @@ public: // for testing
         BufferPtr vertex_buffer;
         BufferPtr index_buffer;
         uint32_t index_count = 0;
+
+        ObjectMODEL model;
+        BufferPtr model_buff;
     };
     std::vector<RenderObject> m_render_objects;
     std::vector<GPU_Mesh> m_meshes;
+
+    CameraUBO m_cam_data{};
+    BufferPtr m_camera_ubo;
+
+    void create_camera_ubo();
     
     std::unique_ptr<ShaderOBJ::Shader<ShaderType::VERTEX> >   vertex_obj;
         std::unique_ptr<ShaderOBJ::Shader<ShaderType::FRAGMENT> > fragment_obj;
@@ -152,10 +169,6 @@ public: // for testing
 
     VkDescHeapMng m_heap_manager;
 
-
-
-
-    void update_uniform_buffer(uint32_t currentImage);
 
 
     UBO_TEST ubo{};

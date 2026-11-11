@@ -19,7 +19,6 @@
 #include "Resources/Image.hpp"
 
 
-#include "Descriptors/DescriptorSystem.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.hpp"
@@ -97,6 +96,10 @@ void VkRenderer::Initialize(Context& context)
     
 
 
+  
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), swapchain -> get_width() / (float) swapchain -> get_height(), 0.1f, 10.0f);
+    //ubo.proj[1][1] *= -1.0f;
 
 
     BufferConfig ubo_config(sizeof(ubo));
@@ -227,28 +230,23 @@ void VkRenderer::Shutdown() {
     m_render_objects.clear();
     m_meshes.clear();
 
-   // m_vert_buff_ptr.get()->destroy();
+
     m_uniform_buff_ptr.get()->destroy();
-    // m_index_buff_ptr.get()->destroy();
+
     m_heap_manager.m_descHeapResources->destroy();
 
 
-    
-    // delete_buffer(index_buffer, m_vkContext.get_allocator());
 
     alloc::destroy_vma_allocator();
 
 
     clean_swapchain_v2();
 
-
-
     if(suite)
     {
         suite->destroy();	
     }
     std::cout<<"RENDER SHUTDOWN END\n";
-
 
 }
 
@@ -273,15 +271,8 @@ void VkRenderer::create_swapchain()
     swapchain -> createSwapChain();
     swapchain -> create_swapchain_image_views();
 
-    swapchainContext.extent = swapchain -> get_extent();
-    swapchainContext.imageFormat = swapchain -> get_image_format();
-    swapchainContext.width = swapchain -> get_width();
-    swapchainContext.height = swapchain -> get_height();
-    swapchainContext.images = swapchain -> get_images().size();
 
 }
-
-
 
 
 
@@ -353,6 +344,43 @@ void VkRenderer::clean_frame_data()
     }
 }
 
+
+void VkRenderer::create_camera_ubo()
+{
+    m_cam_data.view = glm::lookAt(
+        glm::vec3(2.0f, 2.0f, 2.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f)
+    );
+    m_cam_data.proj = glm::perspective(
+        glm::radians(45.0f),
+        swapchain -> get_width() / (float)(swapchain -> get_height()),
+        0.1f,
+        10.0f
+    );
+    m_cam_data.proj[1][1] *= -1.0f;
+
+    BufferConfig cameraConfig(sizeof(CameraUBO));
+    cameraConfig
+    .with_debug_name("camera_ubo")
+    .with_usage(
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
+        VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT
+    )
+    .with_vma_flags(
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+        VMA_ALLOCATION_CREATE_MAPPED_BIT
+    )
+    .with_sharing_mode(VK_SHARING_MODE_EXCLUSIVE);
+
+    m_camera_ubo = cameraConfig.build_ptr(m_vkContext.get_device());
+
+    m_camera_ubo->update(m_cam_data);
+
+
+}
+
+
 void VkRenderer::render()
 {
     if(m_swapchainRecreation)
@@ -370,9 +398,7 @@ void VkRenderer::render()
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));;
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), swapchainContext.width / (float) swapchainContext.height, 0.1f, 10.0f);
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     
 
     m_uniform_buff_ptr->update(ubo);
@@ -492,7 +518,7 @@ void VkRenderer::render()
         .renderArea
         {
             .offset{.x = 0, .y =0},
-            .extent{.width = static_cast<uint32_t>(swapchainContext.width), .height = static_cast<uint32_t>(swapchainContext.height)}
+            .extent{.width = static_cast<uint32_t>(swapchain -> get_width()), .height = static_cast<uint32_t>(swapchain -> get_height())}
         },
         .layerCount = 1,
         .colorAttachmentCount = 1,
@@ -506,16 +532,10 @@ void VkRenderer::render()
 data.s_buffer.begin_render(renderInfo);
 {
 
-
-    suite -> bind(data.s_buffer.get_handle());
-
     data.s_buffer.set_vertex_input(DVS::get_universal_layout());
 
     // Set states
     set_all_states(data.s_buffer.get_handle());
-
-    data.s_buffer.bind_vertex_buffers(m_meshes[1].vertex_buffer, 0);
-    data.s_buffer.bind_index_buffers(m_meshes[1].index_buffer);
 
     // --------------------------------------------------
     // Draw
@@ -532,6 +552,11 @@ data.s_buffer.begin_render(renderInfo);
 
     
     m_vkContext.get_device().vkCmdBindResourceHeapEXT(data.s_buffer.get_handle(), &bind_heap_info_res);
+
+    suite -> bind(data.s_buffer.get_handle());
+
+    data.s_buffer.bind_vertex_buffers(m_meshes[1].vertex_buffer, 0);
+    data.s_buffer.bind_index_buffers(m_meshes[1].index_buffer);
 
     vkCmdDrawIndexed(
         data.s_buffer.get_handle(),
@@ -640,8 +665,8 @@ void VkRenderer::set_all_states(VkCommandBuffer cmd)
     VkViewport viewport{
         .x = 0.0f,
         .y = 0.0f,
-        .width = static_cast<float>(swapchainContext.width),
-        .height = static_cast<float>(swapchainContext.height),
+        .width = static_cast<float>(swapchain -> get_width()),
+        .height = static_cast<float>(swapchain -> get_height()),
         .minDepth = 0.0f,
         .maxDepth = 1.0f
     };
@@ -650,8 +675,8 @@ void VkRenderer::set_all_states(VkCommandBuffer cmd)
     VkRect2D scissor{
         .offset = {0, 0},
         .extent = {
-            static_cast<uint32_t>(swapchainContext.width),
-            static_cast<uint32_t>(swapchainContext.height)
+            static_cast<uint32_t>(swapchain -> get_width()),
+            static_cast<uint32_t>(swapchain -> get_height())
         }
     };
 

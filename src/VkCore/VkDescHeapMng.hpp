@@ -70,7 +70,7 @@ public:
 
 
 
-    void upload_buffer(VulkanDevice& dev, BufferPtr& buf)
+    uint32_t upload_buffer(VulkanDevice& dev, BufferPtr& buf)
     {
         VkDeviceAddressRangeEXT buffer_device_addr_range
         {
@@ -91,7 +91,15 @@ public:
             .size    = m_sizes.buffer_descriptor_size
         };
 
+        const uint32_t size = static_cast<uint32_t>(m_sizes.buffer_descriptor_size);
+        const uint32_t offset = m_nextBufferOffset;
+        m_nextBufferOffset += size;
+
         dev.vkWriteResourceDescriptorsEXT(dev.get(), 1, &buffer_resource_desc, &buffer_host_address);
+
+        //std::cout<<"OFFSET: "<<m_nextBufferOffset<<"\n";
+        return offset;
+
     }
 
     void upload_sampler(VulkanDevice& dev, Sampler sampler)
@@ -120,5 +128,9 @@ public:
     
     BufferPtr m_descHeapResources;
     BufferPtr m_descHeapSamplers;
+
+    uint32_t m_nextBufferOffset  = 0;
+    uint32_t m_nextSamplerOffset = 0;
+
 
 };

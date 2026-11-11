@@ -22,14 +22,11 @@ add_library(VkCore STATIC
             VulkanSwapchain.hpp
             VulkanSwapchain.cpp
 
-            VkContexts/VkSwapChainContext.hpp
-
             VkUtils.hpp
             VkUtils.cpp
 
             Queue.hpp
             Queue.cpp
-
 
             ShaderOBJ.hpp
 
@@ -37,39 +34,18 @@ add_library(VkCore STATIC
             Sync/Semaphore.hpp
             Sync/Semaphore.cpp
 
-
             Systems/System.hpp
             Systems/System.cpp
-            
-            Descriptors/DescriptorSystem.hpp
-            Descriptors/DescriptorAllocator.hpp
-
-            Pipeline/GraphicsPipeline.hpp
-            Pipeline/GraphicsPipeline.cpp
-
-            Pipeline/ComputePipeline.hpp
-
-            Pipeline/Shader.hpp
-            Pipeline/Shader.cpp
-
-            Pipeline/ShaderType.hpp
-
 
             Resources/ResourceConfig.hpp
             Resources/VkResource.hpp
-            
             Resources/Allocated.hpp
-            Resources/Allocated.cpp
-
-            
+            Resources/Allocated.cpp   
             Resources/Buffer.hpp
             Resources/Buffer.cpp
-
             Resources/Image.hpp
             Resources/Image.cpp
-            
             Resources/ImageView.hpp
-
             Resources/Sampler.hpp
             
 
@@ -81,6 +57,17 @@ add_library(VkCore STATIC
             Cmd/VkCmdBuffer.hpp
             Cmd/VkCmdBuffer.cpp
 
+
+            # ------------ DEPRICATED ------------ #
+            # Descriptors/DescriptorSystem.hpp
+            # Descriptors/DescriptorAllocator.hpp
+            # Pipeline/GraphicsPipeline.hpp
+            # Pipeline/GraphicsPipeline.cpp
+            # Pipeline/ComputePipeline.hpp
+            # Pipeline/Shader.hpp
+            # Pipeline/Shader.cpp
+            # Pipeline/ShaderType.hpp
+            
             )
 
 target_link_libraries(VkCore PRIVATE BEngine)

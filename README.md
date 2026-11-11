@@ -1,4 +1,4 @@
-| <img src="imgs/placeholder.jpg" width="120px"/> | **BWORLD** |
+| <img src="imgs/sphere.png" width="120px"/> | **BWORLD** |
 |------------------------------------------------------|--------------------------|
 
 # Overview

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IndexedMesh.hpp"
-
+#include "Utils/Utils.hpp"
 
 class Sphere final
 {
@@ -60,7 +60,8 @@ public:
                     x, y, z
                 };
 
-                vertices[index].attribute<type::Float3Color>() = {1.0f, 0.4f, 0.2f};
+                glm::vec3 c = bengine_rand::rand_normalized_color();
+                vertices[index].attribute<type::Float3Color>() = {c.x, c.y, c.z};
             }
         }
 
