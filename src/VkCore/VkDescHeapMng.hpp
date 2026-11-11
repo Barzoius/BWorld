@@ -72,6 +72,16 @@ public:
 
     uint32_t upload_buffer(VulkanDevice& dev, BufferPtr& buf)
     {
+        const uint32_t size = static_cast<uint32_t>(m_sizes.buffer_descriptor_size);
+        const uint32_t offset = m_nextBufferOffset;
+
+        const VkDeviceSize limit = m_sizes.image_heap_offset;
+
+        if (offset + size > limit)
+            throw std::runtime_error("Descriptor heap buffer region exhausted");
+
+        m_nextBufferOffset += size;
+
         VkDeviceAddressRangeEXT buffer_device_addr_range
         {
             .address = buf->get_device_address(),
@@ -85,20 +95,30 @@ public:
             .data  = {.pAddressRange = &buffer_device_addr_range}
         };
 
+
+
         VkHostAddressRangeEXT buffer_host_address
         {
-            .address = (uint8_t *) (m_descHeapResources->get_data()), 
+            .address = (uint8_t *) (m_descHeapResources->get_data()) + offset, // pay attention here
             .size    = m_sizes.buffer_descriptor_size
         };
 
-        const uint32_t size = static_cast<uint32_t>(m_sizes.buffer_descriptor_size);
-        const uint32_t offset = m_nextBufferOffset;
-        m_nextBufferOffset += size;
 
-        dev.vkWriteResourceDescriptorsEXT(dev.get(), 1, &buffer_resource_desc, &buffer_host_address);
+
+        dev.vkWriteResourceDescriptorsEXT(
+            dev.get(), 
+            1, 
+            &buffer_resource_desc, 
+            &buffer_host_address
+        );
 
         //std::cout<<"OFFSET: "<<m_nextBufferOffset<<"\n";
         return offset;
+
+    }
+
+    void upload_image(VulkanDevice& dev)
+    {
 
     }
 

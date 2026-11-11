@@ -124,6 +124,64 @@ void VkRenderer::Initialize(Context& context)
 
 }
 
+
+void VkRenderer::create_global_uniforms()
+{
+    VkDescriptorSetAndBindingMappingEXT buff_bind{};
+    buff_bind.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_AND_BINDING_MAPPING_EXT;
+    buff_bind.pNext = nullptr;
+    buff_bind.descriptorSet = 0;
+    buff_bind.firstBinding = 0;
+    buff_bind.bindingCount = 1;
+    buff_bind.resourceMask = VK_SPIRV_RESOURCE_TYPE_UNIFORM_BUFFER_BIT_EXT;
+    buff_bind.source = VK_DESCRIPTOR_MAPPING_SOURCE_HEAP_WITH_CONSTANT_OFFSET_EXT;
+
+    VkShaderDescriptorSetAndBindingMappingInfoEXT mapping_info{};
+    mapping_info.sType =
+        VK_STRUCTURE_TYPE_SHADER_DESCRIPTOR_SET_AND_BINDING_MAPPING_INFO_EXT;
+    mapping_info.pNext = nullptr;
+    mapping_info.mappingCount = 1;
+    mapping_info.pMappings = &buff_bind;
+
+    vertex_obj->set_pNext(mapping_info);
+    fragment_obj->set_pNext(mapping_info);
+
+    suite = std::make_unique<ShaderOBJ::ShaderSuite<
+            ShaderType::VERTEX,
+            ShaderType::FRAGMENT
+        >>(m_vkContext.get_device(), *vertex_obj, *fragment_obj);
+    suite->link();
+
+    
+    
+
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), swapchain -> get_width() / (float) swapchain -> get_height(), 0.1f, 10.0f);
+    //ubo.proj[1][1] *= -1.0f;
+
+
+
+    BufferConfig ubo_config(sizeof(ubo));
+    ubo_config
+    .with_debug_name("uniform_buff_1")
+    .with_usage(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | 
+    VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT)
+    .with_vma_flags(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT).
+    with_sharing_mode(VK_SHARING_MODE_EXCLUSIVE);
+
+    m_uniform_buff_ptr = ubo_config.build_ptr(m_vkContext.get_device());
+    m_uniform_buff_ptr->update(ubo);
+
+    
+    m_heap_manager.upload_buffer(m_vkContext.get_device(), m_uniform_buff_ptr);
+}
+
+void VkRenderer::update_global_uniforms()
+{
+
+}
+
+
 void VkRenderer::Submit(const RenderObject& obj)
 {
     m_render_objects.emplace_back(obj);
@@ -250,28 +308,28 @@ void VkRenderer::Shutdown() {
 
 }
 
- void VkRenderer::UpdateResolution(const Resolution& res)
- {
-    swapchain.get()->update_resolution(res.width, res.height);
-    
+
+void VkRenderer::UpdateResolution(const Resolution& res)
+{   
     m_vkContext.update_instance_resolution(res);
 
+    m_swapchainRecreation = true;
+
     LLOGI("Resolution updated: %d x %d", res.width, res.height);
- }
+}
 
 
 
 void VkRenderer::create_swapchain()
 {
 
-    swapchain = std::make_unique<VulkanSwapchain>(m_vkContext.get_device(), 
-     m_vkContext.get_instance().get_surface_handle(), 
-                                                         m_vkContext.get_instance().get_resolution().width, 
-                                                         m_vkContext.get_instance().get_resolution().height);
+    swapchain = std::make_unique<VulkanSwapchain>(
+        m_vkContext.get_device(), 
+        m_vkContext.get_instance().get_surface_handle(), 
+        m_vkContext.get_instance().get_resolution().width, 
+        m_vkContext.get_instance().get_resolution().height);
     swapchain -> createSwapChain();
     swapchain -> create_swapchain_image_views();
-
-
 }
 
 
@@ -377,6 +435,8 @@ void VkRenderer::create_camera_ubo()
 
     m_camera_ubo->update(m_cam_data);
 
+
+    
 
 }
 
@@ -561,6 +621,18 @@ data.s_buffer.begin_render(renderInfo);
     vkCmdDrawIndexed(
         data.s_buffer.get_handle(),
         m_meshes[1].index_count,
+        1,
+        0,
+        0,
+        0
+    );
+
+    data.s_buffer.bind_vertex_buffers(m_meshes[0].vertex_buffer, 0);
+    data.s_buffer.bind_index_buffers(m_meshes[0].index_buffer);
+
+    vkCmdDrawIndexed(
+        data.s_buffer.get_handle(),
+        m_meshes[0].index_count,
         1,
         0,
         0,

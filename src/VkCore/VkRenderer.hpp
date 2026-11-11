@@ -78,11 +78,13 @@ public:
     void render();
     void clean_frame_data();
 
+    void create_global_uniforms();
     void update_global_uniforms();
+
+    void create_entity_uniforms();
     void update_entity_unfiorms();
 
     void clean_swapchain_v2();
-    void recreate_swapchain_v2();
 
     //just for now its sets all states no costomization
     void set_all_states(VkCommandBuffer);
